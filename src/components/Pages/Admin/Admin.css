@@ -1,0 +1,24 @@
+.highlight-new {
+  background-color: #fff9c4; /* light yellow */
+  transition: background-color 0.5s ease;
+}
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  width: 400px;
+}
+.modal-header {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
