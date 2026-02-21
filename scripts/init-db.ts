@@ -1,39 +1,60 @@
-import { getDatabase } from "@/lib/mongodb";
+import clientPromise from "@/lib/mongodb";
 import bcrypt from "bcryptjs";
 
 async function initializeDatabase() {
-  const db = await getDatabase();
+  try {
+    const client = await clientPromise;
+    const db = client.db("eastcmsa");
 
-  // Users collection indexes
-  await db.collection("users").createIndex({ email: 1 }, { unique: true });
-  await db.collection("users").createIndex({ createdAt: -1 });
+    // Create collections if they don't exist
+    const collections = await db.listCollections().toArray();
+    const collectionNames = collections.map(c => c.name);
 
-  // Sessions collection indexes
-  await db.collection("sessions").createIndex({ sessionToken: 1 }, { unique: true });
-  await db.collection("sessions").createIndex({ expires: 1 }, { expireAfterSeconds: 0 });
+    if (!collectionNames.includes("users")) {
+      await db.createCollection("users");
+      console.log("✅ Users collection created");
+    }
 
-  // Create default admin
-  const admin = await db.collection("users").findOne({ email: "admin@eastcmsa.com" });
-  if (!admin) {
-    const hashed = await bcrypt.hash("admin123", 12);
-    await db.collection("users").insertOne({
-      name: "Admin",
-      email: "admin@eastcmsa.com",
-      password: hashed,
-      role: "admin",
-      emailVerified: true,
-      receiveUpdates: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    console.log("✅ Admin created");
+    if (!collectionNames.includes("contents")) {
+      await db.createCollection("contents");
+      console.log("✅ Contents collection created");
+    }
+
+    if (!collectionNames.includes("activities")) {
+      await db.createCollection("activities");
+      console.log("✅ Activities collection created");
+    }
+
+    // Create indexes
+    await db.collection("users").createIndex({ email: 1 }, { unique: true });
+    await db.collection("contents").createIndex({ title: 1 });
+    await db.collection("activities").createIndex({ time: -1 });
+
+    console.log("✅ Indexes created");
+
+    // Check if admin user exists
+    const adminExists = await db.collection("users").findOne({ email: "admin@eastcmsa.com" });
+    
+    if (!adminExists) {
+      const hashedPassword = await bcrypt.hash("admin123", 10);
+      await db.collection("users").insertOne({
+        email: "admin@eastcmsa.com",
+        password: hashedPassword,
+        name: "Admin",
+        role: "admin",
+        createdAt: new Date()
+      });
+      console.log("✅ Admin user created");
+    } else {
+      console.log("✅ Admin user already exists");
+    }
+
+    console.log("🎉 Database initialization complete!");
+    process.exit(0);
+  } catch (error) {
+    console.error("❌ Error initializing database:", error);
+    process.exit(1);
   }
-
-  console.log("✅ Database initialized");
 }
 
-if (require.main === module) {
-  initializeDatabase();
-}
-
-export { initializeDatabase };
+initializeDatabase();

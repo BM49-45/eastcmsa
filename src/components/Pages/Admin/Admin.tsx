@@ -1,12 +1,9 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { default as io, Socket } from "socket.io-client"; // ⚡️ Socket.IO client - fixed import
-import { contentService } from "../../../services/contentService";
 import UploadForm from "../../Forms/UploadForm";
 import "./Admin.css";
 
-// 🔹 Content interface
 interface Content {
   _id: string;
   title: string;
@@ -16,15 +13,7 @@ interface Content {
   downloads: number;
 }
 
-// 🔹 Notification interface
-interface AppNotification {
-  id: string;
-  type: "activity" | "content";
-  title: string;
-  time: Date;
-}
-
-export default function Admin() {
+export default function AdminClient() {
   const [contents, setContents] = useState<Content[]>([]);
   const [stats, setStats] = useState({
     totalContent: 0,
@@ -33,39 +22,30 @@ export default function Admin() {
     totalUsers: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [socket, setSocket] = useState<typeof Socket | null>(null); // Fixed: using typeof Socket
 
-  // 🔹 Load content & stats
+  // 🔹 Load contents using fetch API
   const loadContents = useCallback(async () => {
     try {
-      const data = await contentService.getAllContent();
+      const res = await fetch('/api/content');
+      const data = await res.json();
       
-      // Check if data is array and has the expected structure
       if (Array.isArray(data)) {
-        // Map the data to ensure it matches Content interface
-        const formattedContents: Content[] = data.map((item: any) => ({
-          _id: item._id || '',
-          title: item.title || 'Untitled',
+        const formatted: Content[] = data.map((item: any) => ({
+          _id: item._id ?? "",
+          title: item.title ?? "Untitled",
           category: item.category,
-          views: item.views || 0,
-          likes: item.likes || 0,
-          downloads: item.downloads || 0
+          views: item.views ?? 0,
+          likes: item.likes ?? 0,
+          downloads: item.downloads ?? 0,
         }));
-        
-        setContents(formattedContents);
-
-        const totalViews = formattedContents.reduce((sum, c) => sum + c.views, 0);
-        const totalDownloads = formattedContents.reduce((sum, c) => sum + c.downloads, 0);
+        setContents(formatted);
 
         setStats({
-          totalContent: formattedContents.length,
-          totalViews,
-          totalDownloads,
+          totalContent: formatted.length,
+          totalViews: formatted.reduce((sum, c) => sum + c.views, 0),
+          totalDownloads: formatted.reduce((sum, c) => sum + c.downloads, 0),
           totalUsers: parseInt(localStorage.getItem("totalUsers") || "0", 10),
         });
-      } else {
-        console.error("Invalid data format received:", data);
       }
     } catch (err) {
       console.error("Error loading contents:", err);
@@ -74,45 +54,24 @@ export default function Admin() {
     }
   }, []);
 
-  // 🔹 Setup Socket.IO
   useEffect(() => {
     loadContents();
-
-    const s = io(); // connect to default endpoint
-    setSocket(s as typeof Socket);
-
-    s.on("activities", (data: any[]) => {
-      setNotifications(
-        data.map((a) => ({
-          id: a._id || Math.random().toString(),
-          type: "activity",
-          title: a.userName
-            ? `${a.userName} ${a.action}${
-                a.contentTitle ? `: ${a.contentTitle}` : ""
-              }`
-            : "Unknown",
-          time: new Date(a.time || Date.now()),
-        }))
-      );
-    });
-
-    return () => {
-      s.disconnect();
-    };
   }, [loadContents]);
-
-  const markAllAsRead = () => {
-    setNotifications([]);
-    socket?.emit("markAllRead");
-  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Una uhakika unataka kufuta maudhui haya?")) return;
     try {
-      await contentService.deleteContent(id);
-      setContents(contents.filter((c) => c._id !== id));
-      alert("Maudhui yamefutwa kikamilifu!");
-    } catch (err) {
+      const res = await fetch(`/api/content/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (res.ok) {
+        setContents(contents.filter((c) => c._id !== id));
+        alert("Maudhui yamefutwa kikamilifu!");
+      } else {
+        alert("Hitilafu katika kufuta maudhui.");
+      }
+    } catch {
       alert("Hitilafu katika kufuta maudhui.");
     }
   };
@@ -128,20 +87,6 @@ export default function Admin() {
     <div className="admin-page">
       <div className="admin-header flex justify-between items-center">
         <h1>🔧 Ukaguzi wa Mfumo</h1>
-        <div className="relative">
-          <button
-            type="button"
-            onClick={markAllAsRead}
-            className="relative p-2 hover:bg-gray-100 rounded-lg"
-            aria-label="Notifikesheni"
-            title="Notifikesheni"
-          >
-            🔔
-            {notifications.length > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            )}
-          </button>
-        </div>
       </div>
 
       <div className="admin-stats">
@@ -178,10 +123,7 @@ export default function Admin() {
                 </div>
                 <div className="content-actions">
                   <button className="edit-btn">✏️ Badilisha</button>
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDelete(content._id)}
-                  >
+                  <button className="delete-btn" onClick={() => handleDelete(content._id)}>
                     🗑️ Futa
                   </button>
                 </div>

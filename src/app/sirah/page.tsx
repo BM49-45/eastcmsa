@@ -1,266 +1,890 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { BookOpen, Users, Calendar, PlayCircle, Download, Clock, History } from 'lucide-react'
-import Link from 'next/link'
+import { useState, useEffect, useMemo } from 'react'
+import {
+  Play,
+  Pause,
+  Download,
+  Share2,
+  Clock,
+  User,
+  Calendar,
+  FileAudio,
+  ExternalLink,
+  RefreshCw,
+  AlertCircle,
+  Volume2,
+  VolumeX,
+  SkipBack,
+  SkipForward,
+  BookOpen,
+  MapPin,
+  Search,
+  ListMusic,
+  History,
+  Star,
+  Users,
+  Heart,
+  Bookmark,
+  Filter,
+  LayoutGrid,
+  List,
+  ChevronDown,
+  ChevronUp,
+  Award,
+  GraduationCap,
+  Building2,
+  Globe
+} from 'lucide-react'
+import { useAudio } from '@/context/AudioContext'
+import './page.css'
+
+interface SirahAudio {
+  filename: string
+  title: string
+  duration: string
+  size: number
+  speaker: string
+  date: string
+  hijri: string
+}
+
+interface SirahMetadata {
+  category: string
+  description: string
+  author: string
+  location: string
+  teacher: string
+  schedule: string
+  files: SirahAudio[]
+}
 
 export default function SirahPage() {
-  const sirahDetails = {
-    teacher: 'Sheikh Iddy Issa',
-    book: 'Khulaswah Nurulyaqyn',
-    started: 'Desemba 2025',
-    schedule: 'Jumanne na Jumatano',
-    time: 'Baada ya Maghrib hadi Isha',
-    location: 'Msikiti Mkuu wa Changanyikeni'
+  const [metadata, setMetadata] = useState<SirahMetadata | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [sortBy, setSortBy] = useState<'date' | 'title' | 'duration'>('date')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [selectedSpeaker, setSelectedSpeaker] = useState<string>('all')
+  const [showFilters, setShowFilters] = useState(false)
+  const [bookmarked, setBookmarked] = useState<string[]>([])
+
+  const { audioState, playLectureAudio, togglePlay, setVolume, setMuted, seekTo, nextTrack, prevTrack, setPlaylist } = useAudio()
+  
+  useEffect(() => {
+    loadMetadata()
+    loadBookmarks()
+  }, [])
+
+  const loadBookmarks = () => {
+    const saved = localStorage.getItem('sirah-bookmarks')
+    if (saved) {
+      setBookmarked(JSON.parse(saved))
+    }
   }
 
-  const sessions = [
-    {
-      week: 1,
-      topic: 'Utangulizi wa Sirah',
-      date: 'Des 3, 2025',
-      duration: '40 min',
-      status: 'imekamilika'
-    },
-    {
-      week: 2,
-      topic: 'Uzazi na Utoto wa Mtume',
-      date: 'Des 10, 2025',
-      duration: '48 min',
-      status: 'imekamilika'
-    },
-    {
-      week: 3,
-      topic: 'Maisha Kabla ya Ufunuo',
-      date: 'Des 17, 2025',
-      duration: '52 min',
-      status: 'ijayo'
+  const toggleBookmark = (filename: string) => {
+    const newBookmarks = bookmarked.includes(filename)
+      ? bookmarked.filter(f => f !== filename)
+      : [...bookmarked, filename]
+    
+    setBookmarked(newBookmarks)
+    localStorage.setItem('sirah-bookmarks', JSON.stringify(newBookmarks))
+  }
+
+  useEffect(() => {
+    if (metadata?.files && metadata.files.length > 0) {
+      const playlist = metadata.files.map(audio => ({
+        type: 'lecture' as const,
+        id: audio.filename,
+        title: audio.title,
+        speaker: audio.speaker,
+        url: `/audio/sirah/${audio.filename}`,
+        downloadUrl: `/audio/sirah/${audio.filename}`,
+        filename: audio.filename,
+        size: audio.size,
+        duration: audio.duration,
+        date: audio.date,
+        category: 'sirah',
+        semester: 'Darsa za Sirah',
+        venue: metadata.location,
+        topics: [],
+        language: 'Arabic/Swahili',
+        quality: '320kbps'
+      }))
+      
+      setPlaylist(playlist)
     }
-  ]
+  }, [metadata, setPlaylist])
+
+  const loadMetadata = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const response = await fetch('/audio/sirah/metadata.json', {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+      const data = await response.json()
+      
+      if (data && data.files && Array.isArray(data.files)) {
+        setMetadata(data)
+      } else {
+        setError('Muundo wa metadata sio sahihi')
+      }
+    } catch (error: any) {
+      console.error('❌ Hitilafu:', error)
+      setError(`Hitilafu ya kupakia data: ${error.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatSize = (bytes: number) => {
+    const mb = bytes / (1024 * 1024)
+    return `${mb.toFixed(1)} MB`
+  }
+
+  const formatDuration = (duration: string) => {
+    if (!duration) return '0:00'
+    if (duration.includes(':')) {
+      const [mins, secs] = duration.split(':').map(Number)
+      return `${mins}:${secs.toString().padStart(2, '0')}`
+    }
+    return duration
+  }
+
+  const durationToSeconds = (duration: string): number => {
+    if (!duration) return 0
+    if (duration.includes(':')) {
+      const [mins, secs] = duration.split(':').map(Number)
+      return (mins * 60) + secs
+    }
+    return parseInt(duration) || 0
+  }
+
+  const progressPercentage = useMemo(() => {
+    if (!audioState.duration || audioState.duration === 0) return 0
+    return (audioState.currentTime / audioState.duration) * 100
+  }, [audioState.currentTime, audioState.duration])
+
+  const volumePercentage = useMemo(() => {
+    return audioState.volume * 100
+  }, [audioState.volume])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      document.documentElement.style.setProperty('--sirah-progress', `${progressPercentage}%`)
+      document.documentElement.style.setProperty('--sirah-volume', `${volumePercentage}%`)
+    }
+  }, [progressPercentage, volumePercentage])
+
+  const speakers = useMemo(() => {
+    if (!metadata?.files) return []
+    const uniqueSpeakers = new Set(metadata.files.map(f => f.speaker))
+    return ['all', ...Array.from(uniqueSpeakers)]
+  }, [metadata?.files])
+
+  const filteredAudios = useMemo(() => {
+    if (!metadata?.files) return []
+
+    let filtered = [...metadata.files]
+
+    if (searchTerm) {
+      filtered = filtered.filter(audio => 
+        audio.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        audio.speaker.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        audio.date.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        audio.hijri.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+
+    if (selectedSpeaker !== 'all') {
+      filtered = filtered.filter(audio => audio.speaker === selectedSpeaker)
+    }
+
+    filtered.sort((a, b) => {
+      let comparison = 0
+      
+      switch (sortBy) {
+        case 'date':
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime()
+          break
+        case 'title':
+          comparison = a.title.localeCompare(b.title)
+          break
+        case 'duration':
+          comparison = durationToSeconds(a.duration) - durationToSeconds(b.duration)
+          break
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+
+    return filtered
+  }, [metadata?.files, searchTerm, selectedSpeaker, sortBy, sortOrder])
+
+  const handlePlayAudio = async (audio: SirahAudio) => {
+    const audioUrl = `/audio/sirah/${audio.filename}`
+    
+    const lectureAudio = {
+      type: 'lecture' as const,
+      id: audio.filename,
+      title: audio.title,
+      speaker: audio.speaker,
+      url: audioUrl,
+      downloadUrl: audioUrl,
+      filename: audio.filename,
+      size: audio.size,
+      duration: audio.duration,
+      date: audio.date,
+      category: 'sirah',
+      semester: 'Darsa za Sirah',
+      venue: metadata?.location || 'Masjid Chang\'anyikeni, Ubungo',
+      topics: [],
+      language: 'Arabic/Swahili',
+      quality: '320kbps'
+    }
+    
+    try {
+      await playLectureAudio(lectureAudio)
+    } catch (error) {
+      console.error('Error playing audio:', error)
+      alert('Kuna tatizo la kusikiliza audio. Tafadhali jaribu tena.')
+    }
+  }
+
+  const handleDownload = (audio: SirahAudio) => {
+    const audioUrl = `/audio/sirah/${audio.filename}`
+    const link = document.createElement('a')
+    link.href = audioUrl
+    link.download = audio.filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const handleShare = async (audio: SirahAudio) => {
+    const shareText = `${audio.title}\nMwalimu: ${audio.speaker}\nTarehe: ${audio.date} (${audio.hijri})\nMuda: ${audio.duration}`
+    const shareUrl = window.location.href
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: audio.title,
+          text: shareText,
+          url: shareUrl
+        })
+      } catch (err) {
+        console.log('Share cancelled')
+      }
+    } else {
+      navigator.clipboard.writeText(`${shareText}\n${shareUrl}`)
+      alert('Maelezo ya darsa yamepangwa kwenye clipboard!')
+    }
+  }
+
+  const isCurrentlyPlaying = (filename: string) => {
+    return audioState.isPlaying &&
+           audioState.currentLecture?.filename === filename &&
+           audioState.audioType === 'lecture'
+  }
+
+  const formatTime = (seconds: number) => {
+    if (!seconds || isNaN(seconds)) return '0:00'
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`
+  }
+
+  if (loading) {
+    return (
+      <div className="sirah-loading-container">
+        <div className="sirah-loading-spinner">
+          <History className="sirah-loading-icon" size={48} />
+        </div>
+        <p className="sirah-loading-text">Inapakia Darsa za Sirah...</p>
+        <p className="sirah-loading-subtext">Maisha ya Mtume Muhammad (SAW)</p>
+      </div>
+    )
+  }
+
+  if (error || !metadata) {
+    return (
+      <div className="sirah-error-container">
+        <div className="sirah-error-card">
+          <AlertCircle className="sirah-error-icon" size={64} />
+          <h2 className="sirah-error-title">Hitilafu ya Kupakia Darsa</h2>
+          <p className="sirah-error-message">{error || 'Hakuna data ya metadata ilipatikana'}</p>
+          
+          <button
+            type="button"
+            onClick={loadMetadata}
+            className="sirah-retry-btn"
+          >
+            <RefreshCw size={20} />
+            <span>Jaribu Tena</span>
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen pt-20">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white py-16">
-        <div className="container mx-auto px-4">
-          <motion.h1
-            initial={{ y: -20 }}
-            animate={{ y: 0 }}
-            className="text-4xl md:text-5xl font-bold mb-4 flex items-center"
-          >
-            <History className="mr-4" />
-            Sirah - Khulaswah Nurulyaqyn
-          </motion.h1>
-          <p className="text-xl opacity-90 max-w-3xl">
-            Maisha ya Mtume Muhammad (SAW) - Kuanzia Desemba 2025
+    <div className="sirah-container">
+      {/* Hero Section - Gray-Green-Pink Theme */}
+      <div className="sirah-hero">
+        <div className="sirah-hero-pattern"></div>
+        <div className="sirah-hero-overlay"></div>
+        
+        <div className="sirah-hero-content container">
+          <div className="sirah-hero-badge" data-aos="fade-up">
+            <History className="sirah-hero-badge-icon" size={24} />
+            <span>سِيرَةُ النَّبِيِّ مُحَمَّدٍ ﷺ</span>
+          </div>
+          
+          <h1 className="sirah-hero-title" data-aos="fade-up" data-aos-delay="100">
+            Sirah ya Mtume Muhammad <span className="sirah-hero-title-arabic">ﷺ</span>
+          </h1>
+          
+          <p className="sirah-hero-subtitle" data-aos="fade-up" data-aos-delay="200">
+            {metadata.description}
           </p>
+          
+          <div className="sirah-hero-stats" data-aos="fade-up" data-aos-delay="300">
+            <div className="sirah-hero-stat">
+              <div className="sirah-hero-stat-icon">
+                <BookOpen size={24} />
+              </div>
+              <div className="sirah-hero-stat-content">
+                <div className="sirah-hero-stat-value">{metadata.files.length}</div>
+                <div className="sirah-hero-stat-label">Maudhui</div>
+              </div>
+            </div>
+            
+            <div className="sirah-hero-stat">
+              <div className="sirah-hero-stat-icon">
+                <GraduationCap size={24} />
+              </div>
+              <div className="sirah-hero-stat-content">
+                <div className="sirah-hero-stat-value">{metadata.teacher}</div>
+                <div className="sirah-hero-stat-label">Mwalimu</div>
+              </div>
+            </div>
+            
+            <div className="sirah-hero-stat">
+              <div className="sirah-hero-stat-icon">
+                <Building2 size={24} />
+              </div>
+              <div className="sirah-hero-stat-content">
+                <div className="sirah-hero-stat-value">Chang'anyikeni</div>
+                <div className="sirah-hero-stat-label">{metadata.location}</div>
+              </div>
+            </div>
+            
+            <div className="sirah-hero-stat">
+              <div className="sirah-hero-stat-icon">
+                <Calendar size={24} />
+              </div>
+              <div className="sirah-hero-stat-content">
+                <div className="sirah-hero-stat-value">{metadata.schedule}</div>
+                <div className="sirah-hero-stat-label">Ratiba</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="sirah-hero-quote" data-aos="fade-up" data-aos-delay="400">
+            <Heart size={24} className="sirah-hero-quote-icon" />
+            <p>
+              "وَمَا أَرْسَلْنَاكَ إِلَّا رَحْمَةً لِّلْعَالَمِينَ"
+            </p>
+            <p className="sirah-hero-quote-translation">
+              "Na hatukukutuma wewe ila ni rehema kwa walimwengu wote."
+            </p>
+            <span className="sirah-hero-quote-reference">— Qur'an 21:107</span>
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            {/* Course Overview */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
-              <h2 className="text-2xl font-bold mb-6">Maelezo ya Kozi</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {Object.entries(sirahDetails).map(([key, value], index) => (
-                  <motion.div
-                    key={key}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-xl"
-                  >
-                    <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                      {key === 'teacher' ? 'Mwalimu' :
-                       key === 'book' ? 'Kitabu' :
-                       key === 'started' ? 'Imeanzia' :
-                       key === 'schedule' ? 'Ratiba' :
-                       key === 'time' ? 'Muda' : 'Mahali'}
-                    </div>
-                    <div className="font-bold">{value}</div>
-                  </motion.div>
+      {/* Main Content */}
+      <div className="sirah-main container">
+        {/* Controls Bar */}
+        <div className="sirah-controls-bar" data-aos="fade-up">
+          <div className="sirah-search-wrapper">
+            <Search size={20} className="sirah-search-icon" />
+            <input
+              type="text"
+              placeholder="Tafuta darsa, mwalimu, tarehe..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="sirah-search-input"
+              aria-label="Tafuta darsa"
+            />
+          </div>
+          
+          <div className="sirah-controls-group">
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`sirah-filter-btn ${showFilters ? 'active' : ''}`}
+              aria-label="Filters"
+              title="Filters"
+            >
+              <Filter size={18} />
+              <span className="sirah-filter-btn-text">Filters</span>
+              {showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            
+            <div className="sirah-view-toggle">
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                className={`sirah-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                aria-label="Onyesha kwa gridi"
+                title="Grid view"
+              >
+                <LayoutGrid size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={`sirah-view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                aria-label="Onyesha kwa orodha"
+                title="List view"
+              >
+                <List size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters Panel */}
+        {showFilters && (
+          <div className="sirah-filters-panel" data-aos="fade-down">
+            <div className="sirah-filter-group">
+              <label htmlFor="speaker-filter" className="sirah-filter-label">Mwalimu</label>
+              <select
+                id="speaker-filter"
+                value={selectedSpeaker}
+                onChange={(e) => setSelectedSpeaker(e.target.value)}
+                className="sirah-filter-select"
+                aria-label="Chagua mwalimu"
+              >
+                {speakers.map(speaker => (
+                  <option key={speaker} value={speaker}>
+                    {speaker === 'all' ? 'Wote' : speaker}
+                  </option>
                 ))}
-              </div>
-
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-6 rounded-xl">
-                <h3 className="font-bold mb-4 flex items-center">
-                  <BookOpen className="mr-2" />
-                  Kuhusu Kitabu
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300 mb-3">
-                  <strong>"Khulaswah Nurulyaqyn"</strong> ni kitabu maarufu kinachozungumzia maisha ya 
-                  Mtume Muhammad (SAW) kwa ufupi na wazi. Kinachukuliwa kama moja ya vitabu bora 
-                  vya Sirah kwa lugha ya Kiswahili.
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Kitabu hiki kinaelezea maisha yote ya Mtume (SAW) kutoka kuzaliwa hadi kufariki.
-                </p>
+              </select>
+            </div>
+            
+            <div className="sirah-filter-group">
+              <label className="sirah-filter-label">Panga kwa</label>
+              <div className="sirah-filter-buttons">
+                <button
+                  type="button"
+                  onClick={() => setSortBy('date')}
+                  className={`sirah-filter-button ${sortBy === 'date' ? 'active' : ''}`}
+                  aria-label="Panga kwa tarehe"
+                >
+                  Tarehe
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortBy('title')}
+                  className={`sirah-filter-button ${sortBy === 'title' ? 'active' : ''}`}
+                  aria-label="Panga kwa kichwa"
+                >
+                  Kichwa
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortBy('duration')}
+                  className={`sirah-filter-button ${sortBy === 'duration' ? 'active' : ''}`}
+                  aria-label="Panga kwa muda"
+                >
+                  Muda
+                </button>
               </div>
             </div>
-
-            {/* Teacher Info */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
-              <h3 className="text-xl font-bold mb-4 flex items-center">
-                <Users className="mr-2" />
-                Kuhusu Mwalimu
-              </h3>
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                <div className="flex-shrink-0">
-                  <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center text-white text-3xl">
-                    SI
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold mb-2">Sheikh Iddy Issa</h4>
-                  <p className="text-gray-600 dark:text-gray-300 mb-3">
-                    Mtaalamu wa Sirah na Historia ya Kiislamu. Anafundisha kitabu cha 
-                    "Khulaswah Nurulyaqyn" kwa kina na mifano wazi.
-                  </p>
-                  <div className="text-sm text-gray-500">
-                    Anafundisha kila Jumanne na Jumatano baada ya swala la Maghrib.
-                  </div>
-                </div>
+            
+            <div className="sirah-filter-group">
+              <label className="sirah-filter-label">Mpangilio</label>
+              <div className="sirah-filter-buttons">
+                <button
+                  type="button"
+                  onClick={() => setSortOrder('asc')}
+                  className={`sirah-filter-button ${sortOrder === 'asc' ? 'active' : ''}`}
+                  aria-label="Panga kwa kupanda"
+                >
+                  Kupanda
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortOrder('desc')}
+                  className={`sirah-filter-button ${sortOrder === 'desc' ? 'active' : ''}`}
+                  aria-label="Panga kwa kushuka"
+                >
+                  Kushuka
+                </button>
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Sessions */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold mb-6">Darsa</h2>
+        {/* Results Info */}
+        <div className="sirah-results-info" data-aos="fade-up">
+          <div className="sirah-results-count">
+            <ListMusic size={20} />
+            <span>
+              {filteredAudios.length} {filteredAudios.length === 1 ? 'darsa' : 'darsa'} 
+              {searchTerm && ` zenye "${searchTerm}"`}
+            </span>
+          </div>
+          
+          {bookmarked.length > 0 && (
+            <div className="sirah-bookmarks-info">
+              <Bookmark size={16} />
+              <span>{bookmarked.length} zimehifadhiwa</span>
+            </div>
+          )}
+        </div>
+
+        {/* Audio Grid/List */}
+        {filteredAudios.length > 0 ? (
+          <div className={`sirah-audios-container ${viewMode}`}>
+            {filteredAudios.map((audio, index) => {
+              const isPlaying = isCurrentlyPlaying(audio.filename)
+              const isBookmarked = bookmarked.includes(audio.filename)
+              const darsaNumber = (index + 1).toString().padStart(2, '0')
               
-              <div className="space-y-4">
-                {sessions.map((session, index) => (
-                  <motion.div
-                    key={session.week}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className={`p-4 border rounded-xl ${
-                      session.status === 'imekamilika'
-                        ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/10'
-                        : session.status === 'ijayo'
-                        ? 'border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/10'
-                        : 'border-gray-200 dark:border-gray-700'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-bold">Wiki {session.week}: {session.topic}</h3>
-                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600 dark:text-gray-300">
-                          <span className="flex items-center">
-                            <Calendar size={14} className="mr-1" />
-                            {session.date}
-                          </span>
-                          <span className="flex items-center">
-                            <Clock size={14} className="mr-1" />
-                            {session.duration}
-                          </span>
-                        </div>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-sm ${
-                        session.status === 'imekamilika'
-                          ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300'
-                          : 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300'
-                      }`}>
-                        {session.status === 'imekamilika' ? 'Imepakuliwa' : 'Inakuja'}
-                      </span>
+              return viewMode === 'grid' ? (
+                // Grid View Card
+                <div
+                  key={audio.filename}
+                  className={`sirah-audio-card ${isPlaying ? 'playing' : ''}`}
+                  data-aos="fade-up"
+                  data-aos-delay={index * 50}
+                >
+                  <div className="sirah-card-header">
+                    <span className="sirah-card-number">#{darsaNumber}</span>
+                    <div className="sirah-card-header-actions">
+                      <button
+                        type="button"
+                        onClick={() => toggleBookmark(audio.filename)}
+                        className={`sirah-bookmark-btn ${isBookmarked ? 'active' : ''}`}
+                        aria-label={isBookmarked ? 'Ondoa kwenye bookmark' : 'Weka kwenye bookmark'}
+                        title={isBookmarked ? 'Ondoa kwenye bookmark' : 'Weka kwenye bookmark'}
+                      >
+                        <Bookmark size={16} fill={isBookmarked ? 'currentColor' : 'none'} />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <h3 className="sirah-card-title">{audio.title}</h3>
+                  
+                  <div className="sirah-card-meta">
+                    <div className="sirah-card-meta-item">
+                      <User size={14} />
+                      <span>{audio.speaker}</span>
+                    </div>
+                    <div className="sirah-card-meta-item">
+                      <Calendar size={14} />
+                      <span>{audio.date}</span>
+                    </div>
+                    <div className="sirah-card-meta-item">
+                      <Clock size={14} />
+                      <span>{formatDuration(audio.duration)}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="sirah-card-footer">
+                    <div className="sirah-card-actions">
+                      <button
+                        type="button"
+                        onClick={() => handleShare(audio)}
+                        className="sirah-card-action"
+                        aria-label="Shiriki"
+                        title="Shiriki"
+                      >
+                        <Share2 size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDownload(audio)}
+                        className="sirah-card-action"
+                        aria-label="Pakua"
+                        title="Pakua"
+                      >
+                        <Download size={16} />
+                      </button>
+                      <a
+                        href={`/audio/sirah/${audio.filename}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="sirah-card-action"
+                        aria-label="Fungua kwenye tab mpya"
+                        title="Fungua kwenye tab mpya"
+                      >
+                        <ExternalLink size={16} />
+                      </a>
                     </div>
                     
-                    {session.status === 'imekamilika' ? (
-                      <div className="flex space-x-3">
-                        <button className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center space-x-2">
-                          <PlayCircle size={18} />
-                          <span>Sikiliza</span>
-                        </button>
-                        <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg flex items-center space-x-2">
-                          <Download size={18} />
-                          <span>Pakua</span>
-                        </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePlayAudio(audio)}
+                      className={`sirah-card-play-btn ${isPlaying ? 'playing' : ''}`}
+                      disabled={audioState.isLoading && audioState.currentLecture?.filename === audio.filename}
+                      aria-label={isPlaying ? 'Simamisha' : `Cheza ${audio.title}`}
+                    >
+                      {audioState.isLoading && audioState.currentLecture?.filename === audio.filename ? (
+                        <div className="sirah-loading-spinner-small"></div>
+                      ) : isPlaying ? (
+                        <>
+                          <Pause size={18} />
+                          <span className="sirah-card-play-btn-text">Inacheza</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play size={18} />
+                          <span className="sirah-card-play-btn-text">Cheza</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  
+                  {isPlaying && (
+                    <div className="sirah-playing-indicator">
+                      <span className="sirah-playing-bar"></span>
+                      <span className="sirah-playing-bar"></span>
+                      <span className="sirah-playing-bar"></span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // List View Item
+                <div
+                  key={audio.filename}
+                  className={`sirah-list-item ${isPlaying ? 'playing' : ''}`}
+                  data-aos="fade-up"
+                >
+                  <div className="sirah-list-number">{darsaNumber}</div>
+                  
+                  <div className="sirah-list-content">
+                    <div className="sirah-list-info">
+                      <h3 className="sirah-list-title">{audio.title}</h3>
+                      
+                      <div className="sirah-list-meta">
+                        <span className="sirah-list-meta-item">
+                          <User size={14} />
+                          {audio.speaker}
+                        </span>
+                        <span className="sirah-list-meta-item">
+                          <Calendar size={14} />
+                          {audio.date} ({audio.hijri})
+                        </span>
+                        <span className="sirah-list-meta-item">
+                          <Clock size={14} />
+                          {formatDuration(audio.duration)}
+                        </span>
+                        <span className="sirah-list-meta-item">
+                          <FileAudio size={14} />
+                          {formatSize(audio.size)}
+                        </span>
                       </div>
-                    ) : (
-                      <button className="px-4 py-2 border border-purple-600 text-purple-600 dark:text-purple-400 rounded-lg">
-                        Weka Kikumbusho
+                    </div>
+                    
+                    <div className="sirah-list-actions">
+                      <button
+                        type="button"
+                        onClick={() => toggleBookmark(audio.filename)}
+                        className={`sirah-list-action ${isBookmarked ? 'active' : ''}`}
+                        aria-label={isBookmarked ? 'Ondoa kwenye bookmark' : 'Weka kwenye bookmark'}
+                        title={isBookmarked ? 'Ondoa kwenye bookmark' : 'Weka kwenye bookmark'}
+                      >
+                        <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
                       </button>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => handleShare(audio)}
+                        className="sirah-list-action"
+                        aria-label="Shiriki"
+                        title="Shiriki"
+                      >
+                        <Share2 size={18} />
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => handleDownload(audio)}
+                        className="sirah-list-action"
+                        aria-label="Pakua"
+                        title="Pakua"
+                      >
+                        <Download size={18} />
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => handlePlayAudio(audio)}
+                        className={`sirah-list-play-btn ${isPlaying ? 'playing' : ''}`}
+                        disabled={audioState.isLoading && audioState.currentLecture?.filename === audio.filename}
+                        aria-label={isPlaying ? 'Simamisha' : `Cheza ${audio.title}`}
+                      >
+                        {audioState.isLoading && audioState.currentLecture?.filename === audio.filename ? (
+                          <div className="sirah-loading-spinner-small"></div>
+                        ) : isPlaying ? (
+                          <Pause size={20} />
+                        ) : (
+                          <Play size={20} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
+        ) : (
+          <div className="sirah-empty-state" data-aos="fade-up">
+            <History size={64} className="sirah-empty-icon" />
+            <h3 className="sirah-empty-title">Hakuna Darsa Zilizopatikana</h3>
+            <p className="sirah-empty-message">
+              {searchTerm
+                ? `Hakuna darsa zilizo na "${searchTerm}"`
+                : 'Hakuna darsa za Sirah zilizopatikana.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm('')
+                setSelectedSpeaker('all')
+              }}
+              className="sirah-empty-btn"
+              aria-label="Ondoa filters"
+            >
+              Ondoa Filters
+            </button>
+          </div>
+        )}
+      </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Download Book */}
-            <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6 rounded-2xl">
-              <h3 className="text-xl font-bold mb-4">Pakua Kitabu</h3>
-              <div className="space-y-3">
-                <button
-                  onClick={() => alert('Kitabu cha Khulaswah Nurulyaqyn kitapakuliwa')}
-                  className="w-full p-3 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-between"
-                >
-                  <div>
-                    <div className="font-medium">Khulaswah Nurulyaqyn (PDF)</div>
-                    <div className="text-sm opacity-80">8.7 MB • Kamili</div>
-                  </div>
-                  <Download size={18} />
-                </button>
-                <button
-                  onClick={() => alert('Muhtasari wa masomo kitapakuliwa')}
-                  className="w-full p-3 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-between"
-                >
-                  <div>
-                    <div className="font-medium">Muhtasari wa Masomo</div>
-                    <div className="text-sm opacity-80">2.1 MB • PDF</div>
-                  </div>
-                  <Download size={18} />
-                </button>
+      {/* Global Now Playing Bar */}
+      {audioState.currentLecture && audioState.audioType === 'lecture' && (
+        <div className="sirah-now-playing-bar">
+          <div className="sirah-now-playing-content container">
+            <div className="sirah-now-playing-info">
+              <div className="sirah-now-playing-cover">
+                <History size={24} />
               </div>
-            </div>
-
-            {/* Course Outline */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-              <h3 className="font-bold mb-4">Muhtasari wa Kozi</h3>
-              <div className="space-y-2">
-                <div className="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
-                  <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center text-sm mr-3">1</div>
-                  <span>Utangulizi na Uzazi</span>
+              <div className="sirah-now-playing-text">
+                <div className="sirah-now-playing-title">
+                  {audioState.currentLecture.title}
                 </div>
-                <div className="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
-                  <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center text-sm mr-3">2</div>
-                  <span>Utoto na Ujana</span>
-                </div>
-                <div className="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
-                  <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center text-sm mr-3">3</div>
-                  <span>Kupokea Ufunuo</span>
-                </div>
-                <div className="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
-                  <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center text-sm mr-3">4</div>
-                  <span>Hijra ya Madina</span>
+                <div className="sirah-now-playing-subtitle">
+                  {audioState.currentLecture.speaker}
                 </div>
               </div>
             </div>
-
-            {/* Related Links */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-              <h3 className="font-bold mb-4">Masomo Mengine</h3>
-              <div className="space-y-2">
-                <Link href="/tawhiid" className="block p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                  Tawhiid Series
-                </Link>
-                <Link href="/fiqh" className="block p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                  Fiqh - Manhaju As Saalikin
-                </Link>
-                <Link href="/lectures" className="block p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                  Mihadhara ya Semister
-                </Link>
+            
+            <div className="sirah-now-playing-controls">
+              <button
+                onClick={prevTrack}
+                className="sirah-now-playing-control"
+                aria-label="Darsa iliyopita"
+                title="Darsa iliyopita"
+                disabled={audioState.isLoading}
+              >
+                <SkipBack size={20} />
+              </button>
+              
+              <button
+                onClick={togglePlay}
+                className="sirah-now-playing-play"
+                aria-label={audioState.isPlaying ? 'Simamisha' : 'Cheza'}
+                title={audioState.isPlaying ? 'Simamisha' : 'Cheza'}
+                disabled={audioState.isLoading}
+              >
+                {audioState.isLoading ? (
+                  <div className="sirah-now-playing-loading"></div>
+                ) : audioState.isPlaying ? (
+                  <Pause size={24} />
+                ) : (
+                  <Play size={24} />
+                )}
+              </button>
+              
+              <button
+                onClick={nextTrack}
+                className="sirah-now-playing-control"
+                aria-label="Darsa inayofuata"
+                title="Darsa inayofuata"
+                disabled={audioState.isLoading}
+              >
+                <SkipForward size={20} />
+              </button>
+              
+              <div className="sirah-now-playing-progress">
+                <div className="sirah-now-playing-time">
+                  <span>{formatTime(audioState.currentTime)}</span>
+                  <span>{formatTime(audioState.duration)}</span>
+                </div>
+                <div className="sirah-now-playing-track">
+                  <div className="sirah-now-playing-fill"></div>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max={audioState.duration || 100}
+                  value={audioState.currentTime}
+                  onChange={(e) => seekTo(parseFloat(e.target.value))}
+                  className="sirah-now-playing-range"
+                  aria-label="Endelea mbele au nyuma"
+                />
+              </div>
+              
+              <div className="sirah-now-playing-volume">
+                <button
+                  onClick={() => setMuted(!audioState.isMuted)}
+                  className="sirah-now-playing-volume-btn"
+                  aria-label={audioState.isMuted ? 'Washa sauti' : 'Zima sauti'}
+                  title={audioState.isMuted ? 'Washa sauti' : 'Zima sauti'}
+                >
+                  {audioState.isMuted ? (
+                    <VolumeX size={18} />
+                  ) : (
+                    <Volume2 size={18} />
+                  )}
+                </button>
+                <div className="sirah-now-playing-volume-track">
+                  <div className="sirah-now-playing-volume-fill"></div>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={audioState.volume}
+                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  className="sirah-now-playing-volume-range"
+                  aria-label="Badilisha ukubwa wa sauti"
+                />
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

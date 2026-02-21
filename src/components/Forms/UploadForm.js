@@ -1,58 +1,78 @@
-import { useState } from "react";
-import { contentService } from "../../services/contentService";
+"use client";
+
+import React, { useState } from 'react';
 
 export default function UploadForm({ onUploadSuccess }) {
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState('');
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !category) return alert("Jaza title na category!");
+    if (!file || !title) return;
 
-    setLoading(true);
+    setUploading(true);
+    
     try {
-      await contentService.createContent({ title, category });
-      setTitle("");
-      setCategory("");
-      onUploadSuccess();
-      alert("Maudhui yamefanikiwa kupakiwa!");
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('category', category);
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        alert('Maudhui yamepakiwa kikamilifu!');
+        setTitle('');
+        setCategory('');
+        setFile(null);
+        onUploadSuccess();
+      } else {
+        alert('Hitilafu katika kupakia maudhui.');
+      }
     } catch (error) {
-      console.error(error);
-      alert("Tatizo katika kupakia maudhui.");
+      alert('Hitilafu katika kupakia maudhui.');
     } finally {
-      setLoading(false);
+      setUploading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded-lg shadow-md">
-      <div>
-        <label className="block text-gray-700 font-medium mb-1">Title</label>
-        <input 
-          type="text" 
-          value={title} 
-          onChange={e => setTitle(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2"
-          placeholder="Andika title ya maudhui" 
+    <form onSubmit={handleSubmit} className="upload-form">
+      <div className="form-group">
+        <label>Kichwa</label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
         />
       </div>
-      <div>
-        <label className="block text-gray-700 font-medium mb-1">Category</label>
-        <input 
-          type="text" 
-          value={category} 
-          onChange={e => setCategory(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2"
-          placeholder="Andika category" 
+      
+      <div className="form-group">
+        <label>Aina</label>
+        <input
+          type="text"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
         />
       </div>
-      <button 
-        type="submit" 
-        className={`w-full py-2 rounded-lg font-medium text-white ${loading ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"}`}
-        disabled={loading}
-      >
-        {loading ? "Inapakia..." : "Pakua Maudhui"}
+      
+      <div className="form-group">
+        <label>Faili</label>
+        <input
+          type="file"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          required
+        />
+      </div>
+      
+      <button type="submit" disabled={uploading}>
+        {uploading ? 'Inapakia...' : 'Pakia'}
       </button>
     </form>
   );

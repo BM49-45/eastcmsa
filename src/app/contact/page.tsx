@@ -322,9 +322,8 @@ export default function ContactPage() {
               
               <div className="space-y-4">
                 {[
-                  { day: 'Jumatatu - Ijumaa', time: '08:00 - 17:00', status: 'Funguliwa' },
-                  { day: 'Jumamosi', time: '08:00 - 14:00', status: 'Funguliwa' },
-                  { day: 'Jumapili', time: 'Funguliwa kwa darsa', status: 'Darsa tu' }
+                  { day: 'Jumatatu - Ijumaa', time: '10:00 - 17:00', status: '' },
+                  { day: 'Jumamosi', time: '10:00 - 14:00', status: '' },
                 ].map((item, index) => (
                   <div 
                     key={index}
@@ -341,7 +340,7 @@ export default function ContactPage() {
               
               <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  <strong>Kumbuka:</strong> Darsa za Jumapili huanza saa 9:00 asubuhi hadi 12:00 mchana.
+                  <strong>Kumbuka:</strong> Mawasiliano ni kwa namba zilizooredheshwa hapo juu kwa na barua pepe.
                 </p>
               </div>
             </div>
