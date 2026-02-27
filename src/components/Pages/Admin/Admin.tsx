@@ -1,17 +1,11 @@
-"use client";
+// src/components/Pages/Admin/Admin.tsx
+'use client';
 
 import React, { useEffect, useState, useCallback } from "react";
 import UploadForm from "../../Forms/UploadForm";
+import { getContent, deleteContent } from "@/services/contentService";
+import { Content } from "@/types/content";
 import "./Admin.css";
-
-interface Content {
-  _id: string;
-  title: string;
-  category?: string;
-  views: number;
-  likes: number;
-  downloads: number;
-}
 
 export default function AdminClient() {
   const [contents, setContents] = useState<Content[]>([]);
@@ -23,17 +17,16 @@ export default function AdminClient() {
   });
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Load contents using fetch API
   const loadContents = useCallback(async () => {
     try {
-      const res = await fetch('/api/content');
-      const data = await res.json();
+      const data = await getContent();
       
       if (Array.isArray(data)) {
         const formatted: Content[] = data.map((item: any) => ({
           _id: item._id ?? "",
           title: item.title ?? "Untitled",
           category: item.category,
+          description: item.description,
           views: item.views ?? 0,
           likes: item.likes ?? 0,
           downloads: item.downloads ?? 0,
@@ -61,11 +54,9 @@ export default function AdminClient() {
   const handleDelete = async (id: string) => {
     if (!confirm("Una uhakika unataka kufuta maudhui haya?")) return;
     try {
-      const res = await fetch(`/api/content/${id}`, {
-        method: 'DELETE',
-      });
+      const result = await deleteContent(id);
       
-      if (res.ok) {
+      if (result.success) {
         setContents(contents.filter((c) => c._id !== id));
         alert("Maudhui yamefutwa kikamilifu!");
       } else {

@@ -1,676 +1,236 @@
-/* Global Audio Player Styles */
 .global-audio-player {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 1000;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  background: linear-gradient(to right, #1e293b, #0f172a);
+  border-top: 1px solid #334155;
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  padding: 0.75rem 1rem;
 }
 
-/* Background colors based on audio type */
-.global-audio-player.quran-bg {
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+@media (min-width: 768px) {
+  .global-audio-player {
+    padding: 1rem 1.5rem;
+  }
 }
 
-.global-audio-player.tawhiid-bg {
-  background: linear-gradient(135deg, #065f46 0%, #10b981 100%);
-}
-
-.global-audio-player.lecture-bg {
-  background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
-}
-
-/* Toggle button */
-.player-toggle-btn {
-  position: absolute;
-  top: -32px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-bottom: none;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  padding: 4px 12px;
-  color: white;
-  font-size: 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.2s ease;
-}
-
-.player-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateX(-50%) scale(1.05);
-}
-
-/* Expanded content */
-.player-expanded-content {
-  padding: 16px 20px;
+.player-content {
+  max-width: 1280px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-/* Info section */
-.player-info-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
+@media (min-width: 768px) {
+  .player-content {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 1rem;
+  }
 }
 
-.player-media-info {
+.now-playing-info {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
+  gap: 0.75rem;
+  width: 100%;
 }
 
-.player-icon-container {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+@media (min-width: 768px) {
+  .now-playing-info {
+    width: 30%;
+  }
+}
+
+.now-playing-icon {
+  background: linear-gradient(135deg, #10b981, #3b82f6);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  color: white;
   flex-shrink: 0;
 }
 
-.player-icon-container.quran {
-  background: rgba(59, 130, 246, 0.2);
-  border: 2px solid rgba(59, 130, 246, 0.4);
-}
-
-.player-icon-container.tawhiid {
-  background: rgba(16, 185, 129, 0.2);
-  border: 2px solid rgba(16, 185, 129, 0.4);
-}
-
-.player-icon-container.lecture {
-  background: rgba(167, 139, 250, 0.2);
-  border: 2px solid rgba(167, 139, 250, 0.4);
-}
-
-.player-icon-text {
-  color: white;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.player-icon-svg {
-  color: white;
-  width: 24px;
-  height: 24px;
-}
-
-.player-text-info {
-  flex: 1;
+.now-playing-text {
   min-width: 0;
+  flex: 1;
 }
 
-.player-badge-container {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-
-.player-badge-icon {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.player-badge {
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.player-badge.quran {
-  background: rgba(59, 130, 246, 0.3);
-  color: #93c5fd;
-}
-
-.player-badge.tawhiid {
-  background: rgba(16, 185, 129, 0.3);
-  color: #6ee7b7;
-}
-
-.player-badge.lecture {
-  background: rgba(167, 139, 250, 0.3);
-  color: #c4b5fd;
-}
-
-.player-title {
+.now-playing-title {
+  font-weight: 500;
   color: white;
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0;
+  font-size: 0.875rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.player-subtitle {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
-  margin: 2px 0 0 0;
+@media (min-width: 768px) {
+  .now-playing-title {
+    font-size: 1rem;
+  }
+}
+
+.now-playing-subtitle {
+  font-size: 0.75rem;
+  color: #94a3b8;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Controls */
 .player-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.player-control-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: white;
-  transition: all 0.2s ease;
-}
-
-.player-control-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
-}
-
-.player-play-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: white;
-  transition: all 0.2s ease;
-}
-
-.player-play-btn.quran {
-  background: #3b82f6;
-}
-
-.player-play-btn.tawhiid {
-  background: #10b981;
-}
-
-.player-play-btn.lecture {
-  background: #a78bfa;
-}
-
-.player-play-btn:hover {
-  transform: scale(1.1);
-}
-
-/* Progress section */
-.player-progress-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.player-time-display {
-  display: flex;
-  justify-content: space-between;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 11px;
-  font-family: monospace;
-}
-
-.player-progress-bar {
-  position: relative;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.player-progress-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  transition: width 0.1s linear;
-}
-
-.player-progress-fill.quran {
-  background: #3b82f6;
-}
-
-.player-progress-fill.tawhiid {
-  background: #10b981;
-}
-
-.player-progress-fill.lecture {
-  background: #a78bfa;
-}
-
-.player-progress-input {
-  position: absolute;
-  top: 0;
-  left: 0;
+  gap: 1rem;
   width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-/* Volume section */
-.player-volume-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.player-volume-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-
-.player-volume-btn {
-  background: none;
-  border: none;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.8);
-  transition: color 0.2s ease;
 }
 
-.player-volume-btn:hover {
-  color: white;
-}
-
-.player-volume-slider {
-  flex: 1;
-  position: relative;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.player-volume-track {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.player-volume-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  transition: width 0.2s ease;
-}
-
-.player-volume-fill.quran {
-  background: #3b82f6;
-}
-
-.player-volume-fill.tawhiid {
-  background: #10b981;
-}
-
-.player-volume-fill.lecture {
-  background: #a78bfa;
-}
-
-.player-volume-input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.player-volume-percentage {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 11px;
-  min-width: 40px;
-  text-align: right;
-}
-
-/* Speed info */
-.player-speed-info {
-  margin-left: 16px;
-}
-
-.player-speed-badge {
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.player-speed-badge.quran {
-  background: rgba(59, 130, 246, 0.3);
-  color: #93c5fd;
-}
-
-.player-speed-badge.tawhiid {
-  background: rgba(16, 185, 129, 0.3);
-  color: #6ee7b7;
-}
-
-.player-speed-badge.lecture {
-  background: rgba(167, 139, 250, 0.3);
-  color: #c4b5fd;
-}
-
-/* Collapsed view */
-.player-collapsed-content {
-  padding: 8px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.player-collapsed-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.player-collapsed-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.player-collapsed-icon.quran {
-  background: rgba(59, 130, 246, 0.2);
-}
-
-.player-collapsed-icon.tawhiid {
-  background: rgba(16, 185, 129, 0.2);
-}
-
-.player-collapsed-icon.lecture {
-  background: rgba(167, 139, 250, 0.2);
-}
-
-.player-collapsed-icon-text {
-  color: white;
-  font-weight: bold;
-  font-size: 12px;
-}
-
-.player-collapsed-icon-svg {
-  color: white;
-  width: 16px;
-  height: 16px;
-}
-
-.player-collapsed-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.player-collapsed-title {
-  color: white;
-  font-size: 12px;
-  font-weight: 500;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.player-collapsed-time {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 2px;
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.player-current-time {
-  font-weight: 500;
-}
-
-.player-current-time.quran {
-  color: #93c5fd;
-}
-
-.player-current-time.tawhiid {
-  color: #6ee7b7;
-}
-
-.player-current-time.lecture {
-  color: #c4b5fd;
-}
-
-.player-time-separator {
-  opacity: 0.5;
-}
-
-.player-total-time {
-  opacity: 0.7;
-}
-
-.player-collapsed-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.player-collapsed-control-btn {
-  background: none;
-  border: none;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.8);
-  transition: color 0.2s ease;
-}
-
-.player-collapsed-control-btn:hover {
-  color: white;
-}
-
-.player-collapsed-play-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: white;
-  transition: all 0.2s ease;
-}
-
-.player-collapsed-play-btn.quran {
-  background: #3b82f6;
-}
-
-.player-collapsed-play-btn.tawhiid {
-  background: #10b981;
-}
-
-.player-collapsed-play-btn.lecture {
-  background: #a78bfa;
-}
-
-.player-collapsed-play-btn:hover {
-  transform: scale(1.1);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .player-info-section {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
+@media (min-width: 768px) {
   .player-controls {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .player-volume-section {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .player-speed-info {
-    margin-left: 0;
-    align-self: flex-end;
+    width: 40%;
   }
 }
 
-/* Error Message */
-.player-error-message {
-  position: absolute;
-  top: -30px;
-  left: 0;
-  right: 0;
-  background: rgba(220, 38, 38, 0.9);
-  color: white;
-  padding: 4px 8px;
-  font-size: 11px;
-  text-align: center;
-  z-index: 1001;
-  animation: slideDown 0.3s ease;
-  will-change: transform, opacity;
-}
-
-.player-error-text {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@keyframes slideDown {
-  from {
-    transform: translate3d(0, -10px, 0);
-    opacity: 0;
-  }
-  to {
-    transform: translate3d(0, 0, 0);
-    opacity: 1;
-  }
-}
-
-/* Loading States */
-.player-loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+.control-button {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  border-radius: inherit;
 }
 
-.player-loading-spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  will-change: transform;
+.control-button:hover:not(:disabled) {
+  background: #334155;
+  color: white;
 }
 
-.player-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  will-change: transform;
+.control-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
-.player-collapsed-spinner {
-  width: 12px;
-  height: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  will-change: transform;
+.play-button {
+  background: #10b981;
+  border: none;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.play-button:hover:not(:disabled) {
+  background: #059669;
+  transform: scale(1.05);
 }
 
-/* Disabled States */
-.player-play-btn:disabled,
-.player-control-btn:disabled,
-.player-volume-btn:disabled,
-.player-collapsed-play-btn:disabled,
-.player-collapsed-control-btn:disabled {
+.play-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.player-play-btn.loading,
-.player-collapsed-play-btn.loading {
-  opacity: 0.7;
+.progress-area {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
 }
 
-/* Prevent text selection */
-.global-audio-player * {
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+@media (min-width: 768px) {
+  .progress-area {
+    width: 30%;
+  }
 }
 
-/* Button active states */
-.player-play-btn:active:not(:disabled),
-.player-control-btn:active:not(:disabled),
-.player-volume-btn:active:not(:disabled) {
-  transform: scale(0.95);
+.time-display {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  min-width: 40px;
+}
+
+.progress-slider {
+  flex: 1;
+  height: 4px;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: blur(10px);
+  background: #334155;
+  border-radius: 9999px;
+  outline: none;
+}
+
+.progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #10b981;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.progress-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.volume-control {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .volume-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.volume-slider {
+  width: 80px;
+  height: 4px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  background: #334155;
+  border-radius: 9999px;
+  outline: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #10b981;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  padding: 0.25rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+
+.close-button:hover {
+  background: #334155;
+  color: #ef4444;
 }

@@ -1,12 +1,12 @@
-// src/app/layout.tsx
 import './globals.css'
 import { Inter } from 'next/font/google'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import GlobalAudioPlayer from '@/components/layout/GlobalAudioPlayer'
 import Providers from '@/components/Providers'
+import { AudioProvider } from '@/context/AudioContext'
 import { Toaster } from 'sonner'
-import ClientLayout from '@/components/ClientLayout' // Unda component hii
+import ClientLayout from '@/components/ClientLayout'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -30,16 +30,18 @@ export default function RootLayout({
         className={`${inter.className} antialiased`}
       >
         <Providers>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
-          <GlobalAudioPlayer />
-          <Footer />
-          <Toaster
-            richColors
-            position="top-right"
-            toastOptions={{ duration: 4000 }}
-          />
-          <ClientLayout /> {/* Kwa ajili ya AOS na client-side code */}
+          <AudioProvider>
+            <Navbar />
+            <main className="min-h-screen pt-16">{children}</main>
+            <GlobalAudioPlayer />
+            <Footer />
+            <Toaster
+              richColors
+              position="top-right"
+              toastOptions={{ duration: 4000 }}
+            />
+            <ClientLayout />
+          </AudioProvider>
         </Providers>
       </body>
     </html>

@@ -1,0 +1,220 @@
+/* UploadForm.css */
+
+.upload-form {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.form-group input[type="text"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: #f8fafc;
+}
+
+.form-group input[type="text"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group input[type="text"]:hover,
+.form-group select:hover,
+.form-group textarea:hover {
+  border-color: #94a3b8;
+}
+
+.form-group input[type="file"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px dashed #e1e8ed;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.form-group input[type="file"]:hover {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.form-group small {
+  display: block;
+  margin-top: 0.5rem;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.error-message {
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #b91c1c;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-message::before {
+  content: "⚠️";
+  font-size: 1.1rem;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-btn:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Loading state animation */
+.submit-btn:disabled::after {
+  content: "";
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid transparent;
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .upload-form {
+    padding: 1.5rem;
+    margin: 0 1rem;
+  }
+
+  .form-group input[type="text"],
+  .form-group select,
+  .form-group textarea {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .submit-btn {
+    padding: 0.875rem 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-form {
+    padding: 1rem;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  .form-group small {
+    font-size: 0.8rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .upload-form {
+    background-color: #1e293b;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .form-group label {
+    color: #e2e8f0;
+  }
+
+  .form-group input[type="text"],
+  .form-group select,
+  .form-group textarea {
+    background-color: #334155;
+    border-color: #475569;
+    color: #e2e8f0;
+  }
+
+  .form-group input[type="text"]:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: #60a5fa;
+    background-color: #1e293b;
+  }
+
+  .form-group input[type="file"] {
+    background-color: #334155;
+    border-color: #475569;
+    color: #e2e8f0;
+  }
+
+  .form-group input[type="file"]:hover {
+    background-color: #3b82f6;
+    border-color: #60a5fa;
+  }
+
+  .form-group small {
+    color: #94a3b8;
+  }
+
+  .error-message {
+    background-color: #451a1a;
+    border-color: #991b1b;
+    color: #fecaca;
+  }
+}

@@ -3,6 +3,15 @@
 import { createContext, useContext, useState, useRef, useEffect, ReactNode } from 'react'
 import { toast } from 'sonner'
 
+import { SessionProvider } from 'next-auth/react'
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <SessionProvider>
+      {children}
+    </SessionProvider>
+  )
+}
+
 // Surah type
 export interface Surah {
   number: number

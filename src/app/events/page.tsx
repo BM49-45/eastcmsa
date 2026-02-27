@@ -55,6 +55,17 @@ export default function EventsPage() {
       type: 'tawhiid',
       frequency: 'Kila Jumamosa',
       icon: <Video className="w-5 h-5" />
+    },
+    {
+      id: 4,
+      title: 'Darsa za Sirah',
+      description: 'Masomo ya Sirah',
+      time: 'Baada ya Swala ya Maghrib -  Swala ya Isha',
+      location: 'Msikiti Mkuu wa Changanyikeni',
+      speaker: 'Sheikh Iddy Issa',
+      type: 'sirah',
+      frequency: 'Kila Jumanne & Jumatano',
+      icon: <Video className="w-5 h-5" />
     }
   ]
 
@@ -158,11 +169,15 @@ export default function EventsPage() {
             <ul className="space-y-2 text-gray-600 dark:text-gray-300">
               <li className="flex items-center">
                 <ChevronRight className="w-4 h-4 mr-2 text-green-500" />
-                <span>Mihadhara miwili kwa kila semister</span>
+                <span>Mihadhara miwili kwa kila semister (I & II)</span>
               </li>
               <li className="flex items-center">
                 <ChevronRight className="w-4 h-4 mr-2 text-blue-500" />
                 <span>Jumatatu & Alhamisi: Fiqh</span>
+              </li>
+              <li className="flex items-center">
+                <ChevronRight className="w-4 h-4 mr-2 text-blue-500" />
+                <span>Jumanne & Jumatano: Sirah</span>
               </li>
               <li className="flex items-center">
                 <ChevronRight className="w-4 h-4 mr-2 text-purple-500" />
@@ -452,15 +467,14 @@ export default function EventsPage() {
             <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
               <h4 className="font-bold mb-2 text-gray-900 dark:text-white">Kuhusu Recordings</h4>
               <p className="text-gray-600 dark:text-gray-300 text-sm">
-                Darsa zote zinarekodiwa na kuhifadhiwa vizuri kwa ajili ya mrajaa. Recordings za mihadhara 
-                zinapatikana pia kwa mihadhara yote. Angalia ukurasa wa <strong>Lectures</strong> kwa recordings zilizopo.
+                Darsa zote zinarekodiwa na kuhifadhiwa vizuri kwa ajili ya marejeo. Angalia ukurasa wa <strong>Lectures</strong> kwa recordings za mihadhara iliyopo.
               </p>
             </div>
             
             <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
               <h4 className="font-bold mb-2 text-gray-900 dark:text-white">Kuhusu Vitabu</h4>
               <p className="text-gray-600 dark:text-gray-300 text-sm">
-                Vitabu vinavyofundishwa kwa sasa kwa Tawhiid ni Al Usuul Sittat na kwa Fiqh ni Umdatul Ahkaam <strong>Al Usuul Sittat na Umdatul Ahkaam</strong>. 
+                Vitabu vinavyofundishwa kwa sasa kwa Tawhiid, Sirah na Fiqh ni <strong>Al Usuul Sittat, Khulaswah Nurulyaqyn, na Umdatul Ahkaam</strong>. 
                 Kwa maelezo zaidi kuhusu vitabu vyote, tembelea ukurasa wa <strong>Vitabu</strong>.
               </p>
             </div>

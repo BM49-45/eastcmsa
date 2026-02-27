@@ -1,69 +1,319 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { 
-  Play, 
-  Pause, 
-  Download, 
-  Share2, 
-  Clock, 
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import {
+  Play,
+  Pause,
+  Download,
+  Share2,
+  Clock,
   User,
   Calendar,
   FileAudio,
-  Headphones,
   ExternalLink,
   RefreshCw,
   AlertCircle,
   Volume2,
   VolumeX,
   SkipBack,
-  SkipForward
+  SkipForward,
+  BookOpen,
+  Search,
+  ListMusic,
+  Bookmark,
+  Filter,
+  LayoutGrid,
+  List,
+  ChevronDown,
+  ChevronUp,
+  GraduationCap,
+  Building2,
+  Heart,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react'
 import { useAudio } from '@/context/AudioContext'
+import './page.css'
+
+interface TawhiidAudio {
+  filename: string
+  title: string
+  translation?: string
+  duration: string
+  size: number
+  speaker: string
+  date: string
+  hijri?: string
+}
+
+interface TawhiidMetadata {
+  category: string
+  description: string
+  book?: string
+  author?: string
+  location: string
+  teacher: string
+  schedule: string
+  startDate?: string
+  files: TawhiidAudio[]
+}
+
+const AUDIO_BASE_URL = process.env.NEXT_PUBLIC_AUDIO_BASE_URL || ''
 
 export default function TawhiidPage() {
-  const [audios, setAudios] = useState<any[]>([])
+  const [metadata, setMetadata] = useState<TawhiidMetadata | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  
-  const { audioState, playTawhiidAudio, togglePlay, setVolume, setMuted, seekTo, nextTrack, prevTrack, setPlaylist } = useAudio()
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [sortBy, setSortBy] = useState<'date' | 'title' | 'duration'>('date')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [showFilters, setShowFilters] = useState(false)
+  const [bookmarked, setBookmarked] = useState<string[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 12
+  const playlistSetRef = useRef(false)
+
+  const { audioState, playLectureAudio, togglePlay, setVolume, setMuted, seekTo, nextTrack, prevTrack, setPlaylist } = useAudio()
 
   useEffect(() => {
-    loadAudios()
+    loadMetadata()
+    loadBookmarks()
   }, [])
 
-  // Update playlist when audios change
-  useEffect(() => {
-    if (audios.length > 0) {
-      setPlaylist(audios)
+  const loadBookmarks = () => {
+    const saved = localStorage.getItem('tawhiid-bookmarks')
+    if (saved) {
+      try {
+        setBookmarked(JSON.parse(saved))
+      } catch (e) {
+        console.error('Error loading bookmarks:', e)
+      }
     }
-  }, [audios, setPlaylist])
+  }
 
-  const loadAudios = async () => {
+  const toggleBookmark = (filename: string) => {
+    setBookmarked(prev => {
+      const newBookmarks = prev.includes(filename)
+        ? prev.filter(f => f !== filename)
+        : [...prev, filename]
+      localStorage.setItem('tawhiid-bookmarks', JSON.stringify(newBookmarks))
+      return newBookmarks
+    })
+  }
+
+  // Set playlist when metadata changes
+  useEffect(() => {
+    if (metadata?.files && metadata.files.length > 0 && !playlistSetRef.current) {
+      const playlist = metadata.files.map((audio, index) => ({
+        type: 'lecture' as const,
+        id: audio.filename,
+        title: audio.title,
+        speaker: audio.speaker,
+        url: `${AUDIO_BASE_URL}/tawhiid/${audio.filename}`,
+        downloadUrl: `${AUDIO_BASE_URL}/tawhiid/${audio.filename}`,
+        filename: audio.filename,
+        size: audio.size,
+        duration: audio.duration,
+        date: audio.date,
+        category: 'tawhiid',
+        semester: `Darsa la ${index + 1}`,
+        venue: metadata.location,
+        topics: [],
+        language: 'Arabic/Swahili',
+        quality: '320kbps'
+      }))
+      
+      setPlaylist(playlist)
+      playlistSetRef.current = true
+    }
+  }, [metadata, setPlaylist])
+
+  const loadMetadata = async () => {
     try {
       setLoading(true)
       setError(null)
       
-      const response = await fetch('/api/audio?category=tawhiid')
-      const data = await response.json()
+      const response = await fetch(
+        `${AUDIO_BASE_URL}/tawhiid/metadata.json`,
+        {
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        }
+      )
       
-      if (data.success && data.data?.tawhiid) {
-        const tawhiidAudios = Array.isArray(data.data.tawhiid) 
-          ? data.data.tawhiid 
-          : data.data.categories?.tawhiid?.files || []
-        
-        setAudios(tawhiidAudios)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+      const data = await response.json()
+      if (data && data.files && Array.isArray(data.files)) {
+        setMetadata(data)
       } else {
-        setError('Hakuna data ya audio iliyopatikana')
+        throw new Error('Muundo wa metadata sio sahihi')
       }
     } catch (error: any) {
       console.error('❌ Hitilafu:', error)
-      setError(`Hitilafu ya muunganisho: ${error.message}`)
+      setError(`Hitilafu ya kupakia data: ${error.message}`)
     } finally {
       setLoading(false)
     }
   }
+
+  const formatSize = (bytes: number) => {
+    const mb = bytes / (1024 * 1024)
+    return `${mb.toFixed(1)} MB`
+  }
+
+  const formatDuration = (duration: string) => {
+    if (!duration) return '0:00'
+    if (duration.includes(':')) {
+      const [mins, secs] = duration.split(':').map(Number)
+      return `${mins}:${secs.toString().padStart(2, '0')}`
+    }
+    return duration
+  }
+
+  const durationToSeconds = (duration: string): number => {
+    if (!duration) return 0
+    if (duration.includes(':')) {
+      const [mins, secs] = duration.split(':').map(Number)
+      return (mins * 60) + secs
+    }
+    return parseInt(duration) || 0
+  }
+
+  const progressPercentage = useMemo(() => {
+    if (!audioState.duration || audioState.duration === 0) return 0
+    return (audioState.currentTime / audioState.duration) * 100
+  }, [audioState.currentTime, audioState.duration])
+
+  const volumePercentage = useMemo(() => {
+    return audioState.volume * 100
+  }, [audioState.volume])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      document.documentElement.style.setProperty('--tawhiid-progress', `${progressPercentage}%`)
+      document.documentElement.style.setProperty('--tawhiid-volume', `${volumePercentage}%`)
+    }
+  }, [progressPercentage, volumePercentage])
+
+  const speakers = useMemo(() => {
+    if (!metadata?.files) return []
+    const uniqueSpeakers = new Set(metadata.files.map(f => f.speaker))
+    return ['all', ...Array.from(uniqueSpeakers)]
+  }, [metadata?.files])
+
+  const filteredAudios = useMemo(() => {
+    if (!metadata?.files) return []
+    let filtered = [...metadata.files]
+    
+    if (searchTerm) {
+      filtered = filtered.filter(audio =>
+        audio.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        audio.translation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        audio.speaker.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        audio.date.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+    
+    filtered.sort((a, b) => {
+      let comparison = 0
+      switch (sortBy) {
+        case 'date':
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime()
+          break
+        case 'title':
+          comparison = a.title.localeCompare(b.title)
+          break
+        case 'duration':
+          comparison = durationToSeconds(a.duration) - durationToSeconds(b.duration)
+          break
+      }
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+    
+    return filtered
+  }, [metadata, searchTerm, sortBy, sortOrder])
+
+  const totalPages = Math.ceil(filteredAudios.length / itemsPerPage)
+  const paginatedAudios = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage
+    return filteredAudios.slice(start, start + itemsPerPage)
+  }, [filteredAudios, currentPage])
+
+  const handlePlayAudio = useCallback(async (audio: TawhiidAudio) => {
+    const audioUrl = `${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`
+    
+    const lectureAudio = {
+      type: 'lecture' as const,
+      id: audio.filename,
+      title: audio.title,
+      speaker: audio.speaker,
+      url: audioUrl,
+      downloadUrl: audioUrl,
+      filename: audio.filename,
+      size: audio.size,
+      duration: audio.duration,
+      date: audio.date,
+      category: 'tawhiid',
+      semester: metadata?.book || 'Darsa za Tawhiid',
+      venue: metadata?.location || 'Masjid Chang\'anyikeni, Ubungo',
+      topics: [],
+      language: 'Arabic/Swahili',
+      quality: '320kbps'
+    }
+    
+    try {
+      // Check if same audio is playing
+      if (audioState.currentLecture?.filename === audio.filename && audioState.audioType === 'lecture') {
+        await togglePlay() // Toggle play/pause
+      } else {
+        await playLectureAudio(lectureAudio)
+      }
+    } catch (error) {
+      console.error('Error playing audio:', error)
+      alert('Kuna tatizo la kusikiliza audio. Tafadhali jaribu tena.')
+    }
+  }, [metadata, audioState.currentLecture, audioState.audioType, playLectureAudio, togglePlay])
+
+  const handleDownload = useCallback((audio: TawhiidAudio) => {
+      const audioUrl = `${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`
+    const link = document.createElement('a')
+    link.href = audioUrl
+    link.download = audio.filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }, [])
+
+  const handleShare = useCallback(async (audio: TawhiidAudio) => {
+    const shareText = `${audio.title}\n${audio.translation || ''}\nMwalimu: ${audio.speaker}\nTarehe: ${audio.date}\nMuda: ${audio.duration}`
+    const shareUrl = window.location.href
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: audio.title,
+          text: shareText,
+          url: shareUrl
+        })
+      } catch (err) {
+        console.log('Share cancelled')
+      }
+    } else {
+      navigator.clipboard.writeText(`${shareText}\n${shareUrl}`)
+      alert('Maelezo ya darsa yamepangwa kwenye clipboard!')
+    }
+  }, [])
+
+  const isCurrentlyPlaying = useCallback((filename: string) => {
+    return audioState.isPlaying &&
+      audioState.currentLecture?.filename === filename &&
+      audioState.audioType === 'lecture'
+  }, [audioState.isPlaying, audioState.currentLecture, audioState.audioType])
 
   const formatTime = (seconds: number) => {
     if (!seconds || isNaN(seconds)) return '0:00'
@@ -72,355 +322,540 @@ export default function TawhiidPage() {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`
   }
 
-  const formatSize = (bytes: number) => {
-    const mb = bytes / (1024 * 1024)
-    return `${mb.toFixed(1)} MB`
-  }
-
-  // Calculate progress percentage
-  const progressPercentage = useMemo(() => {
-    return audioState.duration 
-      ? (audioState.currentTime / audioState.duration) * 100 
-      : 0
-  }, [audioState.currentTime, audioState.duration])
-
-  // Calculate volume percentage
-  const volumePercentage = useMemo(() => {
-    return audioState.volume * 100
-  }, [audioState.volume])
-
-  // Sync dynamic widths to CSS variables so we avoid inline style props
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      document.documentElement.style.setProperty('--tawhiid-progress', `${progressPercentage}%`)
-      document.documentElement.style.setProperty('--tawhiid-volume', `${volumePercentage}%`)
-    }
-  }, [progressPercentage, volumePercentage])
-
-  // Filter audios
-  const filteredAudios = audios.filter(audio => 
-    audio.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (audio.speaker || '').toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 pt-20 p-8 flex flex-col items-center justify-center">
-        <div className="relative">
-          <div className="w-20 h-20 border-4 border-transparent border-t-emerald-500 rounded-full animate-spin"></div>
-          <Headphones className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-emerald-400" size={24} />
+      <div className="tawhiid-loading-container">
+        <div className="tawhiid-loading-spinner">
+          <BookOpen className="tawhiid-loading-icon" size={48} />
         </div>
-        <p className="mt-6 text-lg text-gray-300 font-medium">Inapakia Darsa za Tawhiid...</p>
+        <p className="tawhiid-loading-text">Inapakia Darsa za Tawhiid...</p>
+        <p className="tawhiid-loading-subtext">Mafundisho ya Aqida</p>
       </div>
     )
   }
 
-  if (error) {
+  if (error || !metadata) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 pt-20 p-8">
-        <div className="max-w-xl mx-auto">
-          <div className="bg-gray-800/60 backdrop-blur-xl rounded-2xl border border-gray-700 p-8 shadow-2xl">
-            <AlertCircle className="text-red-400 mb-6 mx-auto" size={56} />
-            <h2 className="text-2xl font-bold text-white text-center mb-3">Hitilafu ya Kupakia Audio</h2>
-            <p className="text-gray-300 text-center mb-6">{error}</p>
-            
-            <button
-              type="button"
-              onClick={loadAudios}
-              className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold hover:from-emerald-600 hover:to-teal-700 flex items-center justify-center transition-all duration-300 shadow-lg shadow-emerald-500/20"
-            >
-              <RefreshCw size={20} className="mr-3" />
-              Jaribu Tena
-            </button>
-          </div>
+      <div className="tawhiid-error-container">
+        <div className="tawhiid-error-card">
+          <AlertCircle className="tawhiid-error-icon" size={64} />
+          <h2 className="tawhiid-error-title">Hitilafu ya Kupakia Darsa</h2>
+          <p className="tawhiid-error-message">{error || 'Hakuna data ya metadata ilipatikana'}</p>
+          <button
+            type="button"
+            onClick={loadMetadata}
+            className="tawhiid-retry-btn"
+            aria-label="Jaribu tena"
+            title="Jaribu tena"
+          >
+            <RefreshCw size={20} />
+            <span>Jaribu Tena</span>
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+    <div className="tawhiid-container">
       {/* Hero Section */}
-      <div className="relative overflow-hidden pt-24 pb-16">
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/20 via-teal-900/10 to-cyan-900/20"></div>
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-3 mb-6 px-6 py-3 bg-gray-800/50 backdrop-blur-sm rounded-full border border-gray-700">
-              <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
-              <span className="text-emerald-300 font-medium">Darsa za Tawhiid</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-emerald-300 via-cyan-300 to-teal-400 bg-clip-text text-transparent">
-              Darsa za Itikadi
-            </h1>
-            
-            <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Mfululizo kamili wa darsa za Itikadi, Sheikh Abuu Mus'ab At Tanzaniy
-            </p>
-
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-10">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Tafuta darsa au mada..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-6 py-4 bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                  🔍
-                </div>
+      <div className="tawhiid-hero">
+        <div className="tawhiid-hero-pattern"></div>
+        <div className="tawhiid-hero-overlay"></div>
+        <div className="tawhiid-hero-content container">
+          <div className="tawhiid-hero-badge" data-aos="fade-up">
+            <BookOpen className="tawhiid-hero-badge-icon" size={24} />
+            <span>التَّوْحِيدُ</span>
+          </div>
+          <h1 className="tawhiid-hero-title" data-aos="fade-up" data-aos-delay="100">
+            Darsa za Tawhiid
+          </h1>
+          <p className="tawhiid-hero-subtitle" data-aos="fade-up" data-aos-delay="200">
+            {metadata.description}
+          </p>
+          <div className="tawhiid-hero-stats" data-aos="fade-up" data-aos-delay="300">
+            <div className="tawhiid-hero-stat">
+              <div className="tawhiid-hero-stat-icon">
+                <BookOpen size={24} />
+              </div>
+              <div className="tawhiid-hero-stat-content">
+                <div className="tawhiid-hero-stat-value">{metadata.files.length}</div>
+                <div className="tawhiid-hero-stat-label">Maudhui</div>
               </div>
             </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-              <div className="bg-gray-800/40 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
-                <div className="text-2xl font-bold text-emerald-400">{audios.length}</div>
-                <div className="text-sm text-gray-400">Jumla ya Darsa</div>
+            <div className="tawhiid-hero-stat">
+              <div className="tawhiid-hero-stat-icon">
+                <GraduationCap size={24} />
               </div>
-              <div className="bg-gray-800/40 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
-                <div className="text-2xl font-bold text-cyan-400">
-                  {formatSize(audios.reduce((sum, audio) => sum + (audio.size || 0), 0))}
+              <div className="tawhiid-hero-stat-content">
+                <div className="tawhiid-hero-stat-value">{metadata.teacher}</div>
+                <div className="tawhiid-hero-stat-label">Mwalimu</div>
+              </div>
+            </div>
+            <div className="tawhiid-hero-stat">
+              <div className="tawhiid-hero-stat-icon">
+                <Building2 size={24} />
+              </div>
+              <div className="tawhiid-hero-stat-value">
+                {metadata.location ? metadata.location.split(',')[0] : 'Chang\'anyikeni'}
                 </div>
-                <div className="text-sm text-gray-400">Ukubwa Wa Jumla</div>
+            </div>
+            <div className="tawhiid-hero-stat">
+              <div className="tawhiid-hero-stat-icon">
+                <Calendar size={24} />
               </div>
-              <div className="bg-gray-800/40 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
-                <div className="text-2xl font-bold text-teal-400">
-                  {audios.filter(a => a.duration).length}
-                </div>
-                <div className="text-sm text-gray-400">Zina Muda</div>
-              </div>
-              <div className="bg-gray-800/40 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
-                <div className="text-2xl font-bold text-violet-400">18+</div>
-                <div className="text-sm text-gray-400">Sehemu za Mfululizo</div>
+              <div className="tawhiid-hero-stat-content">
+                <div className="tawhiid-hero-stat-value">{metadata.schedule}</div>
+                <div className="tawhiid-hero-stat-label">Ratiba</div>
               </div>
             </div>
           </div>
+          {metadata.book && (
+            <div className="tawhiid-hero-quote" data-aos="fade-up" data-aos-delay="400">
+              <Heart size={24} className="tawhiid-hero-quote-icon" />
+              <p>{metadata.book}</p>
+              {metadata.author && <p className="tawhiid-hero-quote-translation">{metadata.author}</p>}
+              {metadata.startDate && <span className="tawhiid-hero-quote-reference">Kuanzia {metadata.startDate}</span>}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Audio Grid */}
-      <div className="container mx-auto px-4 pb-20">
-        {filteredAudios.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAudios.map((audio, index) => (
-              <div
-                key={audio.id || index}
-                className={`group bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl border transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl ${
-                  audioState.currentAudio?.url === audio.url
-                  ? 'border-emerald-500/50 shadow-2xl shadow-emerald-500/20'
-                  : 'border-gray-700/50 hover:border-emerald-400/50'
-                }`}
-              >
-                <div className="p-6">
-                  {/* Header */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                        audioState.currentAudio?.url === audio.url
-                        ? 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30'
-                        : 'bg-gradient-to-br from-gray-700 to-gray-800 group-hover:from-emerald-900/30 group-hover:to-teal-900/30'
-                      }`}>
-                        {audioState.currentAudio?.url === audio.url && audioState.isPlaying ? (
-                          <div className="flex gap-1">
-                            <div className="w-1 h-3 bg-white rounded-full audio-pulse audio-pulse-delay-0"></div>
-                            <div className="w-1 h-3 bg-white rounded-full audio-pulse audio-pulse-delay-1"></div>
-                            <div className="w-1 h-3 bg-white rounded-full audio-pulse audio-pulse-delay-2"></div>
-                          </div>
-                        ) : (
-                          <span className={`font-bold text-lg ${
-                            audioState.currentAudio?.url === audio.url ? 'text-white' : 'text-gray-400 group-hover:text-emerald-300'
-                          }`}>
-                            {index + 1}
-                          </span>
-                        )}
-                      </div>
-                      
-                      {audio.duration && (
-                        <div className="px-3 py-1.5 bg-gray-800/60 rounded-full text-xs flex items-center gap-2">
-                          <Clock size={12} className="text-emerald-400" />
-                          <span className="text-gray-300">{typeof audio.duration === 'number' ? formatTime(audio.duration) : audio.duration}</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const link = document.createElement('a')
-                          link.href = audio.downloadUrl || audio.url
-                          link.download = audio.filename || audio.title.replace(/\s+/g, '-') + '.mp3'
-                          document.body.appendChild(link)
-                          link.click()
-                          document.body.removeChild(link)
-                        }}
-                        className="p-2.5 text-gray-400 hover:text-emerald-400 hover:bg-gray-800/60 rounded-xl transition-all duration-300"
-                        title="Pakua"
-                        aria-label={`Pakua ${audio.title}`}
-                      >
-                        <Download size={18} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (navigator.share) {
-                            navigator.share({
-                              title: audio.title,
-                              text: `Sikiliza "${audio.title}" kutoka kwa ${audio.speaker}`,
-                              url: window.location.origin + audio.url,
-                            })
-                          } else {
-                            navigator.clipboard.writeText(window.location.origin + audio.url)
-                            alert('Kiungo kimenakiliwa kwenye clipboard!')
-                          }
-                        }}
-                        className="p-2.5 text-gray-400 hover:text-cyan-400 hover:bg-gray-800/60 rounded-xl transition-all duration-300"
-                        title="Shiriki"
-                        aria-label={`Shiriki ${audio.title}`}
-                      >
-                        <Share2 size={18} />
-                      </button>
-                      <a
-                        href={audio.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2.5 text-gray-400 hover:text-teal-400 hover:bg-gray-800/60 rounded-xl transition-all duration-300"
-                        title="Fungua kwenye tab mpya"
-                        aria-label="Fungua kwenye tab mpya"
-                      >
-                        <ExternalLink size={18} />
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="mb-4">
-                    <h3 className="font-bold text-lg mb-3 line-clamp-2 text-gray-100">{audio.title}</h3>
-                    <div className="space-y-3">
-                      <p className="text-gray-400 text-sm flex items-center gap-3">
-                        <User size={14} className="text-emerald-400" />
-                        <span>{audio.speaker || "Sheikh Abuu Mus'ab At Tanzaniy"}</span>
-                      </p>
-                      <p className="text-gray-400 text-sm flex items-center gap-3">
-                        <Calendar size={14} className="text-cyan-400" />
-                        <span>{audio.date || 'Tarehe haijulikani'}</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Info Bars */}
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-500">Ukubwa:</span>
-                      <span className="font-medium text-gray-300">{formatSize(audio.size || 0)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-500">Aina:</span>
-                      <span className="font-medium text-gray-300 flex items-center gap-2">
-                        <FileAudio size={12} />
-                        MP3 • 320kbps
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Play Button */}
-                  <button
-                    type="button"
-                    onClick={() => playTawhiidAudio(audio)}
-                    className={`w-full py-3.5 rounded-xl font-medium flex items-center justify-center transition-all duration-300 group/btn ${
-                      audioState.currentAudio?.url === audio.url && audioState.isPlaying
-                      ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-lg shadow-emerald-500/30'
-                      : 'bg-gradient-to-r from-gray-800 to-gray-900 text-gray-300 hover:text-white hover:from-emerald-700/30 hover:to-teal-800/30 hover:shadow-lg hover:shadow-emerald-500/20 border border-gray-700 group-hover:border-emerald-500/30'
-                    }`}
-                    aria-label={`Sikiliza ${audio.title}`}
-                  >
-                    {audioState.currentAudio?.url === audio.url && audioState.isPlaying ? (
-                      <>
-                        <Pause size={20} className="mr-3" />
-                        <span>Inasikilizwa</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play size={20} className="mr-3" />
-                        <span>Sikiliza Sasa</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            ))}
+      {/* Main Content */}
+      <div className="tawhiid-main container">
+        {/* Controls Bar */}
+        <div className="tawhiid-controls-bar" data-aos="fade-up">
+          <div className="tawhiid-search-wrapper">
+            <Search size={20} className="tawhiid-search-icon" />
+            <input
+              type="text"
+              placeholder="Tafuta darsa, mwalimu, tarehe..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setCurrentPage(1)
+              }}
+              className="tawhiid-search-input"
+              aria-label="Tafuta darsa"
+              title="Tafuta darsa"
+            />
           </div>
+          <div className="tawhiid-controls-group">
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`tawhiid-filter-btn ${showFilters ? 'active' : ''}`}
+              aria-label="Filters"
+              title="Filters"
+            >
+              <Filter size={18} />
+              <span className="tawhiid-filter-btn-text">Filters</span>
+              {showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            <div className="tawhiid-view-toggle">
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                className={`tawhiid-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                aria-label="Onyesha kwa gridi"
+                title="Grid view"
+              >
+                <LayoutGrid size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={`tawhiid-view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                aria-label="Onyesha kwa orodha"
+                title="List view"
+              >
+                <List size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters Panel */}
+        {showFilters && (
+          <div className="tawhiid-filters-panel" data-aos="fade-down">
+            <div className="tawhiid-filter-group">
+              <label className="tawhiid-filter-label">Panga kwa</label>
+              <div className="tawhiid-filter-buttons">
+                <button
+                  type="button"
+                  onClick={() => setSortBy('date')}
+                  className={`tawhiid-filter-button ${sortBy === 'date' ? 'active' : ''}`}
+                  aria-label="Panga kwa tarehe"
+                  title="Panga kwa tarehe"
+                >
+                  Tarehe
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortBy('title')}
+                  className={`tawhiid-filter-button ${sortBy === 'title' ? 'active' : ''}`}
+                  aria-label="Panga kwa kichwa"
+                  title="Panga kwa kichwa"
+                >
+                  Kichwa
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortBy('duration')}
+                  className={`tawhiid-filter-button ${sortBy === 'duration' ? 'active' : ''}`}
+                  aria-label="Panga kwa muda"
+                  title="Panga kwa muda"
+                >
+                  Muda
+                </button>
+              </div>
+            </div>
+            <div className="tawhiid-filter-group">
+              <label className="tawhiid-filter-label">Mpangilio</label>
+              <div className="tawhiid-filter-buttons">
+                <button
+                  type="button"
+                  onClick={() => setSortOrder('asc')}
+                  className={`tawhiid-filter-button ${sortOrder === 'asc' ? 'active' : ''}`}
+                  aria-label="Panga kwa kupanda"
+                  title="Panga kwa kupanda"
+                >
+                  Kupanda
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortOrder('desc')}
+                  className={`tawhiid-filter-button ${sortOrder === 'desc' ? 'active' : ''}`}
+                  aria-label="Panga kwa kushuka"
+                  title="Panga kwa kushuka"
+                >
+                  Kushuka
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Results Info */}
+        <div className="tawhiid-results-info" data-aos="fade-up">
+          <div className="tawhiid-results-count">
+            <ListMusic size={20} />
+            <span>
+              {filteredAudios.length} {filteredAudios.length === 1 ? 'darsa' : 'darsa'}
+              {searchTerm && ` zenye "${searchTerm}"`}
+            </span>
+          </div>
+          {bookmarked.length > 0 && (
+            <div className="tawhiid-bookmarks-info">
+              <Bookmark size={16} />
+              <span>{bookmarked.length} zimehifadhiwa</span>
+            </div>
+          )}
+        </div>
+
+        {/* Audio Grid/List */}
+        {filteredAudios.length > 0 ? (
+          <>
+            <div className={`tawhiid-audios-container ${viewMode}`}>
+              {paginatedAudios.map((audio, index) => {
+                const isPlaying = isCurrentlyPlaying(audio.filename)
+                const isBookmarked = bookmarked.includes(audio.filename)
+                const darsaNumber = ((currentPage - 1) * itemsPerPage + index + 1).toString().padStart(2, '0')
+
+                return viewMode === 'grid' ? (
+                  <div
+                    key={audio.filename}
+                    className={`tawhiid-audio-card ${isPlaying ? 'playing' : ''}`}
+                    data-aos="fade-up"
+                    data-aos-delay={(index % 6) * 50}
+                  >
+                    <div className="tawhiid-card-header">
+                      <span className="tawhiid-card-number">#{darsaNumber}</span>
+                      <div className="tawhiid-card-header-actions">
+                        <button
+                          type="button"
+                          onClick={() => toggleBookmark(audio.filename)}
+                          className={`tawhiid-bookmark-btn ${isBookmarked ? 'active' : ''}`}
+                          aria-label={isBookmarked ? 'Ondoa kwenye bookmark' : 'Weka kwenye bookmark'}
+                          title={isBookmarked ? 'Ondoa kwenye bookmark' : 'Weka kwenye bookmark'}
+                        >
+                          <Bookmark size={16} fill={isBookmarked ? 'currentColor' : 'none'} />
+                        </button>
+                      </div>
+                    </div>
+                    <h3 className="tawhiid-card-title">{audio.title}</h3>
+                    {audio.translation && (
+                      <p className="tawhiid-card-translation">{audio.translation}</p>
+                    )}
+                    <div className="tawhiid-card-meta">
+                      <div className="tawhiid-card-meta-item">
+                        <User size={14} />
+                        <span>{audio.speaker}</span>
+                      </div>
+                      <div className="tawhiid-card-meta-item">
+                        <Calendar size={14} />
+                        <span>{audio.date}</span>
+                      </div>
+                      <div className="tawhiid-card-meta-item">
+                        <Clock size={14} />
+                        <span>{formatDuration(audio.duration)}</span>
+                      </div>
+                    </div>
+                    <div className="tawhiid-card-footer">
+                      <div className="tawhiid-card-actions">
+                        <button
+                          type="button"
+                          onClick={() => handleShare(audio)}
+                          className="tawhiid-card-action"
+                          aria-label="Shiriki"
+                          title="Shiriki"
+                        >
+                          <Share2 size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(audio)}
+                          className="tawhiid-card-action"
+                          aria-label="Pakua"
+                          title="Pakua"
+                        >
+                          <Download size={16} />
+                        </button>
+                        <a
+                           href={`${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="tawhiid-card-action"
+                          aria-label="Fungua kwenye tab mpya"
+                          title="Fungua kwenye tab mpya"
+                        >
+                          <ExternalLink size={16} />
+                        </a>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handlePlayAudio(audio)}
+                        className={`tawhiid-card-play-btn ${isPlaying ? 'playing' : ''}`}
+                        disabled={audioState.isLoading && audioState.currentLecture?.filename === audio.filename}
+                        aria-label={isPlaying ? 'Simamisha' : `Cheza ${audio.title}`}
+                        title={isPlaying ? 'Simamisha' : `Cheza ${audio.title}`}
+                      >
+                        {audioState.isLoading && audioState.currentLecture?.filename === audio.filename ? (
+                          <div className="tawhiid-loading-spinner-small"></div>
+                        ) : isPlaying ? (
+                          <>
+                            <Pause size={18} />
+                            <span className="tawhiid-card-play-btn-text">Inacheza</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play size={18} />
+                            <span className="tawhiid-card-play-btn-text">Cheza</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    {isPlaying && (
+                      <div className="tawhiid-playing-indicator">
+                        <span className="tawhiid-playing-bar"></span>
+                        <span className="tawhiid-playing-bar"></span>
+                        <span className="tawhiid-playing-bar"></span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    key={audio.filename}
+                    className={`tawhiid-list-item ${isPlaying ? 'playing' : ''}`}
+                    data-aos="fade-up"
+                  >
+                    <div className="tawhiid-list-number">{darsaNumber}</div>
+                    <div className="tawhiid-list-content">
+                      <div className="tawhiid-list-info">
+                        <h3 className="tawhiid-list-title">{audio.title}</h3>
+                        {audio.translation && (
+                          <p className="tawhiid-list-translation">{audio.translation}</p>
+                        )}
+                        <div className="tawhiid-list-meta">
+                          <span className="tawhiid-list-meta-item">
+                            <User size={14} />
+                            {audio.speaker}
+                          </span>
+                          <span className="tawhiid-list-meta-item">
+                            <Calendar size={14} />
+                            {audio.date}
+                          </span>
+                          <span className="tawhiid-list-meta-item">
+                            <Clock size={14} />
+                            {formatDuration(audio.duration)}
+                          </span>
+                          <span className="tawhiid-list-meta-item">
+                            <FileAudio size={14} />
+                            {formatSize(audio.size)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="tawhiid-list-actions">
+                        <button
+                          type="button"
+                          onClick={() => toggleBookmark(audio.filename)}
+                          className={`tawhiid-list-action ${isBookmarked ? 'active' : ''}`}
+                          aria-label={isBookmarked ? 'Ondoa kwenye bookmark' : 'Weka kwenye bookmark'}
+                          title={isBookmarked ? 'Ondoa kwenye bookmark' : 'Weka kwenye bookmark'}
+                        >
+                          <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShare(audio)}
+                          className="tawhiid-list-action"
+                          aria-label="Shiriki"
+                          title="Shiriki"
+                        >
+                          <Share2 size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(audio)}
+                          className="tawhiid-list-action"
+                          aria-label="Pakua"
+                          title="Pakua"
+                        >
+                          <Download size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePlayAudio(audio)}
+                          className={`tawhiid-list-play-btn ${isPlaying ? 'playing' : ''}`}
+                          disabled={audioState.isLoading && audioState.currentLecture?.filename === audio.filename}
+                          aria-label={isPlaying ? 'Simamisha' : `Cheza ${audio.title}`}
+                          title={isPlaying ? 'Simamisha' : `Cheza ${audio.title}`}
+                        >
+                          {audioState.isLoading && audioState.currentLecture?.filename === audio.filename ? (
+                            <div className="tawhiid-loading-spinner-small"></div>
+                          ) : isPlaying ? (
+                            <Pause size={20} />
+                          ) : (
+                            <Play size={20} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="tawhiid-pagination" data-aos="fade-up">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="tawhiid-pagination-btn"
+                  aria-label="Ukurasa uliopita"
+                  title="Ukurasa uliopita"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <span className="tawhiid-pagination-info">
+                  Ukurasa {currentPage} wa {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="tawhiid-pagination-btn"
+                  aria-label="Ukurasa unaofuata"
+                  title="Ukurasa unaofuata"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            )}
+          </>
         ) : (
-          <div className="text-center py-12">
-            <Headphones className="mx-auto text-gray-600 mb-4" size={48} />
-            <h3 className="text-xl font-bold mb-2 text-gray-300">Hakuna Darsa Zilizopatikana</h3>
-            <p className="text-gray-500">
-              {searchTerm ? 'Hakuna darsa zilizo na "' + searchTerm + '"' : 'Hakuna darsa katika kategoria ya tawhiid bado'}
+          <div className="tawhiid-empty-state" data-aos="fade-up">
+            <BookOpen size={64} className="tawhiid-empty-icon" />
+            <h3 className="tawhiid-empty-title">Hakuna Darsa Zilizopatikana</h3>
+            <p className="tawhiid-empty-message">
+              {searchTerm
+                ? `Hakuna darsa zilizo na "${searchTerm}"`
+                : 'Hakuna darsa za Tawhiid zilizopatikana.'}
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm('')
+                setCurrentPage(1)
+              }}
+              className="tawhiid-empty-btn"
+              aria-label="Ondoa filters"
+              title="Ondoa filters"
+            >
+              Ondoa Filters
+            </button>
           </div>
         )}
       </div>
 
-      {/* Floating Audio Controls */}
-      {audioState.currentAudio && (
-        <div className="fixed bottom-24 right-6 z-40">
-          <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl p-4 w-80">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={togglePlay}
-                  className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center hover:shadow-lg hover:shadow-emerald-500/30 transition-all"
-                  title={audioState.isPlaying ? "Simamisha" : "Sikiliza"}
-                  aria-label={audioState.isPlaying ? "Simamisha" : "Sikiliza"}
-                >
-                  {audioState.isPlaying ? (
-                    <Pause size={20} className="text-white" />
-                  ) : (
-                    <Play size={20} className="text-white ml-0.5" />
-                  )}
-                </button>
-                <div className="max-w-[180px]">
-                  <p className="font-medium truncate text-sm text-white">{audioState.currentAudio.title}</p>
-                  <p className="text-xs text-gray-400 truncate">{audioState.currentAudio.speaker}</p>
+      {/* Global Now Playing Bar */}
+      {audioState.currentLecture && audioState.audioType === 'lecture' && (
+        <div className="tawhiid-now-playing-bar">
+          <div className="tawhiid-now-playing-content container">
+            <div className="tawhiid-now-playing-info">
+              <div className="tawhiid-now-playing-cover">
+                <BookOpen size={24} />
+              </div>
+              <div className="tawhiid-now-playing-text">
+                <div className="tawhiid-now-playing-title">
+                  {audioState.currentLecture.title}
+                </div>
+                <div className="tawhiid-now-playing-subtitle">
+                  {audioState.currentLecture.speaker}
                 </div>
               </div>
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={prevTrack}
-                  className="p-2 hover:bg-gray-700/50 rounded-xl"
-                  title="Darsa iliyopita"
-                  aria-label="Darsa iliyopita"
-                >
-                  <SkipBack size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={nextTrack}
-                  className="p-2 hover:bg-gray-700/50 rounded-xl"
-                  title="Darsa inayofuata"
-                  aria-label="Darsa inayofuata"
-                >
-                  <SkipForward size={16} />
-                </button>
-              </div>
             </div>
-
-            {/* Progress Bar */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-                <span>{formatTime(audioState.currentTime)}</span>
-                <span>{formatTime(audioState.duration)}</span>
-              </div>
-              <div className="relative h-1.5">
-                <div className="absolute inset-0 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300 progress-fill"
-                  />
+            <div className="tawhiid-now-playing-controls">
+              <button
+                onClick={prevTrack}
+                className="tawhiid-now-playing-control"
+                aria-label="Darsa iliyopita"
+                title="Darsa iliyopita"
+                disabled={audioState.isLoading}
+              >
+                <SkipBack size={20} />
+              </button>
+              <button
+                onClick={togglePlay}
+                className="tawhiid-now-playing-play"
+                aria-label={audioState.isPlaying ? 'Simamisha' : 'Cheza'}
+                title={audioState.isPlaying ? 'Simamisha' : 'Cheza'}
+                disabled={audioState.isLoading}
+              >
+                {audioState.isLoading ? (
+                  <div className="tawhiid-now-playing-loading"></div>
+                ) : audioState.isPlaying ? (
+                  <Pause size={24} />
+                ) : (
+                  <Play size={24} />
+                )}
+              </button>
+              <button
+                onClick={nextTrack}
+                className="tawhiid-now-playing-control"
+                aria-label="Darsa inayofuata"
+                title="Darsa inayofuata"
+                disabled={audioState.isLoading}
+              >
+                <SkipForward size={20} />
+              </button>
+              <div className="tawhiid-now-playing-progress">
+                <div className="tawhiid-now-playing-time">
+                  <span>{formatTime(audioState.currentTime)}</span>
+                  <span>{formatTime(audioState.duration)}</span>
+                </div>
+                <div className="tawhiid-now-playing-track">
+                  <div className="tawhiid-now-playing-fill"></div>
                 </div>
                 <input
                   type="range"
@@ -428,32 +863,26 @@ export default function TawhiidPage() {
                   max={audioState.duration || 100}
                   value={audioState.currentTime}
                   onChange={(e) => seekTo(parseFloat(e.target.value))}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className="tawhiid-now-playing-range"
                   aria-label="Endelea mbele au nyuma"
+                  title="Endelea mbele au nyuma"
                 />
               </div>
-            </div>
-
-            {/* Volume Control */}
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setMuted(!audioState.isMuted)}
-                className="p-1.5 hover:bg-gray-700/50 rounded-lg"
-                title={audioState.isMuted ? "Washa sauti" : "Zima sauti"}
-                aria-label={audioState.isMuted ? "Washa sauti" : "Zima sauti"}
-              >
-                {audioState.isMuted ? (
-                  <VolumeX size={16} className="text-gray-400" />
-                ) : (
-                  <Volume2 size={16} className="text-gray-400" />
-                )}
-              </button>
-              <div className="flex-1 relative h-1.5">
-                <div className="absolute inset-0 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300 volume-fill"
-                  />
+              <div className="tawhiid-now-playing-volume">
+                <button
+                  onClick={() => setMuted(!audioState.isMuted)}
+                  className="tawhiid-now-playing-volume-btn"
+                  aria-label={audioState.isMuted ? 'Washa sauti' : 'Zima sauti'}
+                  title={audioState.isMuted ? 'Washa sauti' : 'Zima sauti'}
+                >
+                  {audioState.isMuted ? (
+                    <VolumeX size={18} />
+                  ) : (
+                    <Volume2 size={18} />
+                  )}
+                </button>
+                <div className="tawhiid-now-playing-volume-track">
+                  <div className="tawhiid-now-playing-volume-fill"></div>
                 </div>
                 <input
                   type="range"
@@ -462,30 +891,15 @@ export default function TawhiidPage() {
                   step="0.1"
                   value={audioState.volume}
                   onChange={(e) => setVolume(parseFloat(e.target.value))}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className="tawhiid-now-playing-volume-range"
                   aria-label="Badilisha ukubwa wa sauti"
+                  title="Badilisha ukubwa wa sauti"
                 />
               </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Add CSS for audio bars animation */}
-      <style jsx global>{`
-        @keyframes audio-pulse {
-          0%, 100% { height: 0.25rem; }
-          50% { height: 1rem; }
-        }
-        .audio-pulse { animation: audio-pulse 0.8s infinite; }
-        .audio-pulse-delay-0 { animation-delay: 0s; }
-        .audio-pulse-delay-1 { animation-delay: 0.2s; }
-        .audio-pulse-delay-2 { animation-delay: 0.4s; }
-
-        /* progress & volume fills use CSS variables updated from JS */
-        .progress-fill { width: var(--tawhiid-progress, 0%); }
-        .volume-fill { width: var(--tawhiid-volume, 100%); }
-      `}</style>
     </div>
   )
 }

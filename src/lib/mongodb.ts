@@ -1,30 +1,30 @@
-// server-only
-import { MongoClient } from "mongodb";
+import { MongoClient } from 'mongodb'
 
-const uri = process.env.MONGO_URI;
-if (!uri) throw new Error("❌ MONGO_URI haipo kwenye .env.local");
+const uri = process.env.MONGODB_URI
+const options = {}
 
-const options = {
-  tls: true,
-  tlsAllowInvalidCertificates: true,
-};
+let client
+let clientPromise: Promise<MongoClient>
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
-
-declare global {
-  var _mongoClientPromise: Promise<MongoClient> | undefined;
+if (!uri) {
+  throw new Error('Please define MONGODB_URI environment variable')
 }
 
-if (process.env.NODE_ENV === "development") {
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(uri, options);
-    global._mongoClientPromise = client.connect();
+if (process.env.NODE_ENV === 'development') {
+  // In development mode, use a global variable
+  let globalWithMongo = global as typeof globalThis & {
+    _mongoClientPromise?: Promise<MongoClient>
   }
-  clientPromise = global._mongoClientPromise;
+
+  if (!globalWithMongo._mongoClientPromise) {
+    client = new MongoClient(uri, options)
+    globalWithMongo._mongoClientPromise = client.connect()
+  }
+  clientPromise = globalWithMongo._mongoClientPromise
 } else {
-  client = new MongoClient(uri, options);
-  clientPromise = client.connect();
+  // In production mode
+  client = new MongoClient(uri, options)
+  clientPromise = client.connect()
 }
 
-export default clientPromise;
+export default clientPromise

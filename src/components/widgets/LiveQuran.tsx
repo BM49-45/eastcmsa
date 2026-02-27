@@ -238,13 +238,12 @@ const LiveQuran = memo(function LiveQuran() {
     setVolume,
     setMuted,
     setPlaybackRate,
-    seekTo,
-    isGlobalAudioPlaying
+    seekTo
   } = useAudio()
 
   // Local state for UI
-  const [reciter, setReciter] = useState<AudioReciter | typeof reciters[0]>(reciters[0])
-  const [surah, setSurah] = useState<AudioSurah | LocalSurah>(surahs[0])
+  const [reciter, setReciter] = useState<typeof reciters[0]>(reciters[0])
+  const [surah, setSurah] = useState<LocalSurah>(surahs[0])
   const [currentAnimation, setCurrentAnimation] = useState(0)
   const [showReciters, setShowReciters] = useState(false)
   const [liked, setLiked] = useState(false)
@@ -259,7 +258,7 @@ const LiveQuran = memo(function LiveQuran() {
   const progressTrackRef = useRef<HTMLDivElement | null>(null)
   const volumeSliderRef = useRef<HTMLInputElement | null>(null)
   
-  // Animation refs to prevent re-renders - FIXED: Added null initial value
+  // Animation refs to prevent re-renders
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Optimized animation rotation - doesn't cause re-renders of parent
@@ -341,31 +340,42 @@ const LiveQuran = memo(function LiveQuran() {
   // Sync with global audio state
   useEffect(() => {
     if (audioState.currentSurah) {
-      setSurah(audioState.currentSurah)
+      setSurah(audioState.currentSurah as LocalSurah)
     }
     if (audioState.currentReciter) {
-      setReciter(audioState.currentReciter)
+      setReciter(audioState.currentReciter as typeof reciters[0])
     }
   }, [audioState.currentSurah, audioState.currentReciter])
 
-  // Get audio URL
-  const getAudioUrl = useCallback((surahNumber: number): string => {
-    const paddedNum = pad(surahNumber)
-    return `/audio/${reciter.folder}/${paddedNum}.mp3`
-  }, [reciter.folder])
+  // Get audio URL from R2
+const getAudioUrl = useCallback((surahNumber: number): string => {
+  const paddedNum = pad(surahNumber)
 
-  // Check if audio file exists
-  const checkAudioAvailability = useCallback(async (surahNumber: number) => {
-    const audioUrl = getAudioUrl(surahNumber)
-    try {
-      const response = await fetch(audioUrl, { method: 'HEAD' })
-      setAudioAvailable(response.ok)
-      return response.ok
-    } catch (error) {
-      setAudioAvailable(false)
-      return false
-    }
-  }, [getAudioUrl])
+  // Use R2 URL from environment variable
+  const baseUrl = process.env.NEXT_PUBLIC_AUDIO_BASE_URL || 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/audio'
+    return `${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/${reciter.folder}/${paddedNum}.mp3`
+}, [reciter.folder])
+
+// Check if audio file exists - with better error handling
+const checkAudioAvailability = useCallback(async (surahNumber: number) => {
+  const audioUrl = getAudioUrl(surahNumber)
+  console.log('🔍 Checking audio URL:', audioUrl)
+  
+  try {
+    const response = await fetch(audioUrl, { 
+      method: 'HEAD',
+      cache: 'no-cache'
+    })
+    
+    console.log(`📡 Audio check for ${surahNumber}:`, response.status, response.ok)
+    setAudioAvailable(response.ok)
+    return response.ok
+  } catch (error) {
+    console.error('❌ Error checking audio:', error)
+    setAudioAvailable(false)
+    return false
+  }
+}, [getAudioUrl])
 
   // Handle play/pause
   const handleTogglePlay = useCallback(async () => {
@@ -539,6 +549,11 @@ const LiveQuran = memo(function LiveQuran() {
   const volumeColor = useMemo(() => getVolumeColor(), [getVolumeColor])
   const volumeIcon = useMemo(() => getVolumeIcon(), [getVolumeIcon])
 
+  // Function to check if any audio is playing
+  const isAnyAudioPlaying = useMemo(() => {
+    return audioState.isPlaying && audioState.currentSurah !== null
+  }, [audioState.isPlaying, audioState.currentSurah])
+
   return (
     <div
       ref={containerRef}
@@ -554,7 +569,7 @@ const LiveQuran = memo(function LiveQuran() {
       <div className="relative z-10 p-4 md:p-6">
         {/* HEADER WITH GLOBAL PLAYING INDICATOR */}
         <div className="text-center mb-4">
-          {isGlobalAudioPlaying() && audioState.currentReciter?.id !== reciter.id && (
+          {isAnyAudioPlaying && audioState.currentReciter?.id !== reciter.id && (
             <div className="mb-2 p-2 bg-blue-900/30 border border-blue-700/50 rounded-lg">
               <div className="flex items-center justify-center gap-2 text-sm text-blue-300">
                 <Headphones size={14} />
@@ -730,7 +745,7 @@ const LiveQuran = memo(function LiveQuran() {
             aria-label={isThisSurahPlaying && audioState.isPlaying ? "Pause audio" : "Play audio"}
           >
             {isLoading ? (
-              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full loading-spinner"></div>
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : isThisSurahPlaying && audioState.isPlaying ? (
               <Pause size={26} />
             ) : (
@@ -786,7 +801,7 @@ const LiveQuran = memo(function LiveQuran() {
                     <div className="text-xs text-white/70">{r.folder} • {r.description}</div>
                   </div>
                   {reciter.id === r.id && (
-                    <div className="w-2 h-2 bg-green-400 rounded-full live-indicator"></div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                   )}
                 </button>
               ))}
