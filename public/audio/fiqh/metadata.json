@@ -1,0 +1,91 @@
+{
+  "category": "fiqh",
+  "description": "Darsa ya Fiqh - Kitabu: عمدة الأحكام مِنْ كَلَام خَيْر الْأَنَامِ ﷺ",
+  "author": "الإمام الحافظ عبد الغني المقدسي",
+  "location": "Masjid Chang'anyikeni – Ubungo, Dar es Salaam",
+  "teacher": "USTADH Fadhili Adam",
+  "schedule": "Jumatatu na Alhamisi baada ya Swala ya Maghrib",
+  "files": [
+    {
+      "filename": "01-fiqh-darsa-no-1.mp3",
+      "title": "فقه - الدَّرْسُ الْأَوَّلُ",
+      "duration": "57:04",
+      "size": 54797516,
+      "speaker": "Ustadh Fadhili Adam",
+      "date": "2025-12-22",
+      "hijri": "3 Rajab 1447H"
+    },
+    {
+      "filename": "02-fiqh-darsa-no-2.mp3",
+      "title": "فقه - الدَّرْسُ الثَّانِي",
+      "duration": "42:01",
+      "size": 40340209,
+      "speaker": "Ustadh Fadhili Adam",
+      "date": "2026-01-01",
+      "hijri": "12 Rajab 1447H"
+    },
+    {
+      "filename": "03-fiqh-darsa-no-3.mp3",
+      "title": "فقه - الدَّرْسُ الثَّالِثُ",
+      "duration": "52:52",
+      "size": 50752507,
+      "speaker": "Ustadh Fadhili Adam",
+      "date": "2026-01-05",
+      "hijri": "16 Rajab 1447H"
+    },
+    {
+      "filename": "04-fiqh-darsa-no-4.mp3",
+      "title": "فقه - الدَّرْسُ الرَّابِعُ",
+      "duration": "57:58",
+      "size": 55655778,
+      "speaker": "Ustadh Ahmad Salum",
+      "date": "2026-01-08",
+      "hijri": "18 Rajab 1447H"
+    },
+    {
+      "filename": "05-fiqh-darsa-no-5.mp3",
+      "title": "فقه - الدَّرْسُ الْخَامِسُ",
+      "duration": "59:14",
+      "size": 56872039,
+      "speaker": "Ustadh Ahmad Salum",
+      "date": "2026-01-12",
+      "hijri": "23 Rajab 1447H"
+    },
+    {
+      "filename": "06-fiqh-darsa-no-6.mp3",
+      "title": "فقه - الدَّرْسُ السَّادِسُ",
+      "duration": "35:11",
+      "size": 33792751,
+      "speaker": "Ustadh Fadhili Adam",
+      "date": "2026-01-26",
+      "hijri": "7 Sha'ban 1447H"
+    },
+     {
+      "filename": "07-fiqh-darsa-no-7.mp3",
+      "title": "فقه - الدَّرْسُ السَّابِعُ",
+      "duration": "58:02",
+      "size": 55721397,
+      "speaker": "Ustadh Fadhili Adam",
+      "date": "2026-02-02",
+      "hijri": "14 Sha'ban 1447H"
+    },
+    {
+      "filename": "08-fiqh-darsa-no-8.mp3",
+      "title": "فقه - الدَّرْسُ الثَّامِنُ",
+      "duration": "41:16",
+      "size": 39711889,
+      "speaker": "Ustadh Fadhili Adam",
+      "date": "2026-02-16",
+      "hijri": "29 Sha'ban 1447H"
+    },
+    {
+      "filename": "09-fiqh-darsa-no-9.mp3",
+      "title": "فقه - الدَّرْسُ التَّاسِعُ",
+      "duration": "1:00:25",
+      "size": 58093441,
+      "speaker": "Ustadh Fadhili Adam",
+      "date": "2026-02-16",
+      "hijri": "29 Sha'ban 1447H"
+    }
+  ]
+}

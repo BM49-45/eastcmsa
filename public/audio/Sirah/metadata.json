@@ -1,0 +1,82 @@
+{
+  "category": "sirah",
+  "description": "Al-Kitaabu - Khulaswah Nurulyaqyn",
+  "book": "خُلَاصَةُ نُورِ الْيَقِينِ فِي سِيرَةِ سَيِّدِ الْمُرْسَلِينَ - Khulaswah Nurulyaqyn fi Sirati Sayyidil Mursalin",
+  "author": "الشیخ محمد الخضري بك - Sheikh Muhammad Al-Khudari Bak",
+  "location": "Masjid Chang'anyikeni – Ubungo, Dar es Salaam",
+  "teacher": "Sheikh Iddy Issa",
+  "schedule": "Jumanne na Jumatano baada ya Swala ya Maghrib",
+  "startDate": "Desemba 2025",
+  "files": [
+    {
+      "filename": "01-khulaswat-nurul-yaqiin-01.mp3",
+      "title": "السِّيرَةُ - الدَّرْسُ الْأَوَّلُ: مُقَدِّمَةٌ",
+      "translation": "Sirah - Darsa la 1",
+      "duration": "40:09",
+      "size": 38549799,
+      "speaker": "Sheikh Iddy Issa",
+      "date": "2025-12-16",
+      "hijri": "25 Jumadal Aakhirah 1447H "
+    },
+    {
+      "filename": "02-khulaswat-nurul-yaqiin-02.mp3",
+      "title": "السِّيرَةُ - الدَّرْسُ الثَّانِي: وِلَادَتُهُ وَطُفُولَتُهُ",
+      "translation": "Sirah - Darsa la 2",
+      "duration": "52:11",
+      "size": 50104572,
+      "speaker": "Sheikh Iddy Issa",
+      "date": "2025-12-17",
+      "hijri": "26 Jumadal Aakhirah 1447H "
+    },
+    {
+      "filename": "03-khulaswat-nurul-yaqiin-03.mp3",
+      "title": "السِّيرَةُ - الدَّرْسُ الثَّالِث: شَبَابُهُ قَبْلَ الْبِعْثَةِ",
+      "translation": "Sirah - Darsa la 3",
+      "duration": "42:54",
+      "size": 41189629,
+      "speaker": "Sheikh Iddy Issa",
+      "date": "2025-12-22",
+      "hijri": "𝟑 𝑹𝒂𝒋𝒂𝒃 𝟏𝟒𝟒𝟕H"
+    },
+    {
+      "filename": "06-khulaswat-nurul-yaqiin-06.mp3",
+      "title": "السِّيرَةُ - الدَّرْسُ الرَّابِع: نُزُولُ الْوَحْيِ",
+      "translation": "Sirah - Darsa la 4",
+      "duration": "43:55",
+      "size": 42169198,
+      "speaker": "Sheikh Iddy Issa",
+      "date": "2025-12-24",
+      "hijri": "24 Jumada Al-Thani 1447H"
+    },
+    {
+      "filename": "09-khulaswat-nurul-yaqiin-09.mp3",
+      "title": "السِّيرَةُ - الدَّرْسُ الْخَامِس: الدَّعْوَةُ السِّرِّيَّةُ",
+      "translation": "Sirah - Darsa la 5",
+      "duration": "46:55",
+      "size": 45044049,
+      "speaker": "Sheikh Iddy Issa",
+      "date": "2026-01-21",
+      "hijri": "2 Sha'abaan 1447 AH"
+    },
+    {
+      "filename": "10-khulaswat-nurul-yaqiin-10.mp3",
+      "title": "السِّيرَةُ - الدَّرْسُ السَّادِس: الدَّعْوَةُ الْجَهْرِيَّةُ",
+      "translation": "Sirah - Darsa la 6: Mwito wa Dhahiri",
+      "duration": "35:38",
+      "size": 34296956,
+      "speaker": "Sheikh Iddy Issa",
+      "date": "2026-01-27",
+      "hijri": "8 Sha'abaan 1447 AH"
+    },
+    {
+      "filename": "11-khulaswat-nurul-yaqiin-11.mp3",
+      "title": "السِّيرَةُ - الدَّرْسُ السَّابِع: هِجْرَةُ الْحَبَشَةِ",
+      "translation": "Sirah - Darsa la 7: Hijra ya Habeshi",
+      "duration": "51:24",
+      "size": 49354625,
+      "speaker": "Sheikh Iddy Issa",
+      "date": "2026-01-14",
+      "hijri": "25 Rajab 1447H"
+    }
+  ]
+}

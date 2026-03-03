@@ -1,0 +1,30 @@
+{
+  "category": "mihadhara",
+  "description": "Mihadhara ya kila semister kutoka kwa Masheikh",
+  "files": [
+    {
+      "filename": "01-vipengele-kumi-katika-fani-za-kielimu.mp3",
+      "title": "VIPENGELE KUMI KATIKA FANI ZA KIELIMU",
+      "duration": "48:46",
+      "size": 46821375,
+      "speaker": "Sheikh Abuu Mus'ab At Tanzaniy",
+      "date": "2024-12-14"
+    },
+    {
+      "filename": "03-Kitaab-Al-Usuul-Muhimmah-li-Shabab-al-Ummah.mp3",
+      "title": "MISINGI MUHIMU KWA VIJANA WA UMMA WA KIISLAMU",
+      "duration": "02:29:14",
+      "size": 143262240,
+      "speaker": "Sheikh Abuu Umeir Adam Khamis",
+      "date": "2024-04-26"
+    },
+    {
+      "filename": "04-Kuzihesabu-Nafsi.mp3",
+      "title": "KUZIHESABU NAFSI",
+      "duration": "01:58:41",
+      "size": 113942694,
+      "speaker": "Sheikh Abuu Umeir Adam Khamis",
+      "date": "2025-06-21"
+    }
+  ]
+}
