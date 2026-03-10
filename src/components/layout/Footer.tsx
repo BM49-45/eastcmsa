@@ -1,6 +1,7 @@
 'use client'
 
 import { Heart, Mail, Phone, MapPin, Facebook, Youtube, Twitter, Instagram, Globe, BookOpen } from 'lucide-react'
+import { FaWhatsapp } from 'react-icons/fa'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -35,15 +36,15 @@ export default function Footer() {
     { icon: <Phone size={18} />, text: '+255 695 543 175' },
     { icon: <Phone size={18} />, text: '+255 752 792 402' },
     { icon: <Phone size={18} />, text: '+255 699 565 600' },
-
     { icon: <Mail size={18} />, text: 'eastcmsa@protonmail.com' },
   ]
 
   const socialLinks = [
-    { icon: <Facebook size={20} />, href: 'https://facebook.com/eastc.islamic', label: 'Facebook' },
-    { icon: <Youtube size={20} />, href: 'https://youtube.com/@eastc_islamic', label: 'YouTube' },
-    { icon: <Twitter size={20} />, href: 'https://twitter.com/eastc_islamic', label: 'Twitter' },
-    { icon: <Instagram size={20} />, href: 'https://instagram.com/eastc.islamic', label: 'Instagram' },
+    { icon: <Facebook size={20} />, href: 'https://facebook.com/eastcmsa', label: 'Facebook' },
+    { icon: <Youtube size={20} />, href: 'https://youtube.com/@eastcmsa', label: 'YouTube' },
+    { icon: <Twitter size={20} />, href: 'https://twitter.com/eastcmsa', label: 'Twitter' },
+    { icon: <Instagram size={20} />, href: 'https://instagram.com/eastcmsa', label: 'Instagram' },
+    { icon: <FaWhatsapp size={20} />, href: 'https://whatsapp.com/channel/0029VbC8YONIN9ig2UvBQr2P', label: 'WhatsApp' },
   ]
 
   const footerLinks = [
@@ -68,7 +69,7 @@ export default function Footer() {
     <footer className="bg-gray-900 text-white pt-12 pb-8 mt-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Logo & Description - FIXED MOTION.DIV */}
+          {/* Logo & Description */}
           <div>
             <div className="flex items-center space-x-3 mb-4">
               <motion.div 
@@ -155,7 +156,7 @@ export default function Footer() {
                   <div className="text-green-400 mt-0.5">
                     {info.icon}
                     <span className="sr-only">
-                      {index === 0 ? 'Address' : index === 1 ? 'Phone' : 'Email'}
+                      {index === 0 ? 'Address' : index <= 5 ? 'Phone' : 'Email'}
                     </span>
                   </div>
                   <p className="text-gray-400 whitespace-pre-line">{info.text}</p>
@@ -260,4 +261,4 @@ export default function Footer() {
       </div>
     </footer>
   )
-}import { AnimatePresence } from 'framer-motion'
+}

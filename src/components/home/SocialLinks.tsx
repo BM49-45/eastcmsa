@@ -34,8 +34,8 @@ const socialPlatforms = [
   {
     name: "Website",
     icon: <Globe className="w-4 h-4" />,
-    handle: "eastcmsa.org",
-    url: "https://eastcmsa.org",
+    handle: "eastcmsa",
+    url: "https://whatsapp.com/channel/0029VbC8YONIN9ig2UvBQr2P",
     bg: "from-emerald-500 to-emerald-600"
   }
 ];

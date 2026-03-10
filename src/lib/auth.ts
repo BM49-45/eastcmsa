@@ -1,8 +1,7 @@
-// src/lib/auth.ts
-import { type NextAuthOptions } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import { getUserByEmail } from "./db";
-import bcrypt from "bcryptjs";
+import { type NextAuthOptions } from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import clientPromise from "./mongodb"
+import bcrypt from "bcryptjs"
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -10,55 +9,71 @@ export const authOptions: NextAuthOptions = {
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        password: { label: "Password", type: "password" }
       },
-
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
-          return null;
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Email na password zinahitajika")
         }
 
-        const user = await getUserByEmail(credentials.email);
-        if (!user || !user.password) return null;
+        try {
+          const client = await clientPromise
+          const db = client.db("eastcmsa")
+          const users = db.collection("users")
 
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
+          // Tafuta user kwa email
+          const user = await users.findOne({ email: credentials.email })
+          
+          if (!user) {
+            throw new Error("Email haipo")
+          }
 
-        if (!isValid) return null;
+          // Compare password
+          const isValid = await bcrypt.compare(credentials.password, user.password)
+          
+          if (!isValid) {
+            throw new Error("Password si sahihi")
+          }
 
-        return {
-          id: user._id!.toString(),
-          email: user.email,
-          name: user.name ?? null,
-        };
-      },
-    }),
-  ],
-
-  session: {
-    strategy: "jwt",
-  },
-
-  callbacks: {
-    async jwt({ token }) {
-      if (token.email) {
-        const user = await getUserByEmail(token.email);
-        if (user?.role) {
-          token.role = user.role;
+          // Return user data (bila password)
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+            role: user.role || "user",
+            image: user.image || null
+          }
+        } catch (error) {
+          console.error("Auth error:", error)
+          throw error
         }
       }
-      return token;
+    })
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+        token.role = user.role
+        token.picture = user.image
+      }
+      return token
     },
-
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as string;
+        session.user.id = token.id as string
+        session.user.role = token.role as string
+        session.user.image = token.picture as string | null
       }
-      return session;
-    },
+      return session
+    }
   },
-
-  secret: process.env.NEXTAUTH_SECRET,
-};
+  pages: {
+    signIn: '/login',
+    error: '/login'
+  },
+  session: {
+    strategy: "jwt"
+  },
+  secret: process.env.NEXTAUTH_SECRET
+}

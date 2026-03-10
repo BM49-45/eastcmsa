@@ -2,20 +2,17 @@ import './globals.css'
 import { Inter } from 'next/font/google'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import GlobalAudioPlayer from '@/components/layout/GlobalAudioPlayer'
 import Providers from '@/components/Providers'
 import { AudioProvider } from '@/context/AudioContext'
+import { ActivityProvider } from '@/context/ActivityContext'
 import { Toaster } from 'sonner'
-import ClientLayout from '@/components/ClientLayout'
+import { NotificationProvider } from '@/context/NotificationContext'
 
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-})
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'EASTCMSA - Islamic Knowledge Portal',
-  description: 'Learn Quran, Tawhiid, Fiqh, and Sirah online',
+  description: 'Learn Quran, Tawhid, Fiqh, and Sirah online',
 }
 
 export default function RootLayout({
@@ -25,23 +22,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="sw" suppressHydrationWarning>
-      <body
-        suppressHydrationWarning
-        className={`${inter.className} antialiased`}
-      >
-        <Providers>
-          <AudioProvider>
-            <Navbar />
-            <main className="min-h-screen pt-16">{children}</main>
-            <GlobalAudioPlayer />
-            <Footer />
-            <Toaster
-              richColors
-              position="top-right"
-              toastOptions={{ duration: 4000 }}
-            />
-            <ClientLayout />
-          </AudioProvider>
+      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
+        <Providers> {/* SessionProvider iko inside Providers */}
+          <NotificationProvider> {/* NotificationProvider inatumia session, so inahitaji kuwa inside Providers */}
+            <AudioProvider>
+              <ActivityProvider>
+                <Navbar />
+                <main className="min-h-screen pt-20">
+                  {children}
+                </main>
+                <Footer />
+                <Toaster richColors position="top-right" />
+              </ActivityProvider>
+            </AudioProvider>
+          </NotificationProvider>
         </Providers>
       </body>
     </html>
