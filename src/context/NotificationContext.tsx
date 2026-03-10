@@ -2,8 +2,25 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useSession } from 'next-auth/react'
-import { Notification } from '@/types/notification'
 import { toast } from 'sonner'
+
+// Notification type definition
+export interface Notification {
+  _id: string
+  userId: string
+  type: 'comment_reply' | 'comment_like' | 'comment_mention' | 'lecture_new' | 'book_new' | 'event_new' | 'announcement' | 'system_alert' | 'welcome' | 'achievement'
+  title: string
+  message: string
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  read: boolean
+  archived: boolean
+  data?: {
+    actionUrl?: string
+    [key: string]: any
+  }
+  createdAt: string
+  updatedAt: string
+}
 
 interface NotificationContextType {
   notifications: Notification[]
@@ -24,7 +41,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [unreadCount, setUnreadCount] = useState(0)
-  const [lastFetched, setLastFetched] = useState<Date | null>(null)
 
   // Fetch notifications
   const refreshNotifications = async () => {
@@ -34,9 +50,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const res = await fetch('/api/notifications')
       const data = await res.json()
       if (res.ok) {
-        setNotifications(data.notifications)
-        setUnreadCount(data.unreadCount)
-        setLastFetched(new Date())
+        setNotifications(data.notifications || [])
+        setUnreadCount(data.unreadCount || 0)
       }
     } catch (error) {
       console.error('Error fetching notifications:', error)

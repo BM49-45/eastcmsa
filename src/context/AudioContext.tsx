@@ -119,7 +119,6 @@ const getFullUrl = (url: string): string => {
   // Remove leading slash if present
   const cleanPath = url.startsWith('/') ? url.substring(1) : url
   const fullUrl = `${baseUrl}/${cleanPath}`
-  console.log('🔍 URL constructed:', { original: url, full: fullUrl })
   return fullUrl
 }
 
@@ -144,7 +143,7 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
         audioRef.current = null
       }
     }
-  }, []) // Empty dependency array - run once
+  }, [])
 
   // Update audio element properties when they change
   useEffect(() => {
@@ -219,26 +218,10 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
       setAudioState(prev => ({ ...prev, isLoading: true }))
     }
 
-    const handleError = (e: ErrorEvent) => {
-      console.error('❌ Audio error:', {
-        message: e.message,
-        error: e.error,
-        src: audio.src,
-        currentSrc: audio.currentSrc
-      })
-      
+    const handleError = () => {
       if (audio.error) {
-        console.error('🎵 Audio element error:', {
-          code: audio.error.code,
-          message: audio.error.message,
-          src: audio.src
-        })
-        
-        // Check if it's a 404 error (network error)
         if (audio.error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) {
           toast.error('Faili la audio halipatikani (404). Angalia URL.')
-          console.error('❌ URL isiyofanya kazi:', audio.src)
-          console.error('🔧 BASE_URL =', process.env.NEXT_PUBLIC_AUDIO_BASE_URL)
         } else if (audio.error.code === MediaError.MEDIA_ERR_NETWORK) {
           toast.error('Hitilafu ya mtandao. Angalia connection yako.')
         } else {
@@ -266,7 +249,7 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
       audio.removeEventListener('waiting', handleWaiting)
       audio.removeEventListener('error', handleError)
     }
-  }, [audioState.playbackMode, audioState.playQueue]) // Remove audioState.currentLecture from dependencies
+  }, [audioState.playbackMode, audioState.playQueue])
 
   // Play Quran audio
   const playAudio = useCallback(async (surah: Surah, reciter: Reciter) => {
@@ -280,7 +263,6 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
       }
       
       const audioUrl = `${baseUrl}/${reciter.folder}/${surah.number.toString().padStart(3, '0')}.mp3`
-      console.log('🎵 Playing Quran:', audioUrl)
       
       audioRef.current.src = audioUrl
       
@@ -310,7 +292,6 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
     if (!audioRef.current) return
 
     try {
-      // Check if same lecture is playing
       if (audioState.currentLecture?.id === lecture.id && audioState.audioType === 'lecture') {
         if (audioState.isPlaying) {
           audioRef.current.pause()
@@ -322,7 +303,6 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
         return
       }
 
-      // New lecture
       setAudioState(prev => ({
         ...prev,
         isLoading: true,
@@ -330,7 +310,6 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
       }))
 
       const fullUrl = getFullUrl(lecture.url)
-      console.log('🎵 Playing lecture:', fullUrl)
       
       audioRef.current.src = fullUrl
       audioRef.current.load()
