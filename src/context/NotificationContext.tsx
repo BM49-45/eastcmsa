@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 export interface Notification {
   _id: string
   userId: string
-  type: 'comment_reply' | 'comment_like' | 'comment_mention' | 'lecture_new' | 'book_new' | 'event_new' | 'announcement' | 'system_alert' | 'welcome' | 'achievement'
+  type: string
   title: string
   message: string
   priority: 'low' | 'medium' | 'high' | 'urgent'
