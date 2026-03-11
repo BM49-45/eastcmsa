@@ -1,7 +1,5 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
-/node_modules
+node_modules/
 **/node_modules
 /.pnp
 .pnp.js
@@ -13,6 +11,9 @@
 # next.js
 /.next/
 /out/
+/build
+.next/
+out/
 
 # production
 /build
@@ -20,6 +21,10 @@
 # misc
 .DS_Store
 *.pem
+*.jar
+*.py
+*.txt
+*.log
 
 # debug
 npm-debug.log*
@@ -30,6 +35,7 @@ yarn-error.log*
 .env
 .env.local
 .env.production
+.env.*.local
 
 # vercel
 .vercel
@@ -38,15 +44,29 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/public/audio/**/*.mp3node_modules/
-.next/
-public/uploads/
+# Media files - hizi ziko kwenye R2
+/public/audio/**
+/public/uploads/**
+/public/videos/**
+/public/pdfs/**
+*.mp3
+*.mp4
+*.wav
+*.pdf
 
-
-# Wrangler
+# Wrangler (Cloudflare)
 .wrangler/
 wrangler.toml
 .wrangler-*
 
 # Local data
 *.local
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+
+# Backend (kama ni separate API, iondoe kwenye main repo)
+/backend/
+/api-*/
