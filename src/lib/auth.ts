@@ -12,46 +12,40 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email na password zinahitajika")
-        }
+  if (!credentials?.email || !credentials?.password) {
+    return null
+  }
 
-        try {
-          const client = await clientPromise
-          const db = client.db("eastcmsa")
-          const users = db.collection("users")
+  const client = await clientPromise
+  const db = client.db("eastcmsa")
+  const users = db.collection("users")
 
-          // Tafuta user kwa email
-          const email = credentials.email.toLowerCase().trim()
+  const email = credentials.email.toLowerCase().trim()
 
-          const user = await users.findOne({
-            email: email
-        }) 
+  const user = await users.findOne({
+    email: email
+  })
 
-          if (!user) {
-            throw new Error("Email haipo")
-          }
+  if (!user) {
+    console.log("User not found:", email)
+    return null
+  }
 
-          // Compare password
-          const isValid = await bcrypt.compare(credentials.password, user.password)
-          
-          if (!isValid) {
-            throw new Error("Password si sahihi")
-          }
+  const isValid = await bcrypt.compare(credentials.password, user.password)
 
-          // Return user data (bila password)
-          return {
-            id: user._id.toString(),
-            email: user.email,
-            name: user.name,
-            role: user.role || "user",
-            image: user.image || null
-          }
-        } catch (error) {
-          console.error("Auth error:", error)
-          throw error
-        }
-      }
+  if (!isValid) {
+    console.log("Invalid password")
+    return null
+  }
+
+  return {
+    id: user._id.toString(),
+    email: user.email,
+    name: user.name,
+    role: user.role || "user",
+    image: user.image || null
+  }
+}
     })
   ],
   callbacks: {
