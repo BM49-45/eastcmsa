@@ -22,8 +22,12 @@ export const authOptions: NextAuthOptions = {
           const users = db.collection("users")
 
           // Tafuta user kwa email
-          const user = await users.findOne({ email: credentials.email })
-          
+          const email = credentials.email.toLowerCase().trim()
+
+          const user = await users.findOne({
+            email: email
+        }) 
+
           if (!user) {
             throw new Error("Email haipo")
           }

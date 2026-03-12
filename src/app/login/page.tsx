@@ -21,14 +21,17 @@ export default function LoginPage() {
       const result = await signIn('credentials', {
         redirect: false,
         email,
-        password
+        password,
+        callbackUrl: "/dashboard"
       })
 
       if (result?.error) {
         throw new Error(result.error)
       }
 
-      router.push('/dashboard')
+      if (result?.ok) {
+        router.push("/dashboard")
+      }
       router.refresh()
     } catch (err: any) {
       setError(err.message || 'Hitilafu katika kuingia')

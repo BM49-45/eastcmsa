@@ -6,6 +6,8 @@ import { ObjectId } from 'mongodb'
 export async function POST(req: NextRequest) {
   try {
     const { name, email, phone, password, receiveUpdates } = await req.json()
+    
+    const cleanEmail = email.toLowerCase().trim()
 
     // Validate input
     if (!name || !email || !password) {
@@ -17,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(cleanEmail)) {
       return NextResponse.json(
         { error: 'Invalid email format' },
         { status: 400 }
@@ -37,7 +39,7 @@ export async function POST(req: NextRequest) {
     const users = db.collection('users')
 
     // Check if user exists
-    const existingUser = await users.findOne({ email })
+    const existingUser = await users.findOne({ email: cleanEmail })    
     if (existingUser) {
       return NextResponse.json(
         { error: 'Email already registered' },
@@ -55,7 +57,7 @@ export async function POST(req: NextRequest) {
     // Create user
     const result = await users.insertOne({
       name,
-      email,
+      email: cleanEmail,
       phone: phone || '',
       password: hashedPassword,
       role, // 'user' au 'admin'
@@ -77,7 +79,7 @@ export async function POST(req: NextRequest) {
     const userWithoutPassword = {
       _id: result.insertedId,
       name,
-      email,
+      email: cleanEmail,
       phone: phone || '',
       role,
       image: null,
