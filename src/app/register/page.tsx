@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { UserPlus, User, Mail, Lock, Eye, EyeOff, Phone, ArrowRight, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { signIn } from "next-auth/react"
 
 type FormData = {
   fullName: string
@@ -91,11 +92,20 @@ export default function RegisterPage() {
         })
       })
       const data = await response.json()
+      
       if (!response.ok) throw new Error(data.error || 'Usajili umeshindikana.')
-      document.cookie = `auth-session=${JSON.stringify(data.session)}; path=/; max-age=${24*60*60}`
-      localStorage.setItem('user', JSON.stringify(data.user))
-      setSuccess(true)
-      setTimeout(() => { router.push('/dashboard') }, 3000)
+        // Login automatically after register
+      await signIn('credentials', {
+        redirect: false,
+        email: formData.email,
+        password: formData.password
+      })
+
+setSuccess(true)
+
+setTimeout(() => {
+  router.push('/dashboard')
+}, 2000)
     } catch (error: any) {
       setErrors({ submit: error.message || 'Hitilafu katika usajili. Jaribu tena.' })
     } finally {

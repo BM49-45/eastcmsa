@@ -49,8 +49,8 @@ export default function Navbar() {
 
   const accountRef = useRef<HTMLDivElement>(null)
 
-  const isAdmin = session?.user?.role === 'admin'
-  const isLoggedIn = !!session
+const isAdmin = (session?.user as any)?.role === 'admin'
+const isLoggedIn = !!session
 
   // Main navigation links - visible to everyone
   const mainNavLinks = [
