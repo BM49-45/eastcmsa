@@ -1,77 +1,68 @@
-import { type NextAuthOptions } from "next-auth"
-import Credentials from "next-auth/providers/credentials"
+import { NextAuthOptions } from "next-auth"
+import CredentialsProvider from "next-auth/providers/credentials"
 import clientPromise from "./mongodb"
 import bcrypt from "bcryptjs"
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    Credentials({
+    CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" }
       },
+
       async authorize(credentials) {
-  if (!credentials?.email || !credentials?.password) {
-    return null
-  }
+        
+        const client = await clientPromise
 
-  const client = await clientPromise
-  const db = client.db("eastcmsa")
-  const users = db.collection("users")
+        const db = client.db("eastcmsa")
+        
+        const user = await db.collection("users").findOne({
+          
+          email: credentials?.email
+        })
 
-  const email = credentials.email.toLowerCase().trim()
+        if (!user) throw new Error("User not found")
 
-  const user = await users.findOne({
-    email: email
-  })
+        const isValid = await bcrypt.compare(
+        credentials!.password,
+        user.password
+        )
 
-  if (!user) {
-    console.log("User not found:", email)
-    return null
-  }
+        if (!isValid) throw new Error("Password incorrect")
 
-  const isValid = await bcrypt.compare(credentials.password, user.password)
-
-  if (!isValid) {
-    console.log("Invalid password")
-    return null
-  }
-
-  return {
-    id: user._id.toString(),
-    email: user.email,
-    name: user.name,
-    role: user.role || "user",
-    image: user.image || null
-  }
-}
+        return {
+        id: user._id.toString(),
+        name: user.name,
+        mail: user.email,
+        role: user.role
+      }
+    }
     })
   ],
+
+  session: {
+    strategy: "jwt"
+  },
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
         token.role = user.role
-        token.picture = user.image
+        token.id = user.id
       }
       return token
     },
+
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string
-        session.user.role = token.role as string
-        session.user.image = token.picture as string | null
+        session.user.id = token.id
+        session.user.role = token.role
       }
       return session
     }
   },
-  pages: {
-    signIn: '/login',
-    error: '/login'
-  },
-  session: {
-    strategy: "jwt"
-  },
+
   secret: process.env.NEXTAUTH_SECRET
 }

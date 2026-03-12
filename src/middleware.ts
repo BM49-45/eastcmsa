@@ -44,8 +44,18 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token // Require authentication for protected routes
-    },
+      authorized({ req, token }) {
+        if (req.nextUrl.pathname.startsWith("/admin")) {
+          return token?.role === "admin"
+        }
+        
+        if (req.nextUrl.pathname.startsWith("/dashboard")) {
+          return !!token
+    }
+
+        return true
+      }
+    }
   }
 )
 
