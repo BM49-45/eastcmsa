@@ -1,70 +1,84 @@
-// src/middleware.ts
-import { withAuth } from 'next-auth/middleware'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-
-// Separate function for handling uploads
-function handleUploads(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith('/uploads/')) {
-    return NextResponse.next()
-  }
-  return null
-}
+import { withAuth } from "next-auth/middleware"
+import { NextResponse } from "next/server"
 
 export default withAuth(
   function middleware(req) {
-    // First check if it's an uploads request
-    const uploadsResponse = handleUploads(req)
-    if (uploadsResponse) {
-      return uploadsResponse
+
+    const { pathname } = req.nextUrl
+    const token = req.nextauth?.token
+
+    // Allow uploads
+    if (pathname.startsWith("/uploads/")) {
+      return NextResponse.next()
     }
 
-    // Then handle authentication for protected routes
-    const token = req.nextauth.token
-    const path = req.nextUrl.pathname
-
-    // Admin routes protection
-    if (path.startsWith('/admin')) {
-      if (token?.role !== 'admin') {
-        // Redirect non-admin users to home page
-        return NextResponse.redirect(new URL('/', req.url))
+    // Admin protection
+    if (pathname.startsWith("/admin")) {
+      if (token?.role !== "admin") {
+        return NextResponse.redirect(new URL("/", req.url))
       }
     }
 
-    // Dashboard route protection - normal users can access their own dashboard
-    if (path.startsWith('/dashboard')) {
+    // Dashboard protection
+    if (pathname.startsWith("/dashboard")) {
       if (!token) {
-        return NextResponse.redirect(new URL('/login', req.url))
+        return NextResponse.redirect(new URL("/login", req.url))
       }
-      // Allow all authenticated users to access their dashboard
-      // But they won't see admin features there
+    }
+
+    // Profile protection
+    if (pathname.startsWith("/profile")) {
+      if (!token) {
+        return NextResponse.redirect(new URL("/login", req.url))
+      }
+    }
+
+    // Settings protection
+    if (pathname.startsWith("/settings")) {
+      if (!token) {
+        return NextResponse.redirect(new URL("/login", req.url))
+      }
     }
 
     return NextResponse.next()
   },
+
   {
     callbacks: {
-      authorized({ req, token }) {
-        if (req.nextUrl.pathname.startsWith("/admin")) {
+
+      authorized: ({ token, req }) => {
+
+        const { pathname } = req.nextUrl
+
+        if (pathname.startsWith("/uploads")) {
+          return true
+        }
+
+        if (pathname.startsWith("/admin")) {
           return token?.role === "admin"
         }
-        
-        if (req.nextUrl.pathname.startsWith("/dashboard")) {
+
+        if (
+          pathname.startsWith("/dashboard") ||
+          pathname.startsWith("/profile") ||
+          pathname.startsWith("/settings")
+        ) {
           return !!token
-    }
+        }
 
         return true
       }
+
     }
   }
 )
 
 export const config = {
   matcher: [
-    '/admin/:path*',
-    '/dashboard/:path*',
-    '/profile/:path*',
-    '/settings/:path*',
-    '/uploads/:path*' // Add uploads to the matcher
+    "/admin/:path*",
+    "/dashboard/:path*",
+    "/profile/:path*",
+    "/settings/:path*",
+    "/uploads/:path*"
   ]
 }

@@ -33,11 +33,13 @@ import {
   UserCircle
 } from 'lucide-react'
 
-// Import the notification bell component
 import NotificationBell from '@/components/notifications/NotificationBell'
 
 export default function Navbar() {
+
+  // FIX muhimu hapa
   const { data: session, status } = useSession()
+
   const router = useRouter()
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
@@ -49,13 +51,13 @@ export default function Navbar() {
 
   const accountRef = useRef<HTMLDivElement>(null)
 
-const isAdmin = (session?.user as any)?.role === 'admin'
-const isLoggedIn = !!session
+  const isAdmin = session?.user?.role === "admin"
+  const isLoggedIn = !!session
 
   // Main navigation links - visible to everyone
   const mainNavLinks = [
     { name: 'Home', href: '/', icon: Home },
-    { name: 'Tawhid', href: '/tawhid', icon: BookOpen },
+    { name: 'Tawhiid', href: '/tawhiid', icon: BookOpen },
     { name: 'Fiqh', href: '/fiqh', icon: Scale },
     { name: 'Sirah', href: '/sirah', icon: History },
     { name: 'Lectures', href: '/lectures', icon: Mic },

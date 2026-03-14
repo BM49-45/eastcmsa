@@ -1,21 +1,41 @@
-// src/app/api/lectures/route.ts
-import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
+import clientPromise from "@/lib/mongodb"
+import { NextResponse } from "next/server"
 
-export async function GET() {
-  try {
-    const client = await clientPromise;
-    const db = client.db("eastcmsa");
-    const collection = db.collection("lectures"); // collection yako ya lectures
+export async function GET(){
 
-    const lectures = await collection.find({}).toArray();
+const client = await clientPromise
+const db = client.db("eastcmsa")
 
-    return NextResponse.json({ success: true, lectures });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch lectures" },
-      { status: 500 }
-    );
-  }
+const lectures = await db.collection("lectures")
+.find({})
+.sort({createdAt:-1})
+.toArray()
+
+return NextResponse.json(lectures)
+
+}
+
+export async function POST(req:Request){
+
+const data = await req.json()
+
+const client = await clientPromise
+const db = client.db("eastcmsa")
+
+const result = await db.collection("lectures").insertOne({
+
+title:data.title,
+category:data.category,
+teacher:data.teacher,
+description:data.description,
+audioUrl:data.audioUrl,
+views:0,
+likes:0,
+comments:0,
+createdAt:new Date()
+
+})
+
+return NextResponse.json(result)
+
 }

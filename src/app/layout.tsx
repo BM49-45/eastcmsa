@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'EASTCMSA - Islamic Knowledge Portal',
-  description: 'Learn Quran, Tawhid, Fiqh, and Sirah online',
+  description: 'Learn Quran, Tawhiid, Fiqh, and Sirah online',
 }
 
 export default function RootLayout({

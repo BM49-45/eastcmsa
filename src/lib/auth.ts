@@ -1,68 +1,94 @@
 import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import clientPromise from "./mongodb"
+import clientPromise from "@/lib/mongodb"
 import bcrypt from "bcryptjs"
 
 export const authOptions: NextAuthOptions = {
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" }
-      },
 
-      async authorize(credentials) {
-        
-        const client = await clientPromise
+providers: [
 
-        const db = client.db("eastcmsa")
-        
-        const user = await db.collection("users").findOne({
-          
-          email: credentials?.email
-        })
+CredentialsProvider({
 
-        if (!user) throw new Error("User not found")
+name: "Credentials",
 
-        const isValid = await bcrypt.compare(
-        credentials!.password,
-        user.password
-        )
+credentials: {
+email: { label: "Email", type: "email" },
+password: { label: "Password", type: "password" }
+},
 
-        if (!isValid) throw new Error("Password incorrect")
+async authorize(credentials) {
 
-        return {
-        id: user._id.toString(),
-        name: user.name,
-        mail: user.email,
-        role: user.role
-      }
-    }
-    })
-  ],
+if (!credentials?.email || !credentials?.password) {
+throw new Error("Email and password required")
+}
 
-  session: {
-    strategy: "jwt"
-  },
+const client = await clientPromise
+const db = client.db("eastcmsa")
 
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role
-        token.id = user.id
-      }
-      return token
-    },
+const user:any = await db.collection("users").findOne({
+email: credentials.email.toLowerCase()
+})
 
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id
-        session.user.role = token.role
-      }
-      return session
-    }
-  },
+if (!user) {
+throw new Error("Email haipo")
+}
 
-  secret: process.env.NEXTAUTH_SECRET
+const valid = await bcrypt.compare(
+credentials.password,
+user.password
+)
+
+if (!valid) {
+throw new Error("Password si sahihi")
+}
+
+return {
+id: user._id.toString(),
+name: user.name,
+email: user.email,
+role: user.role
+}
+
+}
+
+})
+
+],
+
+callbacks: {
+
+async jwt({ token, user }) {
+
+if (user) {
+token.id = (user as any).id
+token.role = (user as any).role
+}
+
+return token
+
+},
+
+async session({ session, token }: { session: any, token: any }) {
+
+if (session.user) {
+  (session.user as any).id = token.id
+  (session.user as any).role = token.role
+}
+
+return session
+
+}
+
+},
+
+pages: {
+signIn: "/login"
+},
+
+session: {
+strategy: "jwt"
+},
+
+secret: process.env.NEXTAUTH_SECRET
+
 }
