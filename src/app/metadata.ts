@@ -10,7 +10,7 @@ export const siteMetadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://eastcmsa.org'),
+  metadataBase: new URL('https://eastcmsa.vercel.app/'),
   alternates: {
     canonical: '/',
     languages: {
@@ -22,7 +22,7 @@ export const siteMetadata = {
   openGraph: {
     type: 'website',
     locale: 'sw_TZ',
-    url: 'https://eastcmsa.org',
+    url: 'https://eastcmsa.vercel.app/',
     title: 'EASTCMSA Islamic Portal',
     description: 'Elimu ya Kiislamu Halisi kutoka Msikitini wa Changanyikeni',
     siteName: 'EASTCMSA',

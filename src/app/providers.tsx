@@ -1,20 +1,26 @@
-'use client'
+"use client"
 
-import { SessionProvider } from 'next-auth/react'
-import { AudioProvider } from '@/context/AudioContext'
-import { NotificationProvider } from '@/context/NotificationContext'
-import { ActivityProvider } from '@/context/ActivityContext'
+import { SessionProvider } from "next-auth/react"
+import { AudioProvider } from "@/context/AudioContext"
 
-export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <SessionProvider>
-      <NotificationProvider>
-        <AudioProvider>
-          <ActivityProvider>
-            {children}
-          </ActivityProvider>
-        </AudioProvider>
-      </NotificationProvider>
-    </SessionProvider>
-  )
+export default function Providers({
+children
+}:{
+children: React.ReactNode
+}){
+
+return(
+
+<SessionProvider>
+
+<AudioProvider>
+
+{children}
+
+</AudioProvider>
+
+</SessionProvider>
+
+)
+
 }

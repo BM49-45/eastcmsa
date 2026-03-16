@@ -9,30 +9,33 @@ export type ActivityType =
   | 'register'
   | 'login'
 
-export type Activity = {
+export interface Activity {
   _id: string
   userId: string
   type: ActivityType
   itemId?: string
   itemTitle?: string
-  metadata?: Record<string, any>
-  createdAt: Date | string
-  ip?: string
-  userAgent?: string
+  category?: string
+  metadata?: {
+    comment?: string
+    duration?: number
+    [key: string]: any
+  }
+  createdAt: Date
 }
 
-export type ActivityFeedResponse = {
-  activities: Activity[]
-  total: number
-  page: number
-  limit: number
-  totalPages: number
-}
-
-export type ActivityStats = {
+export interface ActivityStats {
   lectures: number
   books: number
   comments: number
   likes: number
   downloads: number
+}
+
+export interface ActivityFeedResponse {
+  activities: Activity[]
+  total: number
+  page: number
+  totalPages: number
+  hasMore: boolean
 }

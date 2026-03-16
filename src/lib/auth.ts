@@ -1,94 +1,107 @@
 import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import clientPromise from "@/lib/mongodb"
+import clientPromise from "./mongodb"
 import bcrypt from "bcryptjs"
 
 export const authOptions: NextAuthOptions = {
+  providers: [
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
 
-providers: [
+        const client = await clientPromise
+        const db = client.db("eastcmsa")
+        
+        const user = await db.collection("users").findOne({ 
+          email: credentials.email 
+        })
 
-CredentialsProvider({
+        if (!user) {
+          return null
+        }
 
-name: "Credentials",
+        const passwordMatch = await bcrypt.compare(credentials.password, user.password)
 
-credentials: {
-email: { label: "Email", type: "email" },
-password: { label: "Password", type: "password" }
-},
+        if (!passwordMatch) {
+          return null
+        }
 
-async authorize(credentials) {
-
-if (!credentials?.email || !credentials?.password) {
-throw new Error("Email and password required")
+        return {
+          id: user._id.toString(),
+          email: user.email,
+          name: user.name,
+          role: user.role || "user",
+          image: user.image
+        }
+      }
+    })
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role
+        token.id = user.id
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (session?.user) {
+        session.user.role = token.role as string
+        session.user.id = token.id as string
+        // Add optional fields
+        session.user.bio = (token as any).bio || ""
+        session.user.location = (token as any).location || ""
+        session.user.website = (token as any).website || ""
+      }
+      return session
+    }
+  },
+  pages: {
+    signIn: "/login",
+    error: "/login"
+  },
+  session: {
+    strategy: "jwt"
+  },
+  secret: process.env.NEXTAUTH_SECRET
 }
 
-const client = await clientPromise
-const db = client.db("eastcmsa")
-
-const user:any = await db.collection("users").findOne({
-email: credentials.email.toLowerCase()
-})
-
-if (!user) {
-throw new Error("Email haipo")
+// Extend NextAuth types
+declare module "next-auth" {
+  interface User {
+    role: string
+    bio?: string
+    location?: string
+    website?: string
+  }
+  
+  interface Session {
+    user: {
+      id: string
+      name?: string | null
+      email?: string | null
+      image?: string | null
+      role: string
+      bio?: string
+      location?: string
+      website?: string
+    }
+  }
 }
 
-const valid = await bcrypt.compare(
-credentials.password,
-user.password
-)
-
-if (!valid) {
-throw new Error("Password si sahihi")
-}
-
-return {
-id: user._id.toString(),
-name: user.name,
-email: user.email,
-role: user.role
-}
-
-}
-
-})
-
-],
-
-callbacks: {
-
-async jwt({ token, user }) {
-
-if (user) {
-token.id = (user as any).id
-token.role = (user as any).role
-}
-
-return token
-
-},
-
-async session({ session, token }: { session: any, token: any }) {
-
-if (session.user) {
-  (session.user as any).id = token.id
-  (session.user as any).role = token.role
-}
-
-return session
-
-}
-
-},
-
-pages: {
-signIn: "/login"
-},
-
-session: {
-strategy: "jwt"
-},
-
-secret: process.env.NEXTAUTH_SECRET
-
+declare module "next-auth/jwt" {
+  interface JWT {
+    role: string
+    id: string
+    bio?: string
+    location?: string
+    website?: string
+  }
 }

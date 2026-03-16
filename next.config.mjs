@@ -9,6 +9,6 @@ module.exports = {
   },
   images: {
     // configure if you use next/image
-    domains: ["yourdomain.com"],
+    domains: ["eastcmsa@protonmail.com"],
   },
 };

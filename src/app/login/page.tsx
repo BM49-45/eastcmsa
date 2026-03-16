@@ -1,110 +1,116 @@
 "use client"
 
 import { signIn } from "next-auth/react"
-import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
+import { useState } from "react"
 
-export default function Login() {
-  const router = useRouter()
-  const { data: session, status } = useSession()
+export default function LoginPage(){
 
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
+const router = useRouter()
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (session) {
-      router.push("/")
-    }
-  }, [session, router])
+const [email,setEmail] = useState("")
+const [password,setPassword] = useState("")
+const [showPassword,setShowPassword] = useState(false)
+const [error,setError] = useState("")
+const [loading,setLoading] = useState(false)
 
-  async function handleLogin(e: any) {
-    e.preventDefault()
-    setLoading(true)
+async function handleLogin(e:any){
 
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-      callbackUrl: "/"
-    })
+e.preventDefault()
 
-    if (res && !res.error) {
-      router.push(res.url || "/")
-    } else if (res) {
-      alert(res.error)
-    }
+setLoading(true)
 
-    setLoading(false)
-  }
+const res = await signIn("credentials",{
+email,
+password,
+redirect:false
+})
 
-  // Don't render form while checking session
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="bg-white p-8 rounded-xl shadow-lg">
-          Loading...
-        </div>
-      </div>
-    )
-  }
+setLoading(false)
 
-  // Don't render form if already logged in (redirect will happen)
-  if (session) {
-    return null
-  }
+if(res?.error){
+setError(res.error)
+}else{
+router.replace("/dashboard")
+router.refresh()
+}
 
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-8 rounded-xl shadow-lg w-[350px]"
-      >
-        <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
+}
 
-        <input
-          type="email"
-          placeholder="Email"
-          required
-          className="w-full border p-3 rounded mb-4"
-          onChange={(e) => setEmail(e.target.value)}
-        />
+return(
 
-        <div className="relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            required
-            className="w-full border p-3 rounded mb-4"
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-3 text-sm text-gray-600 hover:text-gray-800"
-          >
-            {showPassword ? "Hide" : "Show"}
-          </button>
-        </div>
+<div className="flex items-center justify-center min-h-screen bg-gray-100">
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-green-600 text-white p-3 rounded hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
-        >
-          {loading ? "Signing in..." : "Login"}
-        </button>
+<form
+onSubmit={handleLogin}
+className="bg-white p-8 rounded-xl shadow-lg w-[380px]"
+>
 
-        <p className="text-sm text-center mt-4">
-          No account?
-          <a href="/register" className="text-green-600 ml-1">
-            Register
-          </a>
-        </p>
-      </form>
-    </div>
-  )
+<h1 className="text-2xl font-bold mb-6 text-center">
+Login
+</h1>
+
+<input
+type="email"
+placeholder="Email"
+required
+className="w-full border p-3 rounded mb-4"
+value={email}
+onChange={(e)=>setEmail(e.target.value)}
+/>
+
+<div className="relative mb-4">
+
+<input
+type={showPassword ? "text" : "password"}
+placeholder="Password"
+required
+className="w-full border p-3 rounded"
+value={password}
+onChange={(e)=>setPassword(e.target.value)}
+/>
+
+<button
+type="button"
+onClick={()=>setShowPassword(!showPassword)}
+className="absolute right-3 top-3 text-sm text-gray-600"
+>
+{showPassword ? "Hide" : "Show"}
+</button>
+
+</div>
+
+<button
+type="submit"
+className="w-full bg-green-600 text-white p-3 rounded hover:bg-green-700"
+>
+
+{loading ? "Signing in..." : "Login"}
+
+</button>
+
+{error && (
+
+<p className="text-red-600 text-sm mt-3 text-center">
+{error}
+</p>
+
+)}
+
+<p className="text-sm text-center mt-4">
+
+No account?
+
+<a href="/register" className="text-green-600 ml-1">
+Register
+</a>
+
+</p>
+
+</form>
+
+</div>
+
+)
+
 }

@@ -155,7 +155,6 @@ const MOCK_METADATA: FiqhMetadata = {
 export default function FiqhPage() {
   const [metadata, setMetadata] = useState<FiqhMetadata | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [sortBy, setSortBy] = useState<'date' | 'title' | 'duration'>('date')
@@ -226,7 +225,6 @@ export default function FiqhPage() {
   const loadMetadata = async () => {
     try {
       setLoading(true)
-      setError(null)
       
       const response = await fetch(
         `${AUDIO_BASE_URL}/fiqh/metadata.json`,
@@ -904,6 +902,7 @@ export default function FiqhPage() {
             </div>
             <div className="fiqh-now-playing-controls">
               <button
+                type="button"
                 onClick={prevTrack}
                 className="fiqh-now-playing-control"
                 aria-label="Darsa iliyopita"
@@ -913,6 +912,7 @@ export default function FiqhPage() {
                 <SkipBack size={20} />
               </button>
               <button
+                type="button"
                 onClick={togglePlay}
                 className="fiqh-now-playing-play"
                 aria-label={audioState.isPlaying ? 'Simamisha' : 'Cheza'}
@@ -928,6 +928,7 @@ export default function FiqhPage() {
                 )}
               </button>
               <button
+                type="button"
                 onClick={nextTrack}
                 className="fiqh-now-playing-control"
                 aria-label="Darsa inayofuata"
@@ -957,6 +958,7 @@ export default function FiqhPage() {
               </div>
               <div className="fiqh-now-playing-volume">
                 <button
+                  type="button"
                   onClick={() => setMuted(!audioState.isMuted)}
                   className="fiqh-now-playing-volume-btn"
                   aria-label={audioState.isMuted ? 'Washa sauti' : 'Zima sauti'}

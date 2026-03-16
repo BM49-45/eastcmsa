@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import clientPromise from '@/lib/mongodb'
-import { ActivityStats } from '@/types/activity'
 
 export async function GET() {
   try {
@@ -15,7 +14,7 @@ export async function GET() {
     const db = client.db('eastcmsa')
     const activities = db.collection('activities')
 
-    const stats: ActivityStats = {
+    const stats = {
       lectures: await activities.countDocuments({ 
         userId: session.user.id, 
         type: 'lecture_watch' 

@@ -1,94 +1,67 @@
-// src/app/api/user/profile-picture/route.ts
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import clientPromise from '@/lib/mongodb'
-import { ObjectId } from 'mongodb'
-import { writeFile } from 'fs/promises'
-import path from 'path'
-import { 
-  ensureUploadDirs, 
-  generateFileName, 
-  getPublicUrl, 
-  deleteFile,
-  isValidFileType,
-  isValidFileSize,
-  AVATAR_DIR 
-} from '@/lib/fileUtils'
+import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { writeFile, mkdir } from "fs/promises"
+import path from "path"
+import { v4 as uuidv4 } from "uuid"
+import clientPromise from "@/lib/mongodb"
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Ensure upload directories exist
-    await ensureUploadDirs()
-
-    const formData = await req.formData()
-    const file = formData.get('file') as File
+    const formData = await request.formData()
+    const file = formData.get("image") as File
 
     if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
+      return NextResponse.json({ error: "No image provided" }, { status: 400 })
     }
 
     // Validate file type
-    if (!isValidFileType(file.type)) {
-      return NextResponse.json({ 
-        error: 'Invalid file type. Please upload JPEG, PNG, GIF, or WEBP' 
-      }, { status: 400 })
+    if (!file.type.startsWith("image/")) {
+      return NextResponse.json({ error: "Invalid file type" }, { status: 400 })
     }
 
-    // Validate file size (max 5MB)
-    if (!isValidFileSize(file.size)) {
-      return NextResponse.json({ 
-        error: 'File too large. Maximum size is 5MB' 
-      }, { status: 400 })
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      return NextResponse.json({ error: "File too large" }, { status: 400 })
     }
 
-    // Get current user to delete old image
-    const client = await clientPromise
-    const db = client.db('eastcmsa')
-    const users = db.collection('users')
-
-    const user = await users.findOne({ _id: new ObjectId(session.user.id) })
-    
-    // Delete old image if exists
-    if (user?.image) {
-      const oldImagePath = path.join(process.cwd(), 'public', user.image)
-      await deleteFile(oldImagePath)
-    }
-
-    // Save new file
+    // Generate unique filename
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     
-    const filename = generateFileName(file.name)
-    const filepath = path.join(AVATAR_DIR, filename)
+    const fileName = `${uuidv4()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`
+    const uploadDir = path.join(process.cwd(), "public/uploads/avatars")
     
-    await writeFile(filepath, buffer)
+    // Create directory if it doesn't exist
+    await mkdir(uploadDir, { recursive: true })
+    
+    const filePath = path.join(uploadDir, fileName)
+    await writeFile(filePath, buffer)
 
-    // Public URL for the image
-    const imageUrl = getPublicUrl(filename)
-    
+    const imageUrl = `/uploads/avatars/${fileName}`
+
     // Update user in database
-    await users.updateOne(
-      { _id: new ObjectId(session.user.id) },
-      { 
-        $set: { 
-          image: imageUrl,
-          updatedAt: new Date()
-        } 
-      }
+    const client = await clientPromise
+    const db = client.db("eastcmsa")
+    
+    await db.collection("users").updateOne(
+      { email: session.user?.email },
+      { $set: { image: imageUrl, updatedAt: new Date() } }
     )
 
     return NextResponse.json({ 
       success: true, 
-      imageUrl 
+      imageUrl,
+      message: "Profile image uploaded successfully" 
     })
   } catch (error) {
-    console.error('Profile picture upload error:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    console.error("Error uploading profile image:", error)
+    return NextResponse.json({ error: "Failed to upload image" }, { status: 500 })
   }
 }

@@ -1,37 +1,44 @@
 "use client"
 
-import { useState } from "react"
+import {useState} from "react"
 
-export default function SearchBar(){
+export default function SearchBar({
+onSearch
+}:any){
 
 const [query,setQuery] = useState("")
-const [results,setResults] = useState<any>(null)
 
-async function handleSearch(){
+function submit(e:any){
 
-const res = await fetch(`/api/search?q=${query}`)
+e.preventDefault()
 
-const data = await res.json()
-
-setResults(data)
+onSearch(query)
 
 }
 
 return(
 
-<div>
+<form
+onSubmit={submit}
+className="flex gap-2"
+>
 
 <input
-placeholder="Search lectures or books"
 value={query}
 onChange={(e)=>setQuery(e.target.value)}
+placeholder="Search lectures..."
+className="border px-4 py-2 rounded w-full"
 />
 
-<button onClick={handleSearch}>
+<button
+className="bg-black text-white px-4 py-2 rounded"
+>
+
 Search
+
 </button>
 
-</div>
+</form>
 
 )
 

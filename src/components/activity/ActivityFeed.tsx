@@ -16,12 +16,9 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { enUS } from 'date-fns/locale' // Using English locale as fallback
+import { enUS } from 'date-fns/locale'
+import { Activity, ActivityFeedResponse } from '@/types/activity'
 
-// Import types
-import { Activity, ActivityType, ActivityFeedResponse } from '@/types/activity'
-
-// Define filter options
 const filterOptions = [
   { value: 'all', label: 'Zote' },
   { value: 'lecture_watch', label: 'Masomo' },
@@ -42,10 +39,9 @@ export default function ActivityFeed() {
   const fetchActivities = async () => {
     setLoading(true)
     try {
-      // Build type parameter based on filter
       let typeParam = ''
       if (filter === 'downloads') {
-        typeParam = 'lecture_download,book_download'
+        typeParam = 'downloads'
       } else if (filter !== 'all') {
         typeParam = filter
       }
@@ -69,7 +65,7 @@ export default function ActivityFeed() {
     fetchActivities()
   }, [page, filter])
 
-  const getActivityIcon = (type: ActivityType) => {
+  const getActivityIcon = (type: Activity['type']) => {
     switch (type) {
       case 'lecture_watch':
         return <Play className="w-5 h-5 text-blue-500" />
@@ -120,7 +116,6 @@ export default function ActivityFeed() {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-      {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
           <Clock className="w-5 h-5 mr-2 text-green-600" />
@@ -128,7 +123,6 @@ export default function ActivityFeed() {
         </h2>
       </div>
 
-      {/* Filters */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
         <div className="flex flex-wrap gap-2">
           {filterOptions.map((option) => (
@@ -152,7 +146,6 @@ export default function ActivityFeed() {
         </div>
       </div>
 
-      {/* Activity List */}
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
         {loading ? (
           <div className="p-8 text-center">
@@ -176,7 +169,7 @@ export default function ActivityFeed() {
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     {formatDistanceToNow(new Date(activity.createdAt), {
                       addSuffix: true,
-                      locale: enUS // Using English locale
+                      locale: enUS
                     })}
                   </p>
                 </div>
@@ -186,7 +179,6 @@ export default function ActivityFeed() {
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <button

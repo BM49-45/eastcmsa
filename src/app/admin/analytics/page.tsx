@@ -1,20 +1,31 @@
-export default function AdminAnalytics() {
+import { getAllStats } from "@/lib/r2"
 
-  return (
+export default async function Analytics(){
 
-    <div>
+const stats = await getAllStats()
 
-      <h1 className="text-2xl font-bold mb-6">
-        Analytics
-      </h1>
+return(
 
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
+<div className="p-10">
 
-        <p>Website statistics will appear here.</p>
+<h1 className="text-2xl font-bold mb-6">
+Analytics
+</h1>
 
-      </div>
+<div className="space-y-3">
 
-    </div>
+{/* <p>Total Users: {stats.users}</p> */}
 
-  )
+<p>Total Audios: {stats.audios}</p>
+
+<p>Total Categories: {stats.categories}</p>
+
+<p>Total Speakers: {stats.speakers}</p>
+
+</div>
+
+</div>
+
+)
+
 }
