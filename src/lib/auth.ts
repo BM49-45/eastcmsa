@@ -38,10 +38,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role || "user",
-          image: user.image,
-          bio: user.bio,
-          location: user.location,
-          website: user.website
+          image: user.image
         }
       }
     })
@@ -51,9 +48,6 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role
         token.id = user.id
-        token.bio = user.bio
-        token.location = user.location
-        token.website = user.website
       }
       return token
     },
@@ -62,9 +56,9 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string
         session.user.id = token.id as string
         // Add optional fields
-        session.user.bio = token.bio || ""
-        session.user.location = token.location || ""
-        session.user.website = token.website || ""
+        session.user.bio = (token as any).bio || ""
+        session.user.location = (token as any).location || ""
+        session.user.website = (token as any).website || ""
       }
       return session
     }
@@ -75,17 +69,6 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt"
-  },
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production"
-      }
-    }
   },
   secret: process.env.NEXTAUTH_SECRET
 }

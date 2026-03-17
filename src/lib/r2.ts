@@ -97,8 +97,9 @@ export async function fetchCategoryMetadata(category: string): Promise<any> {
     for (const path of paths) {
       try {
         console.log(`Trying to fetch: ${path}`);
+        // Use force-cache for build time to avoid dynamic server usage errors
         const res = await fetch(path, { 
-          cache: 'no-store',
+          cache: process.env.NODE_ENV === 'production' ? 'force-cache' : 'no-store',
           headers: { 'Accept': 'application/json' }
         });
         
@@ -119,6 +120,30 @@ export async function fetchCategoryMetadata(category: string): Promise<any> {
     return { files: [] };
   } catch (error) {
     console.error(`Error fetching ${category} metadata:`, error);
+    return { files: [] };
+  }
+}
+
+// Add the missing getCategoryData function
+export async function getCategoryData(category: Category | string): Promise<any> {
+  try {
+    // Handle both Category object and string input
+    const categoryId = typeof category === 'string' ? category : category.id;
+    const data = await fetchCategoryMetadata(categoryId);
+    
+    if (data?.files && Array.isArray(data.files)) {
+      return {
+        ...data,
+        files: data.files.map((file: any) => ({
+          ...file,
+          category: categoryId
+        }))
+      };
+    }
+    
+    return { files: [] };
+  } catch (error) {
+    console.error(`Error getting data for category:`, error);
     return { files: [] };
   }
 }
@@ -248,5 +273,40 @@ export async function getUserPlaylists(userId: string): Promise<any[]> {
   } catch (error) {
     console.error("Error fetching playlists:", error);
     return [];
+  }
+}
+
+export async function getAllStats() {
+  try {
+    const client = await clientPromise;
+    const db = client.db("eastcmsa");
+    
+    // Get counts from database collections
+    const [usersCount, categoriesCount, speakersCount] = await Promise.all([
+      db.collection("users").countDocuments(),
+      db.collection("categories").countDocuments(),
+      db.collection("speakers").countDocuments()
+    ]);
+    
+    // Get audio files count from R2 metadata
+    const audioFiles = await getAllAudioFiles();
+    const audiosCount = audioFiles.length;
+    
+    return {
+      users: usersCount,
+      audios: audiosCount,
+      categories: categoriesCount,
+      speakers: speakersCount
+    };
+  } catch (error) {
+    console.error("Error getting stats:", error);
+    
+    // Return default values if there's an error
+    return {
+      users: 0,
+      audios: 0,
+      categories: 0,
+      speakers: 0
+    };
   }
 }

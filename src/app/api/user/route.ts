@@ -5,6 +5,8 @@ import clientPromise from "@/lib/mongodb";
 import bcrypt from "bcryptjs";
 import { ObjectId } from "mongodb";
 
+export const dynamic = 'force-dynamic';
+
 export async function PUT(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

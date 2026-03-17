@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import clientPromise from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 import { Comment, CommentStatus } from '@/types/comment'
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {

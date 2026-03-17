@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readdirSync, existsSync, readFileSync, statSync } from 'fs'
 import { join, extname } from 'path'
+export const dynamic = 'force-dynamic';
 
 // Force Node.js runtime for file system operations
 export const runtime = 'nodejs'

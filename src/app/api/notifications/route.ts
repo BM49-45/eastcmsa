@@ -5,6 +5,8 @@ import clientPromise from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 import { Notification } from '@/types/notification'
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

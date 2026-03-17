@@ -3,6 +3,8 @@ import clientPromise from "@/lib/mongodb";
 import { v4 as uuidv4 } from "uuid";
 import nodemailer from "nodemailer";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();

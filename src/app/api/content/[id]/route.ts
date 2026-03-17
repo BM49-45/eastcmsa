@@ -5,6 +5,8 @@ import { ObjectId } from 'mongodb'
 // =====================
 // DELETE /api/content/[id]
 // =====================
+export const dynamic = 'force-dynamic';
+
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }

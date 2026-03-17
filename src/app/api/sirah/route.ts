@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server';
 import { getSirahMetadata } from '@/services/contentService';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const data = await getSirahMetadata();
