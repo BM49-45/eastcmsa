@@ -160,7 +160,7 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
         audio.src = ''
       }
     }
-  }, [])
+  }, [audioState.isMuted, audioState.playbackRate, audioState.volume])
 
   // Update audio element when state changes
   useEffect(() => {

@@ -2,9 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Bell, CheckCheck, Trash2, Archive, Clock } from 'lucide-react'
-// Try both imports - comment one and test
 import { useNotifications } from '@/context/NotificationContext'
-// import { useNotifications } from '../../context/NotificationContext'
 import { formatDistanceToNow } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import Link from 'next/link'
@@ -13,26 +11,27 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   
-  // Use try-catch to handle potential context errors
-  let notificationsData
+  // Always call hooks at the top level - never in try-catch or conditionals
+  let notificationsContext;
   try {
-    notificationsData = useNotifications()
+    notificationsContext = useNotifications();
   } catch (error) {
-    console.error('Notifications context not available:', error)
-    // Return fallback UI if context not available
+    // If context is not available, render a simple bell without functionality
     return (
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
         <button
+          onClick={() => setIsOpen(!isOpen)}
           className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
           aria-label="Notifications"
+          title="View notifications"
         >
           <Bell size={20} />
         </button>
       </div>
-    )
+    );
   }
 
-  const { notifications, unreadCount, markAsRead, markAllAsRead, archiveNotification, deleteNotification } = notificationsData
+  const { notifications, unreadCount, markAsRead, markAllAsRead, archiveNotification, deleteNotification } = notificationsContext;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
