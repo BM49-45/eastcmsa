@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { getToken } from "next-auth/jwt"
 import type { NextRequest } from "next/server"
 
+export { default } from "next-auth/middleware"
+
 export async function middleware(req: NextRequest){
 
 const token = await getToken({
@@ -32,6 +34,7 @@ return NextResponse.next()
 export const config = {
 matcher:[
 "/dashboard/:path*",
+"/admin",
 "/admin/:path*"
 ]
 }

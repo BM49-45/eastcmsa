@@ -18,22 +18,18 @@ async function handleLogin(e:any){
 
 e.preventDefault()
 
-setLoading(true)
-
 const res = await signIn("credentials",{
 email,
 password,
 redirect:false
 })
 
-setLoading(false)
-
 if(res?.error){
 setError(res.error)
-}else{
-router.replace("/dashboard")
-router.refresh()
+return
 }
+
+router.replace("/dashboard")
 
 }
 
