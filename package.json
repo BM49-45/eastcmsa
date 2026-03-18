@@ -3,15 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "engines": {
-    "node": "20.x"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "dev": "cross-env NODE_ENV=development node server.js",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
     "postinstall": "node scripts/init-uploads.js",
-    "clean-uploads": "tsx scripts/clean-uploads.ts",
-    "clean-uploads:dry": "tsx scripts/clean-uploads.ts --dry-run",
+    "clean-uploads": "node scripts/clean-uploads.js",
+    "clean-uploads:dry": "node scripts/clean-uploads.js --dry-run",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json}\""
@@ -30,7 +30,7 @@
     "next": "14.2.5",
     "next-auth": "^4.24.7",
     "next-themes": "^0.3.0",
-    "nodemailer": "^6.9.13",
+    "nodemailer": "^7.0.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-icons": "^5.0.1",
@@ -42,8 +42,7 @@
     "tailwindcss-animate": "^1.0.7",
     "twilio": "^4.23.0",
     "uuid": "^9.0.1",
-    "zod": "^3.22.4",
-    "tsx": "^4.9.0"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",
@@ -67,9 +66,5 @@
     "prettier": "^3.2.5",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.4.3"
-  },
-  "overrides": {
-    "react": "$react",
-    "react-dom": "$react-dom"
   }
 }
