@@ -9,22 +9,19 @@
     "dev": "cross-env NODE_ENV=development node server.js",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
-    "postinstall": "node scripts/init-uploads.js",
-    "clean-uploads": "node scripts/clean-uploads.js",
-    "lint": "eslint .",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json}\""
+    "postinstall": "node scripts/init-uploads.js"
   },
   "dependencies": {
     "next": "14.2.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "next-auth": "^4.24.5",
-    "next-themes": "^0.2.1",
+    "next-themes": "^0.3.0",
+    "framer-motion": "^10.18.0",
+    "lucide-react": "^0.263.1",
     "mongodb": "^5.9.0",
     "bcryptjs": "^2.4.3",
     "nodemailer": "^6.9.7",
-    "framer-motion": "^10.16.16",
-    "lucide-react": "^0.263.1",
     "date-fns": "^2.30.0",
     "aos": "^2.3.4",
     "jsonwebtoken": "^9.0.2",
@@ -42,8 +39,8 @@
   },
   "devDependencies": {
     "@types/node": "^20.8.10",
-    "@types/react": "^18.2.37",
-    "@types/react-dom": "^18.2.15",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/nodemailer": "^6.4.14",
@@ -55,8 +52,6 @@
     "eslint": "^8.53.0",
     "eslint-config-next": "14.2.5",
     "prettier": "^3.0.3",
-    "cross-env": "^7.0.3",
-    "@tailwindcss/forms": "^0.5.7",
-    "@tailwindcss/typography": "^0.5.10"
+    "cross-env": "^7.0.3"
   }
 }
