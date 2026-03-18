@@ -1,4 +1,3 @@
-// src/components/ClientLayout.tsx
 'use client'
 
 import { useEffect } from 'react'
@@ -15,15 +14,15 @@ export default function ClientLayout() {
       offset: 100,
     })
     
-    // Refresh AOS on window resize
-    window.addEventListener('resize', () => {
+    // Refresh AOS on window resize (fixed)
+    const handleResize = () => {
       AOS.refresh()
-    })
+    }
+    
+    window.addEventListener('resize', handleResize)
     
     return () => {
-      window.removeEventListener('resize', () => {
-        AOS.refresh()
-      })
+      window.removeEventListener('resize', handleResize)
     }
   }, [])
 

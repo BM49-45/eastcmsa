@@ -30,9 +30,23 @@ const nextConfig = {
         https: require.resolve('https-browserify'),
         zlib: require.resolve('browserify-zlib'),
         util: require.resolve('util/'),
+        assert: require.resolve('assert/'),
+        os: require.resolve('os-browserify/browser'),
+        buffer: require.resolve('buffer/'),
       };
     }
     return config;
+  },
+  // Images configuration
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'pub-7729259c73e646759f7039886bf31b23.r2.dev',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
 };
 
