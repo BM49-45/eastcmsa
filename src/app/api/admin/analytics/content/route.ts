@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import clientPromise from "@/lib/mongodb"
 import { getAllAudioFiles } from "@/lib/r2"
+export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   try {

@@ -69,4 +69,8 @@ tmp/
 
 # Backend (kama ni separate API, iondoe kwenye main repo)
 /backend/
-/api-*/
+/api-*/\n# Local images - now using R2
+public/eastc.jpeg
+public/eastc1.jpeg
+public/eastc2.jpeg
+public/image/
