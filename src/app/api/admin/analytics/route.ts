@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import clientPromise from "@/lib/mongodb"
-import { getAllAudioFiles } from "@/lib/r2"
+
+export const dynamic = 'force-dynamic' 
 
 export async function GET(req: NextRequest) {
   try {
@@ -183,7 +184,7 @@ export async function GET(req: NextRequest) {
       downloads: 0
     }))
 
-    // If no data from database, use R2 data with zero counts
+    // If no data from database, use empty array
     if (formattedViewsByCategory.length === 0) {
       const categories = ['Tawhiid', 'Fiqh', 'Sirah', 'Mihadhara']
       categories.forEach(cat => {
