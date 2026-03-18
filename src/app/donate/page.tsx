@@ -48,7 +48,6 @@ export default function DonatePage() {
       title: "Usalama wa Malipo",
       description: "Tumia njia salama za M-Pesa, Tigo Pesa, Airtel Money na benki."
     },
-    
     {
       icon: <Mail className="w-8 h-8" />,
       title: "Ujumbe wa Shukrani",
@@ -112,6 +111,7 @@ export default function DonatePage() {
                       : 'bg-white/50 hover:bg-white/70'
                   }`}
                   aria-label={`Nenda kwenye aya ya ${idx + 1}`}
+                  title={`Onyesha aya ya ${idx + 1}`}  // ✅ Added title
                 />
               ))}
             </div>
@@ -152,7 +152,7 @@ export default function DonatePage() {
               </div>
 
               {/* Features Preview */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
                 {features.map((feature, index) => (
                   <div
                     key={index}
@@ -174,10 +174,15 @@ export default function DonatePage() {
                 <p className="text-gray-600 dark:text-gray-300 mb-4">
                   Kwa maombi ya haraka ya kuchangia, wasiliana nasi:
                 </p>
-                <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-full font-medium hover:opacity-90 transition">
+                <a
+                  href="mailto:eastcmsa@protonmail.com"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-full font-medium hover:opacity-90 transition"
+                  aria-label="Tuma barua pepe"
+                  title="Tuma barua pepe"  // ✅ Added title
+                >
                   <Mail size={18} />
                   <span>eastcmsa@protonmail.com</span>
-                </div>
+                </a>
               </div>
             </div>
           </div>
@@ -195,6 +200,8 @@ export default function DonatePage() {
                 type="button"
                 onClick={() => window.location.href = '/'}
                 className="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-full font-bold hover:opacity-90 transition"
+                aria-label="Rudi nyumbani"
+                title="Rudi kwenye ukurasa wa nyumbani"  // ✅ Added title
               >
                 Rudi Nyumbani
               </button>
@@ -256,7 +263,6 @@ export default function DonatePage() {
         }
         .delay-0 { animation-delay: 0s; }
         .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
         .font-arabic {
           font-family: 'Traditional Arabic', 'Scheherazade', 'Lateef', serif;
         }

@@ -75,24 +75,27 @@ export default function Footer() {
               <motion.div 
                 whileHover={{ scale: 1.05 }}
               >
-                <div className="flex items-center space-x-3">
-                  <Link href="/" className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg bg-white">
-                      <Image
-                        src="/logo.png"
-                        alt="EASTCMSA Logo"
-                        width={40}
-                        height={40}
-                        className="object-contain"
-                        priority
-                      />
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold">EASTCMSA</div>
-                      <div className="text-sm text-gray-400">Islamic Knowledge Portal</div>
-                    </div>
-                  </Link>
-                </div>
+                {/* Logo katika Footer */}
+<div className="flex items-center space-x-3 mb-4">
+  <div className="flex items-center space-x-3">
+    <Link href="/" className="flex items-center space-x-3">
+      <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg bg-white">
+        <img
+          src="https://pub-7729259c73e646759f7039886bf31b23.r2.dev/image/logo.png"
+          alt="EASTCMSA Logo"
+          className="w-full h-full object-contain"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = '/logo.png'
+          }}
+        />
+      </div>
+      <div>
+        <div className="text-xl font-bold">EASTCMSA</div>
+        <div className="text-sm text-gray-400">Islamic Knowledge Portal</div>
+      </div>
+    </Link>
+  </div>
+</div>
               </motion.div>
             </div>
             <p className="text-gray-400 mb-6">

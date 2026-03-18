@@ -6,14 +6,18 @@ import { getAllAudioFiles } from "@/lib/r2"
 
 export async function GET(req: NextRequest) {
   try {
+    console.log("📊 Analytics API called")
+    
     const session = await getServerSession(authOptions)
     
     if (!session || session.user?.role !== "admin") {
+      console.log("❌ Unauthorized access to analytics")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { searchParams } = new URL(req.url)
     const range = searchParams.get('range') || 'week'
+    console.log("📊 Range selected:", range)
 
     const client = await clientPromise
     const db = client.db("eastcmsa")
@@ -45,15 +49,21 @@ export async function GET(req: NextRequest) {
         previousStartDate.setDate(now.getDate() - 14)
     }
 
-    // Get all audio files from R2
-    const allAudio = await getAllAudioFiles()
+    console.log("📊 Date range:", { startDate, previousStartDate })
 
-    // Get real data from database
+    // Get collections
     const activities = db.collection('activities')
     const users = db.collection('users')
     const contents = db.collection('contents')
 
-    // Current period stats
+    // Check if collections exist and have data
+    const activitiesCount = await activities.countDocuments()
+    const usersCount = await users.countDocuments()
+    const contentsCount = await contents.countDocuments()
+    
+    console.log("📊 Collection counts:", { activitiesCount, usersCount, contentsCount })
+
+    // Get real data
     const [
       currentViews,
       currentDownloads,
@@ -89,9 +99,8 @@ export async function GET(req: NextRequest) {
         },
         {
           $group: {
-            _id: '$category',
-            views: { $sum: 1 },
-            downloads: { $sum: { $cond: [{ $eq: ['$type', 'download'] }, 1, 0] } }
+            _id: { $ifNull: ['$category', 'general'] },
+            views: { $sum: 1 }
           }
         }
       ]).toArray(),
@@ -127,8 +136,8 @@ export async function GET(req: NextRequest) {
         {
           $group: {
             _id: '$contentId',
-            title: { $first: '$title' },
-            speaker: { $first: '$speaker' },
+            title: { $first: { $ifNull: ['$title', 'Untitled'] } },
+            speaker: { $first: { $ifNull: ['$speaker', 'Unknown'] } },
             views: { $sum: { $cond: [{ $eq: ['$type', 'view'] }, 1, 0] } },
             downloads: { $sum: { $cond: [{ $eq: ['$type', 'download'] }, 1, 0] } }
           }
@@ -136,7 +145,7 @@ export async function GET(req: NextRequest) {
         { $sort: { views: -1 } },
         { $limit: 10 }
       ]).toArray(),
-      // Previous period views (for growth calculation)
+      // Previous period views
       activities.countDocuments({
         type: 'view',
         timestamp: { $gte: previousStartDate, $lt: startDate }
@@ -147,6 +156,16 @@ export async function GET(req: NextRequest) {
         timestamp: { $gte: previousStartDate, $lt: startDate }
       })
     ])
+
+    console.log("📊 Data fetched:", { 
+      currentViews, 
+      currentDownloads, 
+      totalUsers, 
+      totalContent,
+      viewsByCategory: viewsByCategory.length,
+      recentActivity: recentActivity.length,
+      topContent: topContent.length
+    })
 
     // Calculate growth percentages
     const viewsGrowth = previousViews > 0 
@@ -159,9 +178,9 @@ export async function GET(req: NextRequest) {
 
     // Format views by category
     const formattedViewsByCategory = viewsByCategory.map(item => ({
-      category: item._id || 'general',
+      category: item._id.charAt(0).toUpperCase() + item._id.slice(1),
       views: item.views,
-      downloads: item.downloads || 0
+      downloads: 0
     }))
 
     // If no data from database, use R2 data with zero counts
@@ -194,39 +213,34 @@ export async function GET(req: NextRequest) {
     // Format top content
     const formattedTopContent = topContent.length > 0 
       ? topContent.map(item => ({
-          title: item.title || 'Untitled',
-          speaker: item.speaker || 'Unknown',
+          title: item.title,
+          speaker: item.speaker,
           views: item.views,
           downloads: item.downloads
         }))
-      : allAudio
-          .sort((a, b) => (b.downloads || 0) - (a.downloads || 0))
-          .slice(0, 5)
-          .map(audio => ({
-            title: audio.title,
-            speaker: audio.speaker,
-            views: audio.views || 0,
-            downloads: audio.downloads || 0
-          }))
+      : []
 
-    return NextResponse.json({
+    const response = {
       totalViews: currentViews,
       totalDownloads: currentDownloads,
       totalUsers,
       totalContent,
       viewsGrowth: Math.round(viewsGrowth * 10) / 10,
       downloadsGrowth: Math.round(downloadsGrowth * 10) / 10,
-      usersGrowth: 0, // Calculate if needed
-      contentGrowth: 0, // Calculate if needed
+      usersGrowth: 0,
+      contentGrowth: 0,
       viewsByCategory: formattedViewsByCategory,
       recentActivity: last7Days,
       topContent: formattedTopContent
-    })
+    }
+
+    console.log("📊 Sending response:", response)
+    return NextResponse.json(response)
 
   } catch (error) {
-    console.error("Analytics API Error:", error)
+    console.error("❌ Analytics API Error:", error)
     return NextResponse.json(
-      { error: "Failed to fetch analytics" },
+      { error: "Failed to fetch analytics: " + (error instanceof Error ? error.message : "Unknown error") },
       { status: 500 }
     )
   }

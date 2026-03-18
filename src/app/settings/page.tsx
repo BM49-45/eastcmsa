@@ -1,12 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import ProfilePicture from "@/components/profile/ProfilePicture"
+import { Sun, Moon } from 'lucide-react'
 
 export default function Settings() {
-  const { data: session, status } = useSession()
+  const { data: session, status, update } = useSession()
   const router = useRouter()
+  
+  // ✅ Move these inside the component
+  const [fontSize, setFontSize] = useState('medium')
+  const [language, setLanguage] = useState('sw')
+  const [theme, setTheme] = useState('system')
+  
   const [activeTab, setActiveTab] = useState("account")
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState({ type: "", text: "" })
@@ -146,6 +154,7 @@ export default function Settings() {
     }
   }
 
+  // ✅ Fixed: Single handleDeleteAccount function
   const handleDeleteAccount = async () => {
     if (!confirm("Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently removed.")) {
       return
@@ -158,7 +167,7 @@ export default function Settings() {
       })
 
       if (res.ok) {
-        router.push("/")
+        await signOut({ redirect: true, callbackUrl: "/" })
       } else {
         const data = await res.json()
         alert(data.error || "Failed to delete account")
@@ -168,6 +177,16 @@ export default function Settings() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleImageUpload = (imageUrl: string) => {
+    update({
+      ...session,
+      user: {
+        ...session?.user,
+        image: imageUrl
+      }
+    })
   }
 
   const tabs = [
@@ -181,7 +200,7 @@ export default function Settings() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading settings...</p>
         </div>
       </div>
@@ -206,7 +225,7 @@ export default function Settings() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                     activeTab === tab.id
-                      ? "border-blue-500 text-blue-600"
+                      ? "border-green-600 text-green-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -230,7 +249,21 @@ export default function Settings() {
             {/* Account Settings */}
             {activeTab === "account" && (
               <div className="space-y-6">
-                <div>
+                {/* Profile Picture */}
+                <div className="flex items-center gap-6">
+                  <ProfilePicture
+                    currentImage={session?.user?.image}
+                    userName={session?.user?.name || "User"}
+                    onUploadComplete={handleImageUpload}
+                    onRemove={() => handleImageUpload("")}
+                  />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">Profile Picture</h3>
+                    <p className="text-sm text-gray-500">Upload a photo to personalize your account</p>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-gray-200">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
                   <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
                     <div>
@@ -242,7 +275,7 @@ export default function Settings() {
                         type="password"
                         value={passwordData.currentPassword}
                         onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         required
                         placeholder="Enter current password"
                       />
@@ -256,7 +289,7 @@ export default function Settings() {
                         type="password"
                         value={passwordData.newPassword}
                         onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         required
                         minLength={6}
                         placeholder="Enter new password"
@@ -271,7 +304,7 @@ export default function Settings() {
                         type="password"
                         value={passwordData.confirmPassword}
                         onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         required
                         placeholder="Confirm new password"
                       />
@@ -279,7 +312,7 @@ export default function Settings() {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                     >
                       {isLoading ? "Updating..." : "Update Password"}
                     </button>
@@ -317,7 +350,7 @@ export default function Settings() {
                     type="checkbox"
                     checked={notifications.emailNotifications}
                     onChange={(e) => setNotifications({...notifications, emailNotifications: e.target.checked})}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                 </div>
 
@@ -333,7 +366,7 @@ export default function Settings() {
                     type="checkbox"
                     checked={notifications.downloadUpdates}
                     onChange={(e) => setNotifications({...notifications, downloadUpdates: e.target.checked})}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                 </div>
 
@@ -349,7 +382,7 @@ export default function Settings() {
                     type="checkbox"
                     checked={notifications.newContentAlerts}
                     onChange={(e) => setNotifications({...notifications, newContentAlerts: e.target.checked})}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                 </div>
 
@@ -365,7 +398,7 @@ export default function Settings() {
                     type="checkbox"
                     checked={notifications.weeklyNewsletter}
                     onChange={(e) => setNotifications({...notifications, weeklyNewsletter: e.target.checked})}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                 </div>
 
@@ -373,7 +406,7 @@ export default function Settings() {
                   <button
                     onClick={handleNotificationsSave}
                     disabled={isLoading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                   >
                     {isLoading ? "Saving..." : "Save Notification Settings"}
                   </button>
@@ -392,7 +425,7 @@ export default function Settings() {
                     id="profileVisibility"
                     value={privacy.profileVisibility}
                     onChange={(e) => setPrivacy({...privacy, profileVisibility: e.target.value})}
-                    className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
                     <option value="public">Public</option>
                     <option value="private">Private</option>
@@ -412,7 +445,7 @@ export default function Settings() {
                     type="checkbox"
                     checked={privacy.showActivity}
                     onChange={(e) => setPrivacy({...privacy, showActivity: e.target.checked})}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                 </div>
 
@@ -428,7 +461,7 @@ export default function Settings() {
                     type="checkbox"
                     checked={privacy.allowMessages}
                     onChange={(e) => setPrivacy({...privacy, allowMessages: e.target.checked})}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                 </div>
 
@@ -436,7 +469,7 @@ export default function Settings() {
                   <button
                     onClick={handlePrivacySave}
                     disabled={isLoading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                   >
                     {isLoading ? "Saving..." : "Save Privacy Settings"}
                   </button>
@@ -446,97 +479,97 @@ export default function Settings() {
 
             {/* Appearance Settings */}
             {activeTab === "appearance" && (
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Theme
-                  </label>
-                  <div className="grid grid-cols-3 gap-4 max-w-md">
-                    <button 
-                      onClick={async () => {
-                        await fetch("/api/user/theme", {
-                          method: "PUT",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ theme: "light" })
-                        })
-                      }}
-                      className="p-4 border-2 border-blue-500 rounded-lg bg-white hover:shadow-md transition-shadow"
-                    >
-                      <div className="w-full h-20 bg-gray-100 rounded mb-2"></div>
-                      <p className="text-sm font-medium">Light</p>
-                    </button>
-                    <button 
-                      onClick={async () => {
-                        await fetch("/api/user/theme", {
-                          method: "PUT",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ theme: "dark" })
-                        })
-                      }}
-                      className="p-4 border-2 border-gray-200 rounded-lg bg-gray-900 hover:shadow-md transition-shadow"
-                    >
-                      <div className="w-full h-20 bg-gray-800 rounded mb-2"></div>
-                      <p className="text-sm font-medium text-white">Dark</p>
-                    </button>
-                    <button 
-                      onClick={async () => {
-                        await fetch("/api/user/theme", {
-                          method: "PUT",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ theme: "system" })
-                        })
-                      }}
-                      className="p-4 border-2 border-gray-200 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-md transition-shadow"
-                    >
-                      <div className="w-full h-20 bg-white/20 rounded mb-2"></div>
-                      <p className="text-sm font-medium text-white">System</p>
-                    </button>
-                  </div>
-                </div>
+  <div className="space-y-6">
+    <div>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Mandhari (Theme)
+      </label>
+      <div className="grid grid-cols-3 gap-4 max-w-md">
+        <button 
+          onClick={() => setTheme('light')}
+          className={`p-4 border-2 rounded-lg transition-all ${
+            theme === 'light' 
+              ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+              : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+          }`}
+        >
+          <div className="w-full h-20 bg-gray-100 rounded mb-2 flex items-center justify-center">
+            <Sun className="w-8 h-8 text-yellow-500" />
+          </div>
+          <p className="text-sm font-medium">Mwanga</p>
+        </button>
+        
+        <button 
+          onClick={() => setTheme('dark')}
+          className={`p-4 border-2 rounded-lg transition-all ${
+            theme === 'dark' 
+              ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+              : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+          }`}
+        >
+          <div className="w-full h-20 bg-gray-900 rounded mb-2 flex items-center justify-center">
+            <Moon className="w-8 h-8 text-gray-300" />
+          </div>
+          <p className="text-sm font-medium dark:text-white">Giza</p>
+        </button>
+        
+        <button 
+          onClick={() => setTheme('system')}
+          className={`p-4 border-2 rounded-lg transition-all ${
+            theme === 'system' 
+              ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+              : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+          }`}
+        >
+          <div className="w-full h-20 bg-gradient-to-r from-gray-100 to-gray-900 rounded mb-2 flex items-center justify-center">
+            <div className="flex gap-1">
+              <Sun className="w-4 h-4 text-yellow-500" />
+              <Moon className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+            </div>
+          </div>
+          <p className="text-sm font-medium">Mfumo</p>
+        </button>
+      </div>
+    </div>
 
-                <div>
-                  <label htmlFor="fontSize" className="block text-sm font-medium text-gray-700 mb-2">
-                    Font Size
-                  </label>
-                  <select
-                    id="fontSize"
-                    onChange={async (e) => {
-                      await fetch("/api/user/font-size", {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ fontSize: e.target.value })
-                      })
-                    }}
-                    className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="small">Small</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="large">Large</option>
-                  </select>
-                </div>
+    <div>
+      <label htmlFor="fontSize" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Ukubwa wa Maandishi
+      </label>
+      <select
+        id="fontSize"
+        value={fontSize}
+        onChange={(e) => {
+          setFontSize(e.target.value)
+          document.documentElement.style.fontSize = 
+            e.target.value === 'small' ? '14px' : 
+            e.target.value === 'large' ? '18px' : '16px'
+        }}
+        className="w-full max-w-xs px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+      >
+        <option value="small">Ndogo</option>
+        <option value="medium" selected>Kati</option>
+        <option value="large">Kubwa</option>
+      </select>
+    </div>
 
-                <div>
-                  <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">
-                    Language
-                  </label>
-                  <select
-                    id="language"
-                    onChange={async (e) => {
-                      await fetch("/api/user/language", {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ language: e.target.value })
-                      })
-                    }}
-                    className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="en">English</option>
-                    <option value="sw">Swahili</option>
-                    <option value="ar">Arabic</option>
-                  </select>
-                </div>
-              </div>
-            )}
+    <div>
+      <label htmlFor="language" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Lugha
+      </label>
+      <select
+        id="language"
+        value={language}
+        onChange={(e) => setLanguage(e.target.value)}
+        className="w-full max-w-xs px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+      >
+        <option value="sw">Kiswahili</option>
+        <option value="en">English</option>
+        <option value="ar">العربية</option>
+      </select>
+    </div>
+  </div>
+)}
           </div>
         </div>
       </div>

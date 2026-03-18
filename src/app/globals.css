@@ -2,206 +2,240 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-/* Fix for Safari backdrop-filter */
-@supports not (backdrop-filter: blur(10px)) {
-  .backdrop-blur {
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-  }
-  
-  .backdrop-blur-sm {
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
-  }
-  
-  .backdrop-blur-md {
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-  }
-  
-  .backdrop-blur-lg {
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-  }
-  
-  .backdrop-blur-xl {
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Smooth transitions */
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Hide scrollbar but keep functionality */
-.scrollbar-hide {
-  -ms-overflow-style: none;
+@keyframes slideInFromTop {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Only set scrollbar-width where supported */
-@supports (scrollbar-width: none) {
-  .scrollbar-hide {
-    scrollbar-width: none;
-  }
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Custom range input styling */
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-input[type="range"]::-webkit-slider-track {
-  background: transparent;
-  border: none;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 16px;
-  width: 16px;
-  border-radius: 50%;
-  background: white;
-  border: 2px solid;
-  cursor: pointer;
-}
-
-input[type="range"]::-moz-range-thumb {
-  height: 16px;
-  width: 16px;
-  border-radius: 50%;
-  background: white;
-  border: 2px solid;
-  cursor: pointer;
-}
-
-/* Quran gradient */
-.bg-quran-gradient {
-  background: linear-gradient(135deg, #064e3b 0%, #0a5540 50%, #0d5c44 100%);
-}
-
-/* Tawhiid gradient */
-.bg-tawhiid-gradient {
-  background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 50%, #6d28d9 100%);
-}
-
-/* Glass effect with Safari support */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.05);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Line clamp utilities */
-.line-clamp-1 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-}
-
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-}
-
-.line-clamp-3 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-}
-
-/* Animation keyframes */
 @keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(0.98);
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease-out;
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
 }
 
-.animate-pulse {
+.animate-slideInFromTop {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+.animate-pulse-slow {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  will-change: transform;
 }
 
-.animate-spin {
-  animation: spin 1s linear infinite;
-  will-change: transform;
+/* Animation delays */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+.delay-600 { animation-delay: 0.6s; }
+.delay-700 { animation-delay: 0.7s; }
+.delay-800 { animation-delay: 0.8s; }
+.delay-900 { animation-delay: 0.9s; }
+.delay-1000 { animation-delay: 1s; }
+
+/* Custom shadows */
+.shadow-3xl {
+  box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-  will-change: transform;
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-/* Focus styles for accessibility */
-*:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
 }
 
-*:focus:not(:focus-visible) {
-  outline: none;
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
 }
 
-*:focus-visible {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
-/* Global backdrop-filter support for all browsers */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.05);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
 }
 
-/* Quran gradient */
-.bg-quran-gradient {
-  background: linear-gradient(135deg, #064e3b 0%, #0a5540 50%, #0d5c44 100%);
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
 }
 
-/* Tawhiid gradient */
-.bg-tawhiid-gradient {
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #3730a3 100%);
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Analytics Chart Styles */
+.chart-bar {
+  transition: height 0.3s ease;
+}
+
+.chart-bar-container {
+  position: relative;
+  width: 100%;
+  background-color: #d1fae5;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.dark .chart-bar-container {
+  background-color: rgba(6, 78, 59, 0.3);
+}
+
+.chart-bar-fill {
+  background-color: #059669;
+  border-radius: 0.5rem 0.5rem 0 0;
+  transition: height 0.3s ease;
+}
+
+.chart-tooltip {
+  position: absolute;
+  top: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #111827;
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.group:hover .chart-tooltip {
+  opacity: 1;
+}
+
+/* Growth Indicators */
+.growth-positive {
+  color: #059669;
+}
+
+.growth-negative {
+  color: #dc2626;
+}
+
+.growth-neutral {
+  color: #6b7280;
+}
+
+/* Stats Cards */
+.stat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+}
+
+/* Analytics Chart Styles */
+.chart-bar {
+  transition: height 0.3s ease;
+}
+
+.chart-bar-container {
+  position: relative;
+  width: 100%;
+  background-color: #d1fae5;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.dark .chart-bar-container {
+  background-color: rgba(6, 78, 59, 0.3);
+}
+
+.chart-bar-fill {
+  background-color: #059669;
+  border-radius: 0.5rem 0.5rem 0 0;
+  transition: height 0.3s ease;
+}
+
+.chart-tooltip {
+  position: absolute;
+  top: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #111827;
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.group:hover .chart-tooltip {
+  opacity: 1;
+}
+
+/* Progress bar */
+.progress-bar {
+  width: 100%;
+  height: 0.5rem;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.dark .progress-bar {
+  background-color: #374151;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #059669;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+/* Growth Indicators */
+.growth-positive {
+  color: #059669;
+}
+
+.growth-negative {
+  color: #dc2626;
+}
+
+.growth-neutral {
+  color: #6b7280;
+}
+
+/* Stats Cards */
+.stat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
 }

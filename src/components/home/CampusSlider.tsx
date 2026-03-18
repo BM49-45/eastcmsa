@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 
 interface CampusImage {
   src: string;
+  r2Url: string;  // R2 URL
   caption: string;
   location: string;
 }
@@ -13,16 +14,19 @@ interface CampusImage {
 const campusImages: CampusImage[] = [
   {
     src: "/eastc.jpeg",
+    r2Url: "https://pub-7729259c73e646759f7039886bf31b23.r2.dev/image/eastc.jpeg",
     caption: "EASTC Campus - Main Building",
     location: "Changanyikeni, Dar es Salaam"
   },
   {
     src: "/eastc1.jpeg",
+    r2Url: "https://pub-7729259c73e646759f7039886bf31b23.r2.dev/image/eastc1.jpeg",
     caption: "Library & Resource Center",
     location: "Changanyikeni, Dar es Salaam"
   },
   {
     src: "/eastc2.jpeg",
+    r2Url: "https://pub-7729259c73e646759f7039886bf31b23.r2.dev/image/eastc2.jpeg",
     caption: "Students' Lounge Area",
     location: "Changanyikeni, Dar es Salaam"
   }
@@ -30,6 +34,7 @@ const campusImages: CampusImage[] = [
 
 export default function CampusSlider() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (campusImages.length > 1) {
@@ -44,27 +49,20 @@ export default function CampusSlider() {
   const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % campusImages.length);
   const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + campusImages.length) % campusImages.length);
 
+  const currentImage = campusImages[currentIndex];
+
   return (
     <div className="relative rounded-xl overflow-hidden shadow-xl h-72 md:h-80 group">
-
-      {/* Images */}
-      {campusImages.map((img, index) => (
-        <div
-          key={index}
-          className={`absolute inset-0 transition-opacity duration-700 ${
-            index === currentIndex ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <Image
-            src={img.src}
-            alt={img.caption}
-            fill
-            className="object-cover"
-            priority={index === 0}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-        </div>
-      ))}
+      {/* Image - Tumia R2 kwanza, fallback kwenye local */}
+      <div className="absolute inset-0">
+        <img
+          src={!imageError ? currentImage.r2Url : currentImage.src}
+          alt={currentImage.caption}
+          className="w-full h-full object-cover"
+          onError={() => setImageError(true)}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+      </div>
 
       {/* Navigation */}
       <button
@@ -87,8 +85,8 @@ export default function CampusSlider() {
         <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm p-2 rounded-lg">
           <MapPin className="w-4 h-4 text-white" />
           <div>
-            <p className="text-sm font-medium text-white">{campusImages[currentIndex].caption}</p>
-            <p className="text-xs text-white/90">{campusImages[currentIndex].location}</p>
+            <p className="text-sm font-medium text-white">{currentImage.caption}</p>
+            <p className="text-xs text-white/90">{currentImage.location}</p>
           </div>
         </div>
       </div>

@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState, memo, useCallback, useMemo } from 'react'
-import { surahs, Surah as LocalSurah } from '@/components/widgets/surahs'
 import { motion } from 'framer-motion'
 import { useAudio } from '@/context/AudioContext'
 import type { Surah as AudioSurah, Reciter as AudioReciter } from '@/context/AudioContext'
@@ -30,6 +29,43 @@ import {
 
 // workaround for framer-motion typing issues
 const MDiv: any = motion.div
+
+/* =======================
+   SURAHS DATA
+======================= */
+
+interface Surah {
+  number: number
+  arabic: string
+  englishName: string
+  englishNameTranslation: string
+  numberOfAyahs: number
+  revelationType: string
+}
+
+const surahs: Surah[] = [
+  { number: 1, arabic: "الفاتحة", englishName: "Al-Fatiha", englishNameTranslation: "The Opening", numberOfAyahs: 7, revelationType: "Meccan" },
+  { number: 2, arabic: "البقرة", englishName: "Al-Baqarah", englishNameTranslation: "The Cow", numberOfAyahs: 286, revelationType: "Medinan" },
+  { number: 3, arabic: "آل عمران", englishName: "Ali 'Imran", englishNameTranslation: "Family of Imran", numberOfAyahs: 200, revelationType: "Medinan" },
+  { number: 4, arabic: "النساء", englishName: "An-Nisa", englishNameTranslation: "The Women", numberOfAyahs: 176, revelationType: "Medinan" },
+  { number: 5, arabic: "المائدة", englishName: "Al-Ma'idah", englishNameTranslation: "The Table Spread", numberOfAyahs: 120, revelationType: "Medinan" },
+  { number: 6, arabic: "الأنعام", englishName: "Al-An'am", englishNameTranslation: "The Cattle", numberOfAyahs: 165, revelationType: "Meccan" },
+  { number: 7, arabic: "الأعراف", englishName: "Al-A'raf", englishNameTranslation: "The Heights", numberOfAyahs: 206, revelationType: "Meccan" },
+  { number: 8, arabic: "الأنفال", englishName: "Al-Anfal", englishNameTranslation: "The Spoils of War", numberOfAyahs: 75, revelationType: "Medinan" },
+  { number: 9, arabic: "التوبة", englishName: "At-Tawbah", englishNameTranslation: "The Repentance", numberOfAyahs: 129, revelationType: "Medinan" },
+  { number: 10, arabic: "يونس", englishName: "Yunus", englishNameTranslation: "Jonah", numberOfAyahs: 109, revelationType: "Meccan" },
+  { number: 11, arabic: "هود", englishName: "Hud", englishNameTranslation: "Hud", numberOfAyahs: 123, revelationType: "Meccan" },
+  { number: 12, arabic: "يوسف", englishName: "Yusuf", englishNameTranslation: "Joseph", numberOfAyahs: 111, revelationType: "Meccan" },
+  { number: 13, arabic: "الرعد", englishName: "Ar-Ra'd", englishNameTranslation: "The Thunder", numberOfAyahs: 43, revelationType: "Medinan" },
+  { number: 14, arabic: "إبراهيم", englishName: "Ibrahim", englishNameTranslation: "Abraham", numberOfAyahs: 52, revelationType: "Meccan" },
+  { number: 15, arabic: "الحجر", englishName: "Al-Hijr", englishNameTranslation: "The Rocky Tract", numberOfAyahs: 99, revelationType: "Meccan" },
+  { number: 16, arabic: "النحل", englishName: "An-Nahl", englishNameTranslation: "The Bee", numberOfAyahs: 128, revelationType: "Meccan" },
+  { number: 17, arabic: "الإسراء", englishName: "Al-Isra", englishNameTranslation: "The Night Journey", numberOfAyahs: 111, revelationType: "Meccan" },
+  { number: 18, arabic: "الكهف", englishName: "Al-Kahf", englishNameTranslation: "The Cave", numberOfAyahs: 110, revelationType: "Meccan" },
+  { number: 19, arabic: "مريم", englishName: "Maryam", englishNameTranslation: "Mary", numberOfAyahs: 98, revelationType: "Meccan" },
+  { number: 20, arabic: "طه", englishName: "Taha", englishNameTranslation: "Taha", numberOfAyahs: 135, revelationType: "Meccan" },
+  // Add more surahs as needed, this is just a sample
+]
 
 /* =======================
    RECITERS WITH THEIR OWN FOLDERS
@@ -129,10 +165,38 @@ const quranQuotes = [
   }
 ]
 
+// Constants for images
+const R2_BASE_URL = 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev'
+
+const IMAGES = {
+  LOGO: `${R2_BASE_URL}/image/logo.png`,
+  QURAN: `${R2_BASE_URL}/image/Quran.jpg`,
+  QURAN1: `${R2_BASE_URL}/image/Quran1.jpg`,
+  QURAN2: `${R2_BASE_URL}/image/Quran2.jpg`,
+  QURAN3: `${R2_BASE_URL}/image/Quran3.jpg`,
+  QURAN4: `${R2_BASE_URL}/image/Quran4.jpg`,
+  EASTC: `${R2_BASE_URL}/image/eastc.jpeg`,
+  EASTC1: `${R2_BASE_URL}/image/eastc1.jpeg`,
+  EASTC2: `${R2_BASE_URL}/image/eastc2.jpeg`,
+}
+
+const LOCAL_IMAGES = {
+  LOGO: '/logo.png',
+  QURAN: '/image/Quran.jpg',
+  QURAN1: '/image/Quran1.jpg',
+  QURAN2: '/image/Quran2.jpg',
+  QURAN3: '/image/Quran3.jpg',
+  QURAN4: '/image/Quran4.jpg',
+  EASTC: '/eastc.jpeg',
+  EASTC1: '/eastc1.jpeg',
+  EASTC2: '/eastc2.jpeg',
+}
+
 const animationPatterns = [
   {
     color: 'from-emerald-900/40 to-emerald-700/50',
-    image: '/image/Quran.jpg',
+    r2Image: IMAGES.QURAN,
+    localImage: LOCAL_IMAGES.QURAN,
     verse: quranQuotes[0].arabic,
     translation: quranQuotes[0].translation,
     reference: quranQuotes[0].reference,
@@ -141,7 +205,8 @@ const animationPatterns = [
   },
   {
     color: 'from-green-900/40 to-green-700/50',
-    image: '/image/Quran1.jpg',
+    r2Image: IMAGES.QURAN1,
+    localImage: LOCAL_IMAGES.QURAN1,
     verse: quranQuotes[1].arabic,
     translation: quranQuotes[1].translation,
     reference: quranQuotes[1].reference,
@@ -150,7 +215,8 @@ const animationPatterns = [
   },
   {
     color: 'from-teal-900/40 to-teal-700/50',
-    image: '/image/Quran2.jpg',
+    r2Image: IMAGES.QURAN2,
+    localImage: LOCAL_IMAGES.QURAN2,
     verse: quranQuotes[2].arabic,
     translation: quranQuotes[2].translation,
     reference: quranQuotes[2].reference,
@@ -159,7 +225,8 @@ const animationPatterns = [
   },
   {
     color: 'from-cyan-900/40 to-cyan-700/50',
-    image: '/image/Quran3.jpg',
+    r2Image: IMAGES.QURAN3,
+    localImage: LOCAL_IMAGES.QURAN3,
     verse: quranQuotes[3].arabic,
     translation: quranQuotes[3].translation,
     reference: quranQuotes[3].reference,
@@ -168,7 +235,8 @@ const animationPatterns = [
   },
   {
     color: 'from-blue-900/40 to-blue-700/50',
-    image: '/image/Quran4.jpg',
+    r2Image: IMAGES.QURAN4,
+    localImage: LOCAL_IMAGES.QURAN4,
     verse: quranQuotes[4].arabic,
     translation: quranQuotes[4].translation,
     reference: quranQuotes[4].reference,
@@ -177,7 +245,8 @@ const animationPatterns = [
   },
   {
     color: 'from-purple-900/40 to-purple-700/50',
-    image: '/image/Quran.jpg',
+    r2Image: IMAGES.QURAN,
+    localImage: LOCAL_IMAGES.QURAN,
     verse: quranQuotes[5].arabic,
     translation: quranQuotes[5].translation,
     reference: quranQuotes[5].reference,
@@ -186,7 +255,8 @@ const animationPatterns = [
   },
   {
     color: 'from-pink-900/40 to-pink-700/50',
-    image: '/image/Quran1.jpg',
+    r2Image: IMAGES.QURAN1,
+    localImage: LOCAL_IMAGES.QURAN1,
     verse: quranQuotes[6].arabic,
     translation: quranQuotes[6].translation,
     reference: quranQuotes[6].reference,
@@ -195,7 +265,8 @@ const animationPatterns = [
   },
   {
     color: 'from-orange-900/40 to-orange-700/50',
-    image: '/image/Quran2.jpg',
+    r2Image: IMAGES.QURAN2,
+    localImage: LOCAL_IMAGES.QURAN2,
     verse: quranQuotes[7].arabic,
     translation: quranQuotes[7].translation,
     reference: quranQuotes[7].reference,
@@ -204,7 +275,8 @@ const animationPatterns = [
   },
   {
     color: 'from-yellow-900/40 to-yellow-700/50',
-    image: '/image/Quran3.jpg',
+    r2Image: IMAGES.QURAN3,
+    localImage: LOCAL_IMAGES.QURAN3,
     verse: quranQuotes[8].arabic,
     translation: quranQuotes[8].translation,
     reference: quranQuotes[8].reference,
@@ -213,7 +285,8 @@ const animationPatterns = [
   },
   {
     color: 'from-red-900/40 to-red-700/50',
-    image: '/image/Quran4.jpg',
+    r2Image: IMAGES.QURAN4,
+    localImage: LOCAL_IMAGES.QURAN4,
     verse: quranQuotes[9].arabic,
     translation: quranQuotes[9].translation,
     reference: quranQuotes[9].reference,
@@ -222,6 +295,7 @@ const animationPatterns = [
   }
 ]
 
+// Helper function to pad numbers
 const pad = (n: number) => n.toString().padStart(3, '0')
 
 /* =======================
@@ -243,12 +317,13 @@ const LiveQuran = memo(function LiveQuran() {
 
   // Local state for UI
   const [reciter, setReciter] = useState<typeof reciters[0]>(reciters[0])
-  const [surah, setSurah] = useState<LocalSurah>(surahs[0])
+  const [surah, setSurah] = useState<Surah>(surahs[0])
   const [currentAnimation, setCurrentAnimation] = useState(0)
   const [showReciters, setShowReciters] = useState(false)
   const [liked, setLiked] = useState(false)
   const [audioAvailable, setAudioAvailable] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
+  const [imageErrors, setImageErrors] = useState<{[key: number]: boolean}>({})
 
   // Refs for elements where styles are updated dynamically
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -340,7 +415,7 @@ const LiveQuran = memo(function LiveQuran() {
   // Sync with global audio state
   useEffect(() => {
     if (audioState.currentSurah) {
-      setSurah(audioState.currentSurah as LocalSurah)
+      setSurah(audioState.currentSurah as Surah)
     }
     if (audioState.currentReciter) {
       setReciter(audioState.currentReciter as typeof reciters[0])
@@ -348,34 +423,32 @@ const LiveQuran = memo(function LiveQuran() {
   }, [audioState.currentSurah, audioState.currentReciter])
 
   // Get audio URL from R2
-const getAudioUrl = useCallback((surahNumber: number): string => {
-  const paddedNum = pad(surahNumber)
+  const getAudioUrl = useCallback((surahNumber: number): string => {
+    const paddedNum = pad(surahNumber)
+    const baseUrl = process.env.NEXT_PUBLIC_AUDIO_BASE_URL || 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/audio'
+    return `${baseUrl}/${reciter.folder}/${paddedNum}.mp3`
+  }, [reciter.folder])
 
-  // Use R2 URL from environment variable
-  const baseUrl = process.env.NEXT_PUBLIC_AUDIO_BASE_URL || 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/audio'
-    return `${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/${reciter.folder}/${paddedNum}.mp3`
-}, [reciter.folder])
-
-// Check if audio file exists - with better error handling
-const checkAudioAvailability = useCallback(async (surahNumber: number) => {
-  const audioUrl = getAudioUrl(surahNumber)
-  console.log('🔍 Checking audio URL:', audioUrl)
-  
-  try {
-    const response = await fetch(audioUrl, { 
-      method: 'HEAD',
-      cache: 'no-cache'
-    })
+  // Check if audio file exists - with better error handling
+  const checkAudioAvailability = useCallback(async (surahNumber: number) => {
+    const audioUrl = getAudioUrl(surahNumber)
+    console.log('🔍 Checking audio URL:', audioUrl)
     
-    console.log(`📡 Audio check for ${surahNumber}:`, response.status, response.ok)
-    setAudioAvailable(response.ok)
-    return response.ok
-  } catch (error) {
-    console.error('❌ Error checking audio:', error)
-    setAudioAvailable(false)
-    return false
-  }
-}, [getAudioUrl])
+    try {
+      const response = await fetch(audioUrl, { 
+        method: 'HEAD',
+        cache: 'no-cache'
+      })
+      
+      console.log(`📡 Audio check for ${surahNumber}:`, response.status, response.ok)
+      setAudioAvailable(response.ok)
+      return response.ok
+    } catch (error) {
+      console.error('❌ Error checking audio:', error)
+      setAudioAvailable(false)
+      return false
+    }
+  }, [getAudioUrl])
 
   // Handle play/pause
   const handleTogglePlay = useCallback(async () => {
@@ -578,12 +651,13 @@ const checkAudioAvailability = useCallback(async (surahNumber: number) => {
             </div>
           )}
 
-          {/* QURAN QUOTES ANIMATION SECTION - SMOOTH TRANSITION */}
+          {/* QURAN QUOTES ANIMATION SECTION - WITH R2 IMAGES */}
           <div className="quran-animation-section">
             <img
-              src={animationPatterns[currentAnimation].image}
+              src={!imageErrors[currentAnimation] ? animationPatterns[currentAnimation].r2Image : animationPatterns[currentAnimation].localImage}
               alt="Quran background"
               className="transition-opacity duration-700"
+              onError={() => setImageErrors(prev => ({...prev, [currentAnimation]: true}))}
             />
             <div className="overlay"></div>
             <div className="content">
@@ -675,7 +749,7 @@ const checkAudioAvailability = useCallback(async (surahNumber: number) => {
           </div>
         </div>
 
-        {/* TIME PROGRESS - FIXED KNOB POSITIONING */}
+        {/* TIME PROGRESS */}
         <div className="mb-4">
           <div className="flex justify-between text-sm text-white/80 mb-2">
             <span>{formattedCurrentTime}</span>
@@ -696,9 +770,9 @@ const checkAudioAvailability = useCallback(async (surahNumber: number) => {
                 className="absolute top-0 left-0 h-2 bg-gradient-to-r from-green-500 via-emerald-400 to-teal-300 rounded-full transition-all duration-300"
               ></div>
               <div
-              ref={progressKnobRef}
-              className="progress-knob"
-              aria-hidden="true"
+                ref={progressKnobRef}
+                className="progress-knob"
+                aria-hidden="true"
               ></div>
 
               <input

@@ -5,7 +5,22 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import ProfileImageUploader from "@/components/profile/ProfilePicture"
+import ProfilePicture from "@/components/profile/ProfilePicture"
+
+// Extend the session user type
+interface ExtendedUser {
+  id: string
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  role: string
+  bio?: string
+  location?: string
+  website?: string
+  phone?: string
+  occupation?: string
+  education?: string
+}
 
 export default function Profile() {
   const { data: session, status, update } = useSession()
@@ -41,15 +56,16 @@ export default function Profile() {
 
   useEffect(() => {
     if (session?.user) {
+      const user = session.user as ExtendedUser
       setFormData({
-        name: session.user.name || "",
-        email: session.user.email || "",
-        bio: (session.user as any).bio || "",
-        location: (session.user as any).location || "",
-        website: (session.user as any).website || "",
-        phone: (session.user as any).phone || "",
-        occupation: (session.user as any).occupation || "",
-        education: (session.user as any).education || ""
+        name: user.name || "",
+        email: user.email || "",
+        bio: user.bio || "",
+        location: user.location || "",
+        website: user.website || "",
+        phone: user.phone || "",
+        occupation: user.occupation || "",
+        education: user.education || ""
       })
     }
   }, [session])
@@ -57,11 +73,7 @@ export default function Profile() {
   useEffect(() => {
     async function fetchUserStats() {
       try {
-        const res = await fetch("/api/user/profile", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" }
-        })
-
+        const res = await fetch("/api/user/stats")
         if (res.ok) {
           const data = await res.json()
           setStats(data)
@@ -93,6 +105,7 @@ export default function Profile() {
         throw new Error(data.error || "Failed to update profile")
       }
 
+      // Update session with new data
       await update({
         ...session,
         user: {
@@ -134,17 +147,20 @@ export default function Profile() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading profile...</p>
         </div>
       </div>
     )
   }
 
+  // Safe access to user properties
+  const user = session?.user as ExtendedUser | undefined
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
       {/* Cover Photo */}
-      <div className="h-64 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 relative overflow-hidden">
+      <div className="h-64 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-white rounded-full opacity-10"></div>
         <div className="absolute -top-16 -right-16 w-96 h-96 bg-white rounded-full opacity-10"></div>
@@ -157,26 +173,27 @@ export default function Profile() {
           <div className="px-8 pt-8 pb-6 border-b border-gray-100">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="flex items-center gap-6">
-                <ProfileImageUploader
-                  currentImage={session?.user?.image}
-                  userName={session?.user?.name || "User"}
+                <ProfilePicture
+                  currentImage={user?.image}
+                  userName={user?.name || "User"}
                   onUploadComplete={handleImageUpload}
                 />
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">{session?.user?.name}</h1>
+                  <h1 className="text-3xl font-bold text-gray-900">{user?.name}</h1>
                   <p className="text-gray-500 flex items-center gap-2 mt-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    {session?.user?.email}
+                    {user?.email}
                   </p>
-                  {(session?.user as any).location && (
+                  {/* Safe check for location */}
+                  {user?.location && (
                     <p className="text-gray-500 flex items-center gap-2 mt-1">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      {(session?.user as any).location}
+                      {user.location}
                     </p>
                   )}
                 </div>
@@ -184,7 +201,7 @@ export default function Profile() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setIsEditing(!isEditing)}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-lg shadow-blue-200"
+                  className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center gap-2 shadow-lg shadow-green-200"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -196,7 +213,7 @@ export default function Profile() {
                   className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37.996.608 2.296.07 2.572-1.065z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   Settings
@@ -247,7 +264,7 @@ export default function Profile() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`py-4 px-1 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === tab.id
-                      ? "border-blue-500 text-blue-600"
+                      ? "border-green-500 text-green-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -274,7 +291,7 @@ export default function Profile() {
                           type="text"
                           value={formData.name}
                           onChange={(e) => setFormData({...formData, name: e.target.value})}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
                           required
                           placeholder="Enter your full name"
                         />
@@ -288,7 +305,7 @@ export default function Profile() {
                           type="email"
                           value={formData.email}
                           onChange={(e) => setFormData({...formData, email: e.target.value})}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
                           required
                           placeholder="Enter your email"
                         />
@@ -302,7 +319,7 @@ export default function Profile() {
                           type="tel"
                           value={formData.phone}
                           onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
                           placeholder="Enter phone number"
                         />
                       </div>
@@ -315,7 +332,7 @@ export default function Profile() {
                           type="text"
                           value={formData.occupation}
                           onChange={(e) => setFormData({...formData, occupation: e.target.value})}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
                           placeholder="e.g., Software Engineer"
                         />
                       </div>
@@ -328,7 +345,7 @@ export default function Profile() {
                           value={formData.bio}
                           onChange={(e) => setFormData({...formData, bio: e.target.value})}
                           rows={4}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
                           placeholder="Tell us about yourself..."
                         />
                       </div>
@@ -341,7 +358,7 @@ export default function Profile() {
                           type="text"
                           value={formData.location}
                           onChange={(e) => setFormData({...formData, location: e.target.value})}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
                           placeholder="City, Country"
                         />
                       </div>
@@ -354,7 +371,7 @@ export default function Profile() {
                           type="text"
                           value={formData.education}
                           onChange={(e) => setFormData({...formData, education: e.target.value})}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
                           placeholder="Your educational background"
                         />
                       </div>
@@ -367,7 +384,7 @@ export default function Profile() {
                           type="url"
                           value={formData.website}
                           onChange={(e) => setFormData({...formData, website: e.target.value})}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
                           placeholder="https://example.com"
                         />
                       </div>
@@ -383,7 +400,7 @@ export default function Profile() {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg shadow-blue-200"
+                        className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 shadow-lg shadow-green-200"
                       >
                         {isLoading ? (
                           <span className="flex items-center gap-2">
@@ -439,7 +456,7 @@ export default function Profile() {
                           href={formData.website} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="text-blue-600 hover:underline font-medium"
+                          className="text-green-600 hover:underline font-medium"
                         >
                           {formData.website}
                         </a>
@@ -478,7 +495,7 @@ export default function Profile() {
                 <p className="text-gray-600 mb-4">No playlists yet</p>
                 <Link
                   href="/create-playlist"
-                  className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+                  className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors inline-flex items-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
