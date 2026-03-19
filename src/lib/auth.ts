@@ -38,27 +38,31 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role || "user",
-          image: user.image
+          image: user.image || null,
         }
       }
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.role = user.role
         token.id = user.id
+        token.image = user.image
+        token.name = user.name
+        token.email = user.email
       }
+      
+      // Refresh token inaweza kuwa inasababisha refresh
       return token
     },
     async session({ session, token }) {
       if (session?.user) {
-        session.user.role = token.role as string
         session.user.id = token.id as string
-        // Add optional fields
-        session.user.bio = (token as any).bio || ""
-        session.user.location = (token as any).location || ""
-        session.user.website = (token as any).website || ""
+        session.user.role = token.role as string
+        session.user.image = token.image as string | null
+        session.user.name = token.name as string
+        session.user.email = token.email as string
       }
       return session
     }
@@ -68,40 +72,8 @@ export const authOptions: NextAuthOptions = {
     error: "/login"
   },
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // Siku 30
   },
-  secret: process.env.NEXTAUTH_SECRET
-}
-
-// Extend NextAuth types
-declare module "next-auth" {
-  interface User {
-    role: string
-    bio?: string
-    location?: string
-    website?: string
-  }
-  
-  interface Session {
-    user: {
-      id: string
-      name?: string | null
-      email?: string | null
-      image?: string | null
-      role: string
-      bio?: string
-      location?: string
-      website?: string
-    }
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    role: string
-    id: string
-    bio?: string
-    location?: string
-    website?: string
-  }
+  secret: process.env.NEXTAUTH_SECRET,
 }

@@ -27,16 +27,19 @@
       "@/*": [
         "./src/*"
       ]
-    }
+    },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ]
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "scripts/init-uploads.js",
-    "scripts/clean-uploads.js",
-    "scripts/init-db.js",
+    "scripts/**/*.ts",
+    "scripts/**/*.js",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [

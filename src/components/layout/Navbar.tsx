@@ -55,8 +55,8 @@ export default function Navbar() {
   const [accountOpen, setAccountOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [imageKey, setImageKey] = useState(Date.now())
   const [logoError, setLogoError] = useState(false)
+  const [profileImageError, setProfileImageError] = useState(false)
 
   const accountRef = useRef<HTMLDivElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
@@ -64,15 +64,8 @@ export default function Navbar() {
   const isAdmin = session?.user?.role === "admin"
   const isLoggedIn = !!session
 
-  // Listen for session updates
-  useEffect(() => {
-    const handleFocus = () => {
-      setImageKey(Date.now())
-    }
-
-    window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [])
+  // Remove the imageKey useEffect that causes reload on focus
+  // We don't need imageKey anymore
 
   // Main navigation links
   const mainNavLinks = [
@@ -175,6 +168,11 @@ export default function Navbar() {
     }
   }
 
+  // Reset profile image error when session changes
+  useEffect(() => {
+    setProfileImageError(false)
+  }, [session?.user?.image])
+
   return (
     <>
       {/* Main Navbar */}
@@ -194,13 +192,14 @@ export default function Navbar() {
                 <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-lg bg-white dark:bg-gray-800 group-hover:shadow-xl transition-all duration-300 group-hover:scale-105 flex items-center justify-center">
                   {!logoError ? (
                     <Image
-  src="https://pub-7729259c73e646759f7039886bf31b23.r2.dev/image/logo.png"
-  alt="EASTCMSA Logo"
-  width={40}
-  height={40}
-  className="object-contain"
-  priority
-/>
+                      src="https://pub-7729259c73e646759f7039886bf31b23.r2.dev/image/logo.png"
+                      alt="EASTCMSA Logo"
+                      width={40}
+                      height={40}
+                      className="object-contain"
+                      priority
+                      onError={() => setLogoError(true)}
+                    />
                   ) : (
                     <span className="text-xl font-bold text-green-600">E</span>
                   )}
@@ -326,41 +325,46 @@ export default function Navbar() {
                     title="Fungua menyu ya akaunti"
                   >
                     <div className="relative w-6 h-6 rounded-full bg-white/20 overflow-hidden flex-shrink-0">
-                      {session.user?.image ? (
+                      {session?.user?.image && !profileImageError ? (
                         <img 
-                          src={`${session.user.image}?v=${imageKey}`}
+                          src={session.user.image}
                           alt={session.user.name || "User"}
                           className="w-full h-full object-cover"
-                          tabIndex={-1}
+                          onError={() => setProfileImageError(true)}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <User size={14} className="text-white" />
+                        <div className="w-full h-full flex items-center justify-center bg-green-700">
+                          <span className="text-white font-bold text-sm">
+                            {session?.user?.name?.charAt(0) || 'U'}
+                          </span>
                         </div>
                       )}
                     </div>
-                    <span className="hidden sm:inline">{session.user?.name}</span>
+                    <span className="hidden sm:inline">{session?.user?.name}</span>
                     <ChevronDown size={14} className={`transition-transform duration-200 ${accountOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {accountOpen && (
                     <div 
-                    className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
-                    aria-label="Account menu"
+                      className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
+                      aria-label="Account menu"
                     >
                       {/* User info header */}
                       <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-center gap-3">
-                          <div className="relative w-12 h-12 rounded-full bg-green-600 overflow-hidden">
-                            {session.user?.image ? (
+                          <div className="relative w-12 h-12 rounded-full bg-green-600 overflow-hidden flex-shrink-0">
+                            {session?.user?.image && !profileImageError ? (
                               <img 
-                                src={`${session.user.image}?v=${imageKey}`}
+                                src={session.user.image}
                                 alt={session.user.name || "User"}
                                 className="w-full h-full object-cover"
+                                onError={() => setProfileImageError(true)}
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <UserCircle size={28} className="text-white" />
+                              <div className="w-full h-full flex items-center justify-center bg-green-700">
+                                <span className="text-white font-bold text-lg">
+                                  {session?.user?.name?.charAt(0) || 'U'}
+                                </span>
                               </div>
                             )}
                           </div>
@@ -457,15 +461,15 @@ export default function Navbar() {
                       {/* Logout button */}
                       <div className="border-t border-gray-200 dark:border-gray-700 mt-1"></div>
                       <button
-                      type="button"
-                      onClick={handleSignOut}
-                      className="flex w-full items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                      aria-label="Toka"
-                      title="Toka kwenye akaunti yako"
-                    >
-                      <LogOut size={16} />
-                      <span>Toka</span>
-                    </button>
+                        type="button"
+                        onClick={handleSignOut}
+                        className="flex w-full items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        aria-label="Toka"
+                        title="Toka kwenye akaunti yako"
+                      >
+                        <LogOut size={16} />
+                        <span>Toka</span>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -596,13 +600,13 @@ export default function Navbar() {
 
       {/* Sidebar Toggle Button */}
       <button
-      type="button"
-      onClick={() => setSidebarOpen(!sidebarOpen)}
-      className="fixed left-0 top-16 ml-4 z-50 ..."
-      aria-label={sidebarOpen ? "Funga sidebar" : "Fungua sidebar"}
-      title={sidebarOpen ? "Funga menyu" : "Fungua menyu"}
+        type="button"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="fixed left-0 top-20 ml-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-r-lg shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+        aria-label={sidebarOpen ? "Funga sidebar" : "Fungua sidebar"}
+        title={sidebarOpen ? "Funga menyu" : "Fungua menyu"}
       >
-      {sidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeft size={20} />}
+        {sidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeft size={20} />}
       </button>
 
       {/* Sidebar */}
