@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }  // ✅ Sahihi kwa Next.js 15
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -16,7 +16,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id } = params
+    const { id } = await context.params  // ✅ Must await
     const body = await req.json()
     const { read, archived } = body
 
@@ -54,7 +54,7 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }  // ✅ Sahihi kwa Next.js 15
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -62,7 +62,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id } = params
+    const { id } = await context.params  // ✅ Must await
 
     const client = await clientPromise
     const db = client.db('eastcmsa')

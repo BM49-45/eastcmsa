@@ -2,17 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import clientPromise from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 
-// =====================
-// DELETE /api/content/[id]
-// =====================
 export const dynamic = 'force-dynamic';
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }  // ✅ Sahihi kwa Next.js 15
 ) {
   try {
-    const { id } = await context.params
+    const { id } = await context.params  // ✅ Must await
 
     const client = await clientPromise
     const db = client.db('eastcmsa')
@@ -38,15 +35,12 @@ export async function DELETE(
   }
 }
 
-// =====================
-// PUT /api/content/[id]
-// =====================
 export async function PUT(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }  // ✅ Sahihi kwa Next.js 15
 ) {
   try {
-    const { id } = await context.params
+    const { id } = await context.params  // ✅ Must await
     const body = await request.json()
 
     const client = await clientPromise
