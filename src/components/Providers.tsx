@@ -1,26 +1,22 @@
-// src/components/Providers.tsx
 'use client'
 
-import { ReactNode } from 'react'
-import { SessionProvider } from 'next-auth/react'
-import { ThemeProvider } from 'next-themes'
-import { AudioProvider } from '@/context/AudioContext'
+import { SessionProvider } from "next-auth/react"
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+import { AudioProvider } from "@/context/AudioContext"
 
-export default function Providers({ children }: { children: ReactNode }) {
+export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      {/* ThemeProvider at top-level ensures the script runs correctly */}
-      <ThemeProvider
+      <NextThemesProvider
         attribute="class"
         defaultTheme="system"
         enableSystem
         disableTransitionOnChange
-        storageKey="eastcmsa-islamic-theme"
       >
         <AudioProvider>
           {children}
         </AudioProvider>
-      </ThemeProvider>
+      </NextThemesProvider>
     </SessionProvider>
   )
 }

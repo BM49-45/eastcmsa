@@ -1,3 +1,5 @@
+# Save this as .gitignore
+cat > .gitignore << 'EOF'
 # dependencies
 node_modules/
 **/node_modules
@@ -44,7 +46,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Media files - hizi ziko kwenye R2
+# Media files - stored in R2
 /public/audio/**
 /public/uploads/**
 /public/videos/**
@@ -67,10 +69,14 @@ temp/
 tmp/
 *.tmp
 
-# Backend (kama ni separate API, iondoe kwenye main repo)
+# Backend (separate API)
 /backend/
-/api-*/\n# Local images - now using R2
+/api-*/
+
+# Local images - now using R2
 public/eastc.jpeg
 public/eastc1.jpeg
 public/eastc2.jpeg
 public/image/
+public/logo.png
+EOF

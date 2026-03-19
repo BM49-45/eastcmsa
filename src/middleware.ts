@@ -2,39 +2,34 @@ import { NextResponse } from "next/server"
 import { getToken } from "next-auth/jwt"
 import type { NextRequest } from "next/server"
 
-export { default } from "next-auth/middleware"
+export async function middleware(req: NextRequest) {
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET
+  })
 
-export async function middleware(req: NextRequest){
+  const { pathname } = req.nextUrl
 
-const token = await getToken({
-req,
-secret: process.env.NEXTAUTH_SECRET
-})
+  // Protect dashboard routes
+  if (pathname.startsWith("/dashboard")) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/login", req.url))
+    }
+  }
 
-const { pathname } = req.nextUrl
+  // Protect admin routes
+  if (pathname.startsWith("/admin")) {
+    if (!token || token.role !== "admin") {
+      return NextResponse.redirect(new URL("/", req.url))
+    }
+  }
 
-// protect dashboard
-if(pathname.startsWith("/dashboard")){
-if(!token){
-return NextResponse.redirect(new URL("/login",req.url))
-}
-}
-
-// protect admin
-if(pathname.startsWith("/admin")){
-if(!token || token.role !== "admin"){
-return NextResponse.redirect(new URL("/",req.url))
-}
-}
-
-return NextResponse.next()
-
+  return NextResponse.next()
 }
 
 export const config = {
-matcher:[
-"/dashboard/:path*",
-"/admin",
-"/admin/:path*"
-]
+  matcher: [
+    "/dashboard/:path*",
+    "/admin/:path*"
+  ]
 }

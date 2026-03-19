@@ -39,15 +39,14 @@ const nextConfig = {
   },
   // Images configuration
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'pub-7729259c73e646759f7039886bf31b23.r2.dev',
-        port: '',
-        pathname: '/**',
-      },
-    ],
-  },
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 'pub-7729259c73e646759f7039886bf31b23.r2.dev',
+      pathname: '/**',
+    },
+  ],
+},
 };
 
 module.exports = nextConfig;

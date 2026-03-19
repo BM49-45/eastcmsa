@@ -56,6 +56,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [imageKey, setImageKey] = useState(Date.now())
+  const [logoError, setLogoError] = useState(false)
 
   const accountRef = useRef<HTMLDivElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
@@ -190,15 +191,19 @@ export default function Navbar() {
             {/* Left section - Logo only */}
             <div className="flex items-center gap-2">
               <Link href="/" className="flex items-center space-x-3 group" title="Nenda kwenye Nyumbani">
-                <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-lg bg-white dark:bg-gray-800 group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                  <Image
-                    src="/logo.png"
-                    alt="EASTCMSA Logo"
-                    width={40}
-                    height={40}
-                    className="object-contain"
-                    priority
-                  />
+                <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-lg bg-white dark:bg-gray-800 group-hover:shadow-xl transition-all duration-300 group-hover:scale-105 flex items-center justify-center">
+                  {!logoError ? (
+                    <Image
+  src="https://pub-7729259c73e646759f7039886bf31b23.r2.dev/image/logo.png"
+  alt="EASTCMSA Logo"
+  width={40}
+  height={40}
+  className="object-contain"
+  priority
+/>
+                  ) : (
+                    <span className="text-xl font-bold text-green-600">E</span>
+                  )}
                 </div>
                 <div className="hidden md:block">
                   <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
