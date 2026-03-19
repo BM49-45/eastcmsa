@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const dryRun = process.argv.includes('--dry-run');
 
@@ -17,7 +17,7 @@ uploadDirs.forEach(dir => {
 
   const files = fs.readdirSync(fullPath);
   
-  files.forEach(file => {
+  files.forEach((file: string) => {
     if (file === '.gitkeep') return;
     
     const filePath = path.join(fullPath, file);
