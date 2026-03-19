@@ -1,25 +1,25 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // If you're using Turbopack (next dev --turbopack)
-  experimental: {
-    turbo: {
-      resolveAlias: {
-        // Provide polyfills for Node.js modules
-        crypto: 'crypto-browserify',
-        stream: 'stream-browserify',
-        path: 'path-browserify',
-        fs: 'memfs',
-        http: 'stream-http',
-        https: 'https-browserify',
-        zlib: 'browserify-zlib',
-        util: 'util/',
-      },
+  // Turbopack configuration (top-level)
+  turbopack: {
+    resolveAlias: {
+      // Polyfills for Node.js modules
+      crypto: 'crypto-browserify',
+      stream: 'stream-browserify',
+      path: 'path-browserify',
+      fs: 'memfs',
+      http: 'stream-http',
+      https: 'https-browserify',
+      zlib: 'browserify-zlib',
+      util: 'util/',
+      assert: 'assert/',
+      os: 'os-browserify/browser',
+      buffer: 'buffer/',
     },
   },
-  // For webpack builds (next build)
+  // Webpack fallbacks for `next build`
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Don't resolve Node.js modules on the client
       config.resolve.fallback = {
         ...config.resolve.fallback,
         crypto: require.resolve('crypto-browserify'),
@@ -39,14 +39,19 @@ const nextConfig = {
   },
   // Images configuration
   images: {
-  remotePatterns: [
-    {
-      protocol: 'https',
-      hostname: 'pub-7729259c73e646759f7039886bf31b23.r2.dev',
-      pathname: '/**',
-    },
-  ],
-},
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'pub-7729259c73e646759f7039886bf31b23.r2.dev',
+        pathname: '/**',
+      },
+    ],
+  },
+  // Other options (remove swcMinify - it's enabled by default in Next.js 16)
+  output: 'standalone',
+  poweredByHeader: false,
+  reactStrictMode: true,
+  // swcMinify: true,  // ❌ REMOVE THIS - it's deprecated
 };
 
 module.exports = nextConfig;
