@@ -11,45 +11,35 @@ export async function DELETE() {
     const session = await getServerSession(authOptions)
     
     if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" }, 
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const client = await clientPromise
     const db = client.db("eastcmsa")
 
-    // Get user data first
+    // Get user data
     const user = await db.collection("users").findOne({
       _id: new ObjectId(session.user.id)
     })
 
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" }, 
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
     // Delete profile image if exists
-    if (user?.image && user.image.startsWith('/uploads/')) {
+    if (user.image && user.image.startsWith('/uploads/')) {
       try {
         const filePath = path.join(process.cwd(), "public", user.image)
         await unlink(filePath)
-      } catch (imageError) {
-        console.error("Error deleting profile image:", imageError)
+      } catch (err) {
+        console.error("Error deleting profile image:", err)
       }
     }
 
     // Delete user data from all collections
-    await Promise.all([
-      db.collection("users").deleteOne({ _id: new ObjectId(session.user.id) }),
-      db.collection("activities").deleteMany({ userId: session.user.id }),
-      db.collection("favorites").deleteMany({ userId: session.user.id }),
-      db.collection("playlists").deleteMany({ userId: session.user.id }),
-      db.collection("comments").deleteMany({ userId: session.user.id }),
-    ])
+    await db.collection("users").deleteOne({ _id: new ObjectId(session.user.id) })
+    await db.collection("sessions").deleteMany({ userId: session.user.id })
+    await db.collection("activities").deleteMany({ userId: session.user.id })
 
     return NextResponse.json({ 
       success: true, 
@@ -57,7 +47,7 @@ export async function DELETE() {
     })
 
   } catch (error) {
-    console.error("Error deleting account:", error)
+    console.error("Delete account error:", error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

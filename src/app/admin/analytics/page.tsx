@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { 
-  BarChart3, TrendingUp, Users, BookOpen, Download, Eye, 
-  Calendar, ArrowUp, ArrowDown, RefreshCw, Clock, AlertCircle
+  BarChart3, Users, BookOpen, Download, Eye, 
+  ArrowUp, ArrowDown, RefreshCw, Clock, AlertCircle
 } from 'lucide-react'
 
 interface AnalyticsData {
@@ -46,17 +46,12 @@ export default function AdminAnalyticsPage() {
     setLoading(true)
     setError(null)
     try {
-      console.log('Fetching analytics for range:', timeRange)
       const res = await fetch(`/api/admin/analytics?range=${timeRange}`)
-      const responseData = await res.json()
-      
       if (!res.ok) {
-        console.error('API Error:', responseData)
-        throw new Error(responseData.error || 'Failed to fetch analytics')
+        throw new Error(`HTTP ${res.status}`)
       }
-      
-      console.log('Analytics data received:', responseData)
-      setData(responseData)
+      const analyticsData = await res.json()
+      setData(analyticsData)
     } catch (error) {
       console.error('Error fetching analytics:', error)
       setError('Hitilafu kupakia takwimu. Tafadhali jaribu tena.')
@@ -93,7 +88,7 @@ export default function AdminAnalyticsPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Inapakia takwimu halisi...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Inapakia takwimu...</p>
         </div>
       </div>
     )
@@ -120,16 +115,13 @@ export default function AdminAnalyticsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <BarChart3 className="text-green-600" />
               Takwimu za Mfumo
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Takwimu halisi za shughuli za tovuti
-            </p>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Takwimu halisi za shughuli za tovuti</p>
           </div>
           <div className="flex items-center gap-2">
             <label htmlFor="time-range" className="sr-only">Chagua muda</label>
@@ -137,9 +129,8 @@ export default function AdminAnalyticsPage() {
               id="time-range"
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800"
               title="Chagua muda wa takwimu"
-              aria-label="Chagua muda wa takwimu"
             >
               <option value="day">Leo</option>
               <option value="week">Wiki Hii</option>
@@ -148,9 +139,8 @@ export default function AdminAnalyticsPage() {
             </select>
             <button
               onClick={fetchAnalytics}
-              className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+              className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               title="Onyesha upya takwimu"
-              aria-label="Onyesha upya takwimu"
             >
               <RefreshCw size={18} />
             </button>
@@ -159,60 +149,44 @@ export default function AdminAnalyticsPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Views Card */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <Eye className="text-blue-600 dark:text-blue-400" size={24} />
-              </div>
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg"><Eye className="text-blue-600 dark:text-blue-400" size={24} /></div>
               <span className={`text-sm bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full ${getGrowthColor(data.viewsGrowth)}`}>
-                {getGrowthIcon(data.viewsGrowth)}
-                {data.viewsGrowth > 0 ? '+' : ''}{data.viewsGrowth}%
+                {getGrowthIcon(data.viewsGrowth)}{data.viewsGrowth > 0 ? '+' : ''}{data.viewsGrowth}%
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(data.totalViews)}</p>
             <p className="text-sm text-gray-600 dark:text-gray-400">Matazamio Jumla</p>
           </div>
 
-          {/* Downloads Card */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                <Download className="text-green-600 dark:text-green-400" size={24} />
-              </div>
+              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg"><Download className="text-green-600 dark:text-green-400" size={24} /></div>
               <span className={`text-sm bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full ${getGrowthColor(data.downloadsGrowth)}`}>
-                {getGrowthIcon(data.downloadsGrowth)}
-                {data.downloadsGrowth > 0 ? '+' : ''}{data.downloadsGrowth}%
+                {getGrowthIcon(data.downloadsGrowth)}{data.downloadsGrowth > 0 ? '+' : ''}{data.downloadsGrowth}%
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(data.totalDownloads)}</p>
             <p className="text-sm text-gray-600 dark:text-gray-400">Upakuaji Jumla</p>
           </div>
 
-          {/* Users Card */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                <Users className="text-purple-600 dark:text-purple-400" size={24} />
-              </div>
+              <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg"><Users className="text-purple-600 dark:text-purple-400" size={24} /></div>
               <span className={`text-sm bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full ${getGrowthColor(data.usersGrowth)}`}>
-                {getGrowthIcon(data.usersGrowth)}
-                {data.usersGrowth > 0 ? '+' : ''}{data.usersGrowth}%
+                {getGrowthIcon(data.usersGrowth)}{data.usersGrowth > 0 ? '+' : ''}{data.usersGrowth}%
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{data.totalUsers}</p>
             <p className="text-sm text-gray-600 dark:text-gray-400">Watumiaji Waliosajiliwa</p>
           </div>
 
-          {/* Content Card */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                <BookOpen className="text-amber-600 dark:text-amber-400" size={24} />
-              </div>
+              <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg"><BookOpen className="text-amber-600 dark:text-amber-400" size={24} /></div>
               <span className={`text-sm bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full ${getGrowthColor(data.contentGrowth)}`}>
-                {getGrowthIcon(data.contentGrowth)}
-                {data.contentGrowth > 0 ? '+' : ''}{data.contentGrowth}%
+                {getGrowthIcon(data.contentGrowth)}{data.contentGrowth > 0 ? '+' : ''}{data.contentGrowth}%
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{data.totalContent}</p>
@@ -220,9 +194,8 @@ export default function AdminAnalyticsPage() {
           </div>
         </div>
 
-        {/* Charts Section */}
+        {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Views by Category */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-bold mb-4">Matazamio kwa Kategoria</h3>
             {data.viewsByCategory.length === 0 ? (
@@ -230,20 +203,15 @@ export default function AdminAnalyticsPage() {
             ) : (
               <div className="space-y-4">
                 {data.viewsByCategory.map((item) => {
-                  const maxViews = getMaxViews()
-                  const percentage = maxViews > 0 ? (item.views / maxViews) * 100 : 0
-                  
+                  const percentage = getMaxViews() > 0 ? (item.views / getMaxViews()) * 100 : 0
                   return (
                     <div key={item.category}>
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-700 dark:text-gray-300">{item.category}</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{item.views.toLocaleString()} views</span>
+                        <span>{item.category}</span>
+                        <span className="font-medium">{item.views.toLocaleString()} views</span>
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div 
-                          className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${percentage}%` }}
-                        ></div>
+                        <div className="bg-green-600 h-2 rounded-full" style={{ width: `${percentage}%` }} />
                       </div>
                       <p className="text-xs text-gray-500 mt-1">{item.downloads.toLocaleString()} downloads</p>
                     </div>
@@ -253,7 +221,6 @@ export default function AdminAnalyticsPage() {
             )}
           </div>
 
-          {/* Recent Activity */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-bold mb-4">Shughuli za Karibuni</h3>
             {data.recentActivity.length === 0 ? (
@@ -263,21 +230,15 @@ export default function AdminAnalyticsPage() {
                 {data.recentActivity.map((day, i) => {
                   const maxViews = Math.max(...data.recentActivity.map(d => d.views), 1)
                   const height = (day.views / maxViews) * 180
-                  
                   return (
                     <div key={i} className="flex flex-col items-center flex-1 group">
                       <div className="w-full bg-green-100 dark:bg-green-900/30 rounded-t-lg relative">
-                        <div 
-                          className="bg-green-600 rounded-t-lg transition-all duration-300"
-                          style={{ height: `${height}px` }}
-                        ></div>
+                        <div className="bg-green-600 rounded-t-lg transition-all duration-300" style={{ height: `${height}px` }} />
                         <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-10">
                           {day.views} views
                         </div>
                       </div>
-                      <span className="text-xs mt-2 text-gray-600 dark:text-gray-400">
-                        {new Date(day.date).getDate()}
-                      </span>
+                      <span className="text-xs mt-2 text-gray-600">{new Date(day.date).getDate()}</span>
                     </div>
                   )
                 })}
@@ -300,15 +261,15 @@ export default function AdminAnalyticsPage() {
                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Mhadhiri</th>
                     <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Matazamio</th>
                     <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Upakuaji</th>
-                  </tr>
+                   </tr>
                 </thead>
                 <tbody>
                   {data.topContent.map((item, i) => (
                     <tr key={i} className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                       <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">{item.title}</td>
                       <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{item.speaker}</td>
-                      <td className="py-3 px-4 text-right text-gray-700 dark:text-gray-300">{item.views.toLocaleString()}</td>
-                      <td className="py-3 px-4 text-right text-gray-700 dark:text-gray-300">{item.downloads.toLocaleString()}</td>
+                      <td className="py-3 px-4 text-right">{item.views.toLocaleString()}</td>
+                      <td className="py-3 px-4 text-right">{item.downloads.toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -317,10 +278,9 @@ export default function AdminAnalyticsPage() {
           )}
         </div>
 
-        {/* Last Updated */}
         <div className="mt-4 text-right text-sm text-gray-500 flex items-center justify-end gap-2">
           <Clock size={14} />
-          <span>Takwimu zinasasishwa moja kwa moja</span>
+          <span>Takwimu zinasasishwa moja kwa moja kutoka kwenye shughuli za watumiaji</span>
         </div>
       </div>
     </div>

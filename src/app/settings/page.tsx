@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
@@ -10,11 +10,9 @@ export default function Settings() {
   const { data: session, status, update } = useSession()
   const router = useRouter()
   
-  // ✅ Move these inside the component
   const [fontSize, setFontSize] = useState('medium')
   const [language, setLanguage] = useState('sw')
   const [theme, setTheme] = useState('system')
-  
   const [activeTab, setActiveTab] = useState("account")
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState({ type: "", text: "" })
@@ -154,27 +152,37 @@ export default function Settings() {
     }
   }
 
-  // ✅ Fixed: Single handleDeleteAccount function
+  // ✅ Fixed: Delete Account with proper session clearing
   const handleDeleteAccount = async () => {
-    if (!confirm("Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently removed.")) {
+    if (!confirm("JE, UNA UHAKIKA UNATAKA KUFUTA AKUUNTI YAKO?\n\nHatua hii haiwezi kutenguliwa. Data zako zote zitafutwa kabisa.")) {
       return
     }
 
     setIsLoading(true)
     try {
-      const res = await fetch("/api/user/account", {
-        method: "DELETE"
+      const res = await fetch("/api/user/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" }
       })
 
-      if (res.ok) {
-        await signOut({ redirect: true, callbackUrl: "/" })
-      } else {
-        const data = await res.json()
-        alert(data.error || "Failed to delete account")
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete account")
       }
-    } catch (error) {
-      alert("An error occurred while deleting your account")
-    } finally {
+
+      // ✅ Sign out and redirect
+      await signOut({ 
+        redirect: true, 
+        callbackUrl: "/"
+      })
+      
+    } catch (error: any) {
+      console.error("Delete account error:", error)
+      setMessage({ 
+        type: "error", 
+        text: error.message || "Hitilafu ya kufuta akaunti. Tafadhali jaribu tena." 
+      })
       setIsLoading(false)
     }
   }
@@ -329,7 +337,7 @@ export default function Settings() {
                     disabled={isLoading}
                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
                   >
-                    Delete Account
+                    {isLoading ? "Deleting..." : "Delete Account"}
                   </button>
                 </div>
               </div>
@@ -479,97 +487,97 @@ export default function Settings() {
 
             {/* Appearance Settings */}
             {activeTab === "appearance" && (
-  <div className="space-y-6">
-    <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Mandhari (Theme)
-      </label>
-      <div className="grid grid-cols-3 gap-4 max-w-md">
-        <button 
-          onClick={() => setTheme('light')}
-          className={`p-4 border-2 rounded-lg transition-all ${
-            theme === 'light' 
-              ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
-              : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
-          }`}
-        >
-          <div className="w-full h-20 bg-gray-100 rounded mb-2 flex items-center justify-center">
-            <Sun className="w-8 h-8 text-yellow-500" />
-          </div>
-          <p className="text-sm font-medium">Mwanga</p>
-        </button>
-        
-        <button 
-          onClick={() => setTheme('dark')}
-          className={`p-4 border-2 rounded-lg transition-all ${
-            theme === 'dark' 
-              ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
-              : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
-          }`}
-        >
-          <div className="w-full h-20 bg-gray-900 rounded mb-2 flex items-center justify-center">
-            <Moon className="w-8 h-8 text-gray-300" />
-          </div>
-          <p className="text-sm font-medium dark:text-white">Giza</p>
-        </button>
-        
-        <button 
-          onClick={() => setTheme('system')}
-          className={`p-4 border-2 rounded-lg transition-all ${
-            theme === 'system' 
-              ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
-              : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
-          }`}
-        >
-          <div className="w-full h-20 bg-gradient-to-r from-gray-100 to-gray-900 rounded mb-2 flex items-center justify-center">
-            <div className="flex gap-1">
-              <Sun className="w-4 h-4 text-yellow-500" />
-              <Moon className="w-4 h-4 text-gray-700 dark:text-gray-300" />
-            </div>
-          </div>
-          <p className="text-sm font-medium">Mfumo</p>
-        </button>
-      </div>
-    </div>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Mandhari (Theme)
+                  </label>
+                  <div className="grid grid-cols-3 gap-4 max-w-md">
+                    <button 
+                      onClick={() => setTheme('light')}
+                      className={`p-4 border-2 rounded-lg transition-all ${
+                        theme === 'light' 
+                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+                      }`}
+                    >
+                      <div className="w-full h-20 bg-gray-100 rounded mb-2 flex items-center justify-center">
+                        <Sun className="w-8 h-8 text-yellow-500" />
+                      </div>
+                      <p className="text-sm font-medium">Mwanga</p>
+                    </button>
+                    
+                    <button 
+                      onClick={() => setTheme('dark')}
+                      className={`p-4 border-2 rounded-lg transition-all ${
+                        theme === 'dark' 
+                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+                      }`}
+                    >
+                      <div className="w-full h-20 bg-gray-900 rounded mb-2 flex items-center justify-center">
+                        <Moon className="w-8 h-8 text-gray-300" />
+                      </div>
+                      <p className="text-sm font-medium dark:text-white">Giza</p>
+                    </button>
+                    
+                    <button 
+                      onClick={() => setTheme('system')}
+                      className={`p-4 border-2 rounded-lg transition-all ${
+                        theme === 'system' 
+                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+                      }`}
+                    >
+                      <div className="w-full h-20 bg-gradient-to-r from-gray-100 to-gray-900 rounded mb-2 flex items-center justify-center">
+                        <div className="flex gap-1">
+                          <Sun className="w-4 h-4 text-yellow-500" />
+                          <Moon className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                        </div>
+                      </div>
+                      <p className="text-sm font-medium">Mfumo</p>
+                    </button>
+                  </div>
+                </div>
 
-    <div>
-      <label htmlFor="fontSize" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Ukubwa wa Maandishi
-      </label>
-      <select
-        id="fontSize"
-        value={fontSize}
-        onChange={(e) => {
-          setFontSize(e.target.value)
-          document.documentElement.style.fontSize = 
-            e.target.value === 'small' ? '14px' : 
-            e.target.value === 'large' ? '18px' : '16px'
-        }}
-        className="w-full max-w-xs px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-      >
-        <option value="small">Ndogo</option>
-        <option value="medium" selected>Kati</option>
-        <option value="large">Kubwa</option>
-      </select>
-    </div>
+                <div>
+                  <label htmlFor="fontSize" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Ukubwa wa Maandishi
+                  </label>
+                  <select
+                    id="fontSize"
+                    value={fontSize}
+                    onChange={(e) => {
+                      setFontSize(e.target.value)
+                      document.documentElement.style.fontSize = 
+                        e.target.value === 'small' ? '14px' : 
+                        e.target.value === 'large' ? '18px' : '16px'
+                    }}
+                    className="w-full max-w-xs px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="small">Ndogo</option>
+                    <option value="medium" selected>Kati</option>
+                    <option value="large">Kubwa</option>
+                  </select>
+                </div>
 
-    <div>
-      <label htmlFor="language" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Lugha
-      </label>
-      <select
-        id="language"
-        value={language}
-        onChange={(e) => setLanguage(e.target.value)}
-        className="w-full max-w-xs px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-      >
-        <option value="sw">Kiswahili</option>
-        <option value="en">English</option>
-        <option value="ar">العربية</option>
-      </select>
-    </div>
-  </div>
-)}
+                <div>
+                  <label htmlFor="language" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Lugha
+                  </label>
+                  <select
+                    id="language"
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="w-full max-w-xs px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="sw">Kiswahili</option>
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
