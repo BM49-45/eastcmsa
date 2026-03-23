@@ -43,21 +43,21 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // SMTP configuration
+    // SMTP configuration - tumia environment variables
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.gmail.com",
       port: parseInt(process.env.SMTP_PORT || "587"),
-      secure: false, // true for 465, false for other ports
+      secure: false,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: process.env.SMTP_USER || "",
+        pass: process.env.SMTP_PASS || "",
       },
     });
 
     const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
 
     await transporter.sendMail({
-      from: `"EASTCMSA" <${process.env.SMTP_USER}>`,
+      from: `"EASTCMSA" <${process.env.SMTP_USER || "noreply@eastcmsa.com"}>`,
       to: email,
       subject: "Reset Password - EASTCMSA",
       html: `

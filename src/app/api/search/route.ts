@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAllAudioFiles } from "@/lib/r2"
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
