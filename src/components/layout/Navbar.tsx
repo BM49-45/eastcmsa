@@ -602,7 +602,7 @@ export default function Navbar() {
       <button
         type="button"
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="fixed left-0 top-20 ml-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-r-lg shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+        className="fixed left-0 top-14 ml-6 z-50 p-2 bg-white dark:bg-gray-800 rounded-r-lg shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
         aria-label={sidebarOpen ? "Funga sidebar" : "Fungua sidebar"}
         title={sidebarOpen ? "Funga menyu" : "Fungua menyu"}
       >
