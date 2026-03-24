@@ -9,7 +9,7 @@ import { Sun, Moon } from 'lucide-react'
 export default function Settings() {
   const { data: session, status, update } = useSession()
   const router = useRouter()
-  
+
   const [fontSize, setFontSize] = useState('medium')
   const [language, setLanguage] = useState('sw')
   const [theme, setTheme] = useState('system')
@@ -67,7 +67,7 @@ export default function Settings() {
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setMessage({ type: "error", text: "Passwords do not match" })
       return
@@ -114,7 +114,7 @@ export default function Settings() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(notifications)
       })
-      
+
       const data = await res.json()
 
       if (!res.ok) {
@@ -137,7 +137,7 @@ export default function Settings() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(privacy)
       })
-      
+
       const data = await res.json()
 
       if (!res.ok) {
@@ -171,17 +171,17 @@ export default function Settings() {
         throw new Error(data.error || "Failed to delete account")
       }
 
-      // ✅ Sign out and redirect
-      await signOut({ 
-        redirect: true, 
-        callbackUrl: "/"
+      // ✅ Immediately sign out and redirect
+      await signOut({
+        redirect: true,
+        callbackUrl: "/?deleted=true"
       })
-      
+
     } catch (error: any) {
       console.error("Delete account error:", error)
-      setMessage({ 
-        type: "error", 
-        text: error.message || "Hitilafu ya kufuta akaunti. Tafadhali jaribu tena." 
+      setMessage({
+        type: "error",
+        text: error.message || "Hitilafu ya kufuta akaunti. Tafadhali jaribu tena."
       })
       setIsLoading(false)
     }
@@ -197,11 +197,12 @@ export default function Settings() {
     })
   }
 
+  // Tabs configuration
   const tabs = [
-    { id: "account", name: "Account", icon: "👤" },
-    { id: "notifications", name: "Notifications", icon: "🔔" },
-    { id: "privacy", name: "Privacy", icon: "🔒" },
-    { id: "appearance", name: "Appearance", icon: "🎨" }
+    { id: "account", name: "Akaunti", icon: "👤" },
+    { id: "notifications", name: "Arifa"},
+    { id: "privacy", name: "Faragha"},
+    { id: "appearance", name: "Muonekano"},
   ]
 
   if (status === "loading") {
@@ -231,11 +232,10 @@ export default function Settings() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                    activeTab === tab.id
+                  className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
                       ? "border-green-600 text-green-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
+                    }`}
                 >
                   <span className="mr-2">{tab.icon}</span>
                   {tab.name}
@@ -247,9 +247,8 @@ export default function Settings() {
           {/* Content */}
           <div className="p-6">
             {message.text && (
-              <div className={`mb-6 p-4 rounded-lg ${
-                message.type === "success" ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
-              }`}>
+              <div className={`mb-6 p-4 rounded-lg ${message.type === "success" ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
+                }`}>
                 {message.text}
               </div>
             )}
@@ -282,7 +281,7 @@ export default function Settings() {
                         id="currentPassword"
                         type="password"
                         value={passwordData.currentPassword}
-                        onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                        onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         required
                         placeholder="Enter current password"
@@ -296,7 +295,7 @@ export default function Settings() {
                         id="newPassword"
                         type="password"
                         value={passwordData.newPassword}
-                        onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         required
                         minLength={6}
@@ -311,7 +310,7 @@ export default function Settings() {
                         id="confirmPassword"
                         type="password"
                         value={passwordData.confirmPassword}
-                        onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         required
                         placeholder="Confirm new password"
@@ -332,7 +331,7 @@ export default function Settings() {
                   <p className="text-sm text-gray-500 mb-4">
                     Once you delete your account, there is no going back. All your data will be permanently removed.
                   </p>
-                  <button 
+                  <button
                     onClick={handleDeleteAccount}
                     disabled={isLoading}
                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
@@ -349,15 +348,15 @@ export default function Settings() {
                 <div className="flex items-center justify-between py-3 border-b border-gray-200">
                   <div>
                     <label htmlFor="emailNotifications" className="font-medium text-gray-900 cursor-pointer">
-                      Email Notifications
+                      Arifa za Barua Pepe
                     </label>
-                    <p className="text-sm text-gray-500">Receive email notifications about your account</p>
+                    <p className="text-sm text-gray-500">Pokea arifa za barua pepe kuhusu akaunti yako</p>
                   </div>
                   <input
                     id="emailNotifications"
                     type="checkbox"
                     checked={notifications.emailNotifications}
-                    onChange={(e) => setNotifications({...notifications, emailNotifications: e.target.checked})}
+                    onChange={(e) => setNotifications({ ...notifications, emailNotifications: e.target.checked })}
                     className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                 </div>
@@ -365,15 +364,15 @@ export default function Settings() {
                 <div className="flex items-center justify-between py-3 border-b border-gray-200">
                   <div>
                     <label htmlFor="downloadUpdates" className="font-medium text-gray-900 cursor-pointer">
-                      Download Updates
+                      Arifa za Upakuaji
                     </label>
-                    <p className="text-sm text-gray-500">Get notified when your downloads are ready</p>
+                    <p className="text-sm text-gray-500">Pata taarifa upakuaji wako unapokamilika</p>
                   </div>
                   <input
                     id="downloadUpdates"
                     type="checkbox"
                     checked={notifications.downloadUpdates}
-                    onChange={(e) => setNotifications({...notifications, downloadUpdates: e.target.checked})}
+                    onChange={(e) => setNotifications({ ...notifications, downloadUpdates: e.target.checked })}
                     className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                 </div>
@@ -381,15 +380,16 @@ export default function Settings() {
                 <div className="flex items-center justify-between py-3 border-b border-gray-200">
                   <div>
                     <label htmlFor="newContentAlerts" className="font-medium text-gray-900 cursor-pointer">
-                      New Content Alerts
+                      Arifa za Maudhui Mapya
                     </label>
-                    <p className="text-sm text-gray-500">Be the first to know about new audio content</p>
+                    <p className="text-sm text-gray-500">Kuwa wa kwanza kujua kuhusu maudhui mapya</p>
+
                   </div>
                   <input
                     id="newContentAlerts"
                     type="checkbox"
                     checked={notifications.newContentAlerts}
-                    onChange={(e) => setNotifications({...notifications, newContentAlerts: e.target.checked})}
+                    onChange={(e) => setNotifications({ ...notifications, newContentAlerts: e.target.checked })}
                     className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                 </div>
@@ -397,15 +397,16 @@ export default function Settings() {
                 <div className="flex items-center justify-between py-3 border-b border-gray-200">
                   <div>
                     <label htmlFor="weeklyNewsletter" className="font-medium text-gray-900 cursor-pointer">
-                      Weekly Newsletter
+                      Jarida la Kila Wiki
                     </label>
-                    <p className="text-sm text-gray-500">Receive our weekly newsletter with highlights</p>
+                    <p className="text-sm text-gray-500">Pokea jarida letu la kila wiki lenye muhtasari</p>
+
                   </div>
                   <input
                     id="weeklyNewsletter"
                     type="checkbox"
                     checked={notifications.weeklyNewsletter}
-                    onChange={(e) => setNotifications({...notifications, weeklyNewsletter: e.target.checked})}
+                    onChange={(e) => setNotifications({ ...notifications, weeklyNewsletter: e.target.checked })}
                     className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                 </div>
@@ -427,32 +428,33 @@ export default function Settings() {
               <div className="space-y-6">
                 <div>
                   <label htmlFor="profileVisibility" className="block text-sm font-medium text-gray-700 mb-2">
-                    Profile Visibility
+                    Muonekano wa Wasifu
                   </label>
                   <select
                     id="profileVisibility"
                     value={privacy.profileVisibility}
-                    onChange={(e) => setPrivacy({...privacy, profileVisibility: e.target.value})}
+                    onChange={(e) => setPrivacy({ ...privacy, profileVisibility: e.target.value })}
                     className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
-                    <option value="public">Public</option>
-                    <option value="private">Private</option>
-                    <option value="friends">Friends Only</option>
+                    <option value="public">Umma</option>
+                    <option value="private">Faragha</option>
+                    <option value="friends">Marafiki Pekee</option>
+
                   </select>
                 </div>
 
                 <div className="flex items-center justify-between py-3 border-b border-gray-200">
                   <div>
                     <label htmlFor="showActivity" className="font-medium text-gray-900 cursor-pointer">
-                      Show Activity
+                      Onyesha Shughuli
                     </label>
-                    <p className="text-sm text-gray-500">Display your listening activity to others</p>
+                    <p className="text-sm text-gray-500">Onyesha shughuli zako za kusikiliza kwa wengine</p>
                   </div>
                   <input
                     id="showActivity"
                     type="checkbox"
                     checked={privacy.showActivity}
-                    onChange={(e) => setPrivacy({...privacy, showActivity: e.target.checked})}
+                    onChange={(e) => setPrivacy({ ...privacy, showActivity: e.target.checked })}
                     className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                 </div>
@@ -460,15 +462,15 @@ export default function Settings() {
                 <div className="flex items-center justify-between py-3 border-b border-gray-200">
                   <div>
                     <label htmlFor="allowMessages" className="font-medium text-gray-900 cursor-pointer">
-                      Allow Messages
+                      Ruhusu Ujumbe
                     </label>
-                    <p className="text-sm text-gray-500">Let other users send you messages</p>
+                    <p className="text-sm text-gray-500">Wacha watumiaji wengine wakutumie ujumbe</p>
                   </div>
                   <input
                     id="allowMessages"
                     type="checkbox"
                     checked={privacy.allowMessages}
-                    onChange={(e) => setPrivacy({...privacy, allowMessages: e.target.checked})}
+                    onChange={(e) => setPrivacy({ ...privacy, allowMessages: e.target.checked })}
                     className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                   />
                 </div>
@@ -493,41 +495,38 @@ export default function Settings() {
                     Mandhari (Theme)
                   </label>
                   <div className="grid grid-cols-3 gap-4 max-w-md">
-                    <button 
+                    <button
                       onClick={() => setTheme('light')}
-                      className={`p-4 border-2 rounded-lg transition-all ${
-                        theme === 'light' 
-                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                      className={`p-4 border-2 rounded-lg transition-all ${theme === 'light'
+                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                           : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
-                      }`}
+                        }`}
                     >
                       <div className="w-full h-20 bg-gray-100 rounded mb-2 flex items-center justify-center">
                         <Sun className="w-8 h-8 text-yellow-500" />
                       </div>
                       <p className="text-sm font-medium">Mwanga</p>
                     </button>
-                    
-                    <button 
+
+                    <button
                       onClick={() => setTheme('dark')}
-                      className={`p-4 border-2 rounded-lg transition-all ${
-                        theme === 'dark' 
-                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                      className={`p-4 border-2 rounded-lg transition-all ${theme === 'dark'
+                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                           : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
-                      }`}
+                        }`}
                     >
                       <div className="w-full h-20 bg-gray-900 rounded mb-2 flex items-center justify-center">
                         <Moon className="w-8 h-8 text-gray-300" />
                       </div>
                       <p className="text-sm font-medium dark:text-white">Giza</p>
                     </button>
-                    
-                    <button 
+
+                    <button
                       onClick={() => setTheme('system')}
-                      className={`p-4 border-2 rounded-lg transition-all ${
-                        theme === 'system' 
-                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                      className={`p-4 border-2 rounded-lg transition-all ${theme === 'system'
+                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                           : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
-                      }`}
+                        }`}
                     >
                       <div className="w-full h-20 bg-gradient-to-r from-gray-100 to-gray-900 rounded mb-2 flex items-center justify-center">
                         <div className="flex gap-1">
@@ -549,9 +548,9 @@ export default function Settings() {
                     value={fontSize}
                     onChange={(e) => {
                       setFontSize(e.target.value)
-                      document.documentElement.style.fontSize = 
-                        e.target.value === 'small' ? '14px' : 
-                        e.target.value === 'large' ? '18px' : '16px'
+                      document.documentElement.style.fontSize =
+                        e.target.value === 'small' ? '14px' :
+                          e.target.value === 'large' ? '18px' : '16px'
                     }}
                     className="w-full max-w-xs px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >

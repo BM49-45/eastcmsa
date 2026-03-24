@@ -6,36 +6,32 @@ import { ObjectId } from "mongodb"
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+// Log activity when user downloads audio
+export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
-    
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { type, contentId, title, speaker, category } = await req.json()
+
     const client = await clientPromise
     const db = client.db("eastcmsa")
     
-    const activities = await db.collection("activities")
-      .find({ userId: session.user.id })
-      .sort({ timestamp: -1 })
-      .limit(50)
-      .toArray()
+    await db.collection("activities").insertOne({
+      userId: session.user.id,
+      type, // 'download', 'view', 'like'
+      contentId,
+      title,
+      speaker,
+      category,
+      timestamp: new Date()
+    })
 
-    return NextResponse.json(activities.map(a => ({
-      id: a._id.toString(),
-      type: a.type,
-      title: a.title,
-      speaker: a.speaker,
-      category: a.category,
-      timestamp: a.timestamp
-    })))
+    return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Activity API Error:", error)
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    )
+    console.error("Activity log error:", error)
+    return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

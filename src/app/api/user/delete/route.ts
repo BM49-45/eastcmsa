@@ -6,6 +6,8 @@ import { ObjectId } from "mongodb"
 import { unlink } from "fs/promises"
 import path from "path"
 
+export const dynamic = 'force-dynamic';
+
 export async function DELETE() {
   try {
     const session = await getServerSession(authOptions)
@@ -43,7 +45,8 @@ export async function DELETE() {
 
     return NextResponse.json({ 
       success: true, 
-      message: "Account deleted successfully" 
+      message: "Account deleted successfully",
+      redirectTo: "/"
     })
 
   } catch (error) {

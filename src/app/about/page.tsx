@@ -110,6 +110,7 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen pt-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+     
       {/* Hero Section with Bismillah */}
       <div className="relative bg-gradient-to-r from-green-700 to-green-900 text-white py-16 overflow-hidden">
         <div className="absolute inset-0 opacity-5">

@@ -19,26 +19,25 @@ import {
 } from 'lucide-react'
 import { getAllAudioFiles } from "@/lib/r2"
 
-// Main navigation links - exactly as you provided
+// Main navigation links
 const mainNavLinks = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Tawhiid', href: '/tawhiid', icon: BookOpen },
   { name: 'Fiqh', href: '/fiqh', icon: Scale },
   { name: 'Sirah', href: '/sirah', icon: History },
-  { name: 'Lectures', href: '/lectures', icon: Mic },
-  { name: 'Books', href: '/books', icon: Book },
-  { name: 'Events', href: '/events', icon: CalendarHeart },
-  { name: 'Donate', href: '/donate', icon: Heart },
-  { name: 'About', href: '/about', icon: Info },
-  { name: 'Contact', href: '/contact', icon: Phone }
+  { name: 'Mihadhara', href: '/mihadhara', icon: Mic },
+  { name: 'Vitabu', href: '/books', icon: Book },
+  { name: 'Matukio', href: '/events', icon: CalendarHeart },
+  { name: 'Changia', href: '/donate', icon: Heart },
+  { name: 'Kuhusu', href: '/about', icon: Info },
+  { name: 'Wasiliana', href: '/contact', icon: Phone }
 ]
 
-// Filter only category pages for the grid
+// Filter only category pages
 const categoryPages = mainNavLinks.filter(link => 
-  ['Tawhiid', 'Fiqh', 'Sirah', 'Lectures'].includes(link.name)
+  ['Tawhiid', 'Fiqh', 'Sirah', 'Mihadhara'].includes(link.name)
 ).map(link => ({
   ...link,
-  // Use Lucide icons instead of emojis
   gradient: link.name === 'Tawhiid' ? 'from-purple-500 to-indigo-700' :
             link.name === 'Fiqh' ? 'from-green-500 to-emerald-700' :
             link.name === 'Sirah' ? 'from-amber-500 to-orange-700' :
@@ -50,15 +49,20 @@ const categoryPages = mainNavLinks.filter(link =>
 }))
 
 export default async function CategoriesPage() {
-  // Fetch real data to get counts
+  // Fetch real data
   const allAudio = await getAllAudioFiles()
+  
+  // Get top 3 most downloaded audios
+  const topAudios = [...allAudio]
+    .sort((a, b) => (b.downloads || 0) - (a.downloads || 0))
+    .slice(0, 3)
   
   // Add counts to categories
   const categoriesWithCounts = categoryPages.map(cat => ({
     ...cat,
     count: allAudio.filter(audio => 
       audio.category?.toLowerCase() === cat.name.toLowerCase() ||
-      (cat.name === 'Lectures' && audio.category === 'lecture')
+      (cat.name === 'Mihadhara' && audio.category === 'mihadhara')
     ).length
   }))
 
@@ -73,7 +77,7 @@ export default async function CategoriesPage() {
           </p>
         </div>
 
-        {/* Categories Grid - Direct links to your actual pages */}
+        {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {categoriesWithCounts.map((category) => {
             const Icon = category.icon
@@ -96,7 +100,6 @@ export default async function CategoriesPage() {
                 </div>
 
                 <div className="relative p-8 text-white">
-                  {/* Lucide Icon instead of emoji */}
                   <div className="w-20 h-20 mb-6 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center transform group-hover:scale-110 transition-transform">
                     <Icon className="w-10 h-10" />
                   </div>
@@ -118,28 +121,29 @@ export default async function CategoriesPage() {
           })}
         </div>
 
-        {/* Most Popular Section */}
+        {/* Most Popular Section - REAL DATA */}
         <div className="mt-16 bg-white rounded-3xl shadow-xl p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
             <Star className="w-6 h-6 text-yellow-500" />
             Maarufu Wiki Hii
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {allAudio
-              .sort((a, b) => (b.downloads || 0) - (a.downloads || 0))
-              .slice(0, 3)
-              .map((audio, i) => {
-                // Find which category this audio belongs to
+          {topAudios.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>Hakuna maudhui maarufu kwa sasa</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {topAudios.map((audio, i) => {
                 const category = categoryPages.find(c => 
                   c.name.toLowerCase() === audio.category?.toLowerCase() ||
-                  (c.name === 'Lectures' && audio.category === 'lecture')
+                  (c.name === 'Mihadhara' && audio.category === 'mihadhara')
                 )
                 const CategoryIcon = category?.icon || BookOpen
                 
                 return (
                   <Link 
                     key={i} 
-                    href={category?.href || '#'}
+                    href={category?.href || `/${audio.category}`}
                     className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors group"
                   >
                     <div className={`w-16 h-16 bg-gradient-to-br ${category?.gradient || 'from-blue-500 to-purple-600'} rounded-xl flex items-center justify-center text-white group-hover:scale-105 transition-transform`}>
@@ -149,7 +153,7 @@ export default async function CategoriesPage() {
                       <p className="font-semibold text-gray-900 line-clamp-1">{audio.title}</p>
                       <p className="text-sm text-gray-600">{audio.speaker}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-gray-500">{audio.downloads || 0} downloads</span>
+                        <span className="text-xs text-gray-500">{audio.downloads || 0} upakuaji</span>
                         <span className="text-xs text-gray-400">•</span>
                         <span className="text-xs text-gray-500">{category?.name}</span>
                       </div>
@@ -157,7 +161,8 @@ export default async function CategoriesPage() {
                   </Link>
                 )
               })}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Quick Navigation to Other Pages */}
@@ -184,7 +189,7 @@ export default async function CategoriesPage() {
           </div>
         </div>
 
-        {/* Stats Summary */}
+        {/* Stats Summary - REAL DATA */}
         <div className="mt-12 bg-green-600 rounded-3xl p-8 text-white">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
@@ -203,7 +208,7 @@ export default async function CategoriesPage() {
             </div>
             <div>
               <p className="text-3xl font-bold">
-                {allAudio.reduce((sum, a) => sum + (a.downloads || 0), 0)}
+                {allAudio.reduce((sum, a) => sum + (a.downloads || 0), 0).toLocaleString()}
               </p>
               <p className="text-sm opacity-90">Jumla ya Upakuaji</p>
             </div>

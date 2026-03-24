@@ -76,14 +76,15 @@ export default function DonatePage() {
   return (
     <div className="min-h-screen pt-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Hero Section with Ayah Rotation */}
-      <div className="bg-gradient-to-r from-green-700 to-green-900 text-white py-20 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-green-700 to-green-900 text-white py-8 md:py-10 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="container mx-auto px-4 text-center relative z-10">
-          <Heart className="w-16 h-16 mx-auto mb-6 animate-pulse" />
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Changia Mradi Wetu
-          </h1>
-          
+          <Heart className="w-12 h-12 mx-auto mb-4 animate-pulse" />
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">Changia Mradi Wetu</h1>
+          <p className="text-base md:text-lg opacity-90 max-w-2xl mx-auto">
+            Changia kwenye njia ya Allah na upate malipo makubwa duniani na Akhera
+          </p>
+
           {/* Ayah Display */}
           <div className="max-w-3xl mx-auto mb-8 min-h-[120px]">
             <div key={currentAyah} className="animate-fadeIn">
@@ -97,7 +98,7 @@ export default function DonatePage() {
                 {ayahs[currentAyah].reference}
               </div>
             </div>
-            
+
             {/* Ayah Indicators */}
             <div className="flex justify-center gap-2 mt-6">
               {ayahs.map((_, idx) => (
@@ -105,11 +106,10 @@ export default function DonatePage() {
                   key={idx}
                   type="button"
                   onClick={() => setCurrentAyah(idx)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    idx === currentAyah 
-                      ? 'bg-white w-8' 
+                  className={`w-2 h-2 rounded-full transition-all ${idx === currentAyah
+                      ? 'bg-white w-8'
                       : 'bg-white/50 hover:bg-white/70'
-                  }`}
+                    }`}
                   aria-label={`Nenda kwenye aya ya ${idx + 1}`}
                   title={`Onyesha aya ya ${idx + 1}`}  // ✅ Added title
                 />
@@ -131,13 +131,13 @@ export default function DonatePage() {
               <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-600 to-green-700 rounded-full mb-8">
                 <Clock className="w-10 h-10 text-white" />
               </div>
-              
+
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
                 Inakuja Karibuni! 🚀
               </h2>
-              
+
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-                Njia za kuchangia zinafanyiwa usakinishaji wa mwisho. 
+                Njia za kuchangia zinafanyiwa usakinishaji wa mwisho.
                 Tutakuwa tayari kukupokea muda mfupi tu.
               </p>
 
@@ -216,8 +216,8 @@ export default function DonatePage() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {donationAreas.map((area, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
               >
                 <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-r from-green-500 to-green-600 rounded-xl mb-6">

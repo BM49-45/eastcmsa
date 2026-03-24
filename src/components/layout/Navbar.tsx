@@ -94,7 +94,7 @@ export default function Navbar() {
 
   // Admin links
   const adminLinks = [
-    { name: 'Admin Dashboard', href: '/admin', icon: Shield, title: 'Dhibiti mfumo' },
+    { name: 'Admini Dashibodi', href: '/admin', icon: Shield, title: 'Dhibiti mfumo' },
     { name: 'Dhibiti Watumiaji', href: '/admin/users', icon: Users, title: 'Dhibiti watumiaji wote' },
     { name: 'Dhibiti Maudhui', href: '/admin/contents', icon: FileText, title: 'Dhibiti maudhui' },
     { name: 'Takwimu', href: '/admin/analytics', icon: BarChart, title: 'Takwimu za mfumo' },

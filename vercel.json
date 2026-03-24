@@ -1,19 +1,13 @@
 {
-  "name": "eastcmsa",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "postinstall": "node scripts/init-uploads.js"
-  },
-  "dependencies": {
-    "next": "14.2.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "next-auth": "^4.24.5",
-    "framer-motion": "^11.0.2"
+  "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install --legacy-peer-deps",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "regions": ["iad1"],
+  "env": {
+    "NEXTAUTH_URL": "https://eastcmsa.vercel.app"
   },
   "build": {
     "env": {

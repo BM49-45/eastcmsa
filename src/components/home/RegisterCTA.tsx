@@ -31,7 +31,7 @@ export default function RegisterCTA() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-green-800 to-emerald-900 rounded-2xl shadow-xl p-6 text-white space-y-4">
+    <div className="bg-gradient-to-br from-gray-800 to-emerald-900 rounded-2xl shadow-xl p-6 text-white space-y-4">
       
       <div className="mb-2">
         <h3 className="flex items-center gap-2 font-bold text-lg">

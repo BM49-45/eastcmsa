@@ -74,6 +74,7 @@ const surahs: Surah[] = [
 const reciters = [
   {
     id: 1,
+    nameSw: 'Mishary Alafasy',
     name: 'Mishary Alafasy',
     description: 'Murattal - Mp3Quran',
     folder: 'quran',
@@ -82,6 +83,7 @@ const reciters = [
   },
   {
     id: 2,
+    nameSw: 'Maher Al-Muaiqly',
     name: 'Maher Al-Muaiqly',
     description: 'Haramain Style',
     folder: 'quran1',
@@ -90,6 +92,7 @@ const reciters = [
   },
   {
     id: 3,
+    nameSw: 'Abu Bakr Al-Shatiri',
     name: 'Abu Bakr Al-Shatiri',
     description: 'Beautiful Tajweed',
     folder: 'quran2',

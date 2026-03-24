@@ -10,7 +10,7 @@ interface HeroSectionProps {
 
 export default function HeroSection({ currentTime }: HeroSectionProps) {
   return (
-    <section className="relative bg-gradient-to-br from-green-800 to-emerald-900 text-white">
+    <section className="relative bg-gradient-to-br from-green-900 to-emerald-900 text-white">
       <div className="absolute inset-0 bg-black/20"></div>
       <div className="container mx-auto px-4 py-4 md:py-4 relative z-10">
         <div className="max-w-3xl mx-auto text-center">

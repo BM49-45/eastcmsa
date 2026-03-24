@@ -3,7 +3,6 @@
 import { Heart, Mail, Phone, MapPin, Facebook, Youtube, Twitter, Instagram, Globe, BookOpen } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
 import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
 
 export default function Footer() {
@@ -218,7 +217,7 @@ export default function Footer() {
             
             <div className="flex items-center space-x-2 text-gray-400">
               <Globe size={16} aria-label="Available languages" />
-              <span>Available in: Kiswahili | English | العربية</span>
+              <span>Inapatikana kwa: Kiswahili | English | العربية</span>
             </div>
           </div>
         </div>
@@ -246,7 +245,7 @@ export default function Footer() {
               </Link>
               <div className="flex items-center space-x-2">
                 <Heart size={16} className="text-red-500" aria-label="Made with love" />
-                <span>Tayarishwa kwa upendo</span>
+                <span>Imetengenezwa kwa upendo</span>
               </div>
             </div>
           </div>
