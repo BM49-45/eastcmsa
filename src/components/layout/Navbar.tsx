@@ -39,11 +39,13 @@ import {
   MapPin,
   ListMusic,
   BarChart,
-  FileText
+  FileText,
+  Download
 } from 'lucide-react'
 
 import SearchBar from '@/components/search/SearchBar'
 import NotificationBell from '@/components/notifications/NotificationBell'
+import ThemeToggle from '@/components/ThemeToggle'
 
 export default function Navbar() {
   const { data: session, status } = useSession()
@@ -57,6 +59,8 @@ export default function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [logoError, setLogoError] = useState(false)
   const [profileImageError, setProfileImageError] = useState(false)
+  const [showInstall, setShowInstall] = useState(false)
+  const [isIOS, setIsIOS] = useState(false)
 
   const accountRef = useRef<HTMLDivElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
@@ -64,8 +68,24 @@ export default function Navbar() {
   const isAdmin = session?.user?.role === "admin"
   const isLoggedIn = !!session
 
-  // Remove the imageKey useEffect that causes reload on focus
-  // We don't need imageKey anymore
+  // Check if app is installed and detect iOS
+  useEffect(() => {
+    const isInstalled = window.matchMedia('(display-mode: standalone)').matches
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+    setIsIOS(isIOSDevice)
+    
+    if (!isInstalled) {
+      setShowInstall(true)
+    }
+  }, [])
+
+  const handleInstall = () => {
+    if (isIOS) {
+      alert('Bonyeza "Share" button kisha "Add to Home Screen"')
+    } else {
+      window.dispatchEvent(new Event('beforeinstallprompt'))
+    }
+  }
 
   // Main navigation links
   const mainNavLinks = [
@@ -279,18 +299,20 @@ export default function Navbar() {
               <SearchBar />
               {isLoggedIn && <NotificationBell />}
 
-              {/* Theme Toggle */}
-              {mounted && (
+              {/* Download Button */}
+              {showInstall && (
                 <button
-                  type="button"
-                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-all duration-200"
-                  aria-label="Badilisha mandhari"
-                  title={theme === 'dark' ? 'Badilisha hadi mandhari ya mchana' : 'Badilisha hadi mandhari ya usiku'}
+                  onClick={handleInstall}
+                  className="hidden sm:flex items-center space-x-1 px-3 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700 transition-all duration-200"
+                  title="Pakua App"
                 >
-                  {theme === 'dark' ? <Sun size={20} className="text-yellow-500" /> : <Moon size={20} />}
+                  <Download size={16} />
+                  <span>Pakua</span>
                 </button>
               )}
+
+              {/* Theme Toggle - Using ThemeToggle component */}
+              <ThemeToggle />
 
               {/* Auth Area */}
               {status === 'loading' ? (
@@ -514,6 +536,20 @@ export default function Navbar() {
                     </Link>
                   )
                 })}
+
+                {/* Download button in mobile menu */}
+                {showInstall && (
+                  <button
+                    onClick={() => {
+                      handleInstall()
+                      setMobileOpen(false)
+                    }}
+                    className="flex items-center justify-center space-x-2 w-full px-4 py-3 bg-emerald-600 text-white rounded-lg transition-all duration-200"
+                  >
+                    <Download size={18} />
+                    <span>Pakua App</span>
+                  </button>
+                )}
 
                 {isLoggedIn && (
                   <>

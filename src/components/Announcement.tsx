@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getAnnouncements, deleteAnnouncement, type Announcement } from '@/lib/storage'
 import { X, Megaphone, Calendar } from 'lucide-react'
+import { getAnnouncements, type Announcement } from '@/lib/storage'
 
 export default function Announcement() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
@@ -14,7 +14,7 @@ export default function Announcement() {
       const loaded = getAnnouncements()
       setAnnouncements(loaded.filter(a => a.isActive))
     }
-
+    
     loadAnnouncements()
 
     // Load dismissed announcements
@@ -67,42 +67,44 @@ export default function Announcement() {
   }
 
   return (
-    <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-2xl px-4">
-      <div className="space-y-2">
-        {activeAnnouncements.map((announcement) => (
-          <div
-            key={announcement.id}
-            className={`relative ${getTypeStyles(announcement.type)} backdrop-blur-md border rounded-xl p-4 animate-in slide-in-from-top-5 duration-300`}
-            role="alert"
-          >
-            <button
-              onClick={() => dismissAnnouncement(announcement.id)}
-              className="absolute top-2 right-2 p-1 hover:bg-white/10 rounded-lg transition"
-              title="Dismiss announcement"
-              aria-label="Close announcement"
+    <div className="fixed top-0 left-0 right-0 z-50 pt-2 px-4">
+      <div className="container mx-auto max-w-2xl">
+        <div className="space-y-2">
+          {activeAnnouncements.map((announcement) => (
+            <div
+              key={announcement.id}
+              className={`relative ${getTypeStyles(announcement.type)} backdrop-blur-md border rounded-xl p-3 animate-in slide-in-from-top-5 duration-300 shadow-lg`}
+              role="alert"
             >
-              <X size={16} aria-hidden="true" />
-            </button>
-
-            <div className="flex gap-3">
-              <div className="text-2xl" aria-hidden="true">{getIcon(announcement.type)}</div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-white mb-1">{announcement.title}</h3>
-                <p className="text-sm text-gray-200">{announcement.content}</p>
-                <div className="flex items-center gap-3 mt-2 text-xs opacity-70">
-                  <span className="flex items-center gap-1">
-                    <Megaphone size={12} aria-hidden="true" />
-                    Announcement
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar size={12} aria-hidden="true" />
-                    {announcement.createdAt.toLocaleDateString()}
-                  </span>
+              <button
+                onClick={() => dismissAnnouncement(announcement.id)}
+                className="absolute top-2 right-2 p-1 hover:bg-white/10 rounded-lg transition"
+                title="Funga tangazo"
+                aria-label="Funga tangazo"
+              >
+                <X size={14} aria-hidden="true" />
+              </button>
+              
+              <div className="flex gap-2 pr-6">
+                <div className="text-xl" aria-hidden="true">{getIcon(announcement.type)}</div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-white text-sm">{announcement.title}</h3>
+                  <p className="text-white/80 text-xs mt-0.5">{announcement.content}</p>
+                  <div className="flex items-center gap-2 mt-1 text-[10px] opacity-70">
+                    <span className="flex items-center gap-0.5">
+                      <Megaphone size={10} aria-hidden="true" />
+                      Tangazo
+                    </span>
+                    <span className="flex items-center gap-0.5">
+                      <Calendar size={10} aria-hidden="true" />
+                      {announcement.createdAt.toLocaleDateString('sw')}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   )
