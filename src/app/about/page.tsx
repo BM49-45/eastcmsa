@@ -63,7 +63,7 @@ export default function AboutPage() {
   const currentLeaders = [
     { name: 'Abuu Bardizba', role: 'Amiri (Mwenyekiti wa sasa)', phone: '+255 695 543 175' },
     { name: 'Usama', role: 'Katibu wa sasa', phone: '+255 752 792 402' },
-    { name: 'Abdulbaasit', role: 'Developer', phone: '+255 699 565 600' },
+    { name: 'Abdulbaasit', role: 'IT & Support', phone: '+255 699 565 600' },
   ]
 
   // Supporters (Real people)

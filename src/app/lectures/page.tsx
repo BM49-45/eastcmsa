@@ -1,5 +1,4 @@
 'use client'
-
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import {
   Play,
@@ -563,3 +562,5 @@ export default function LecturesPage() {
     </div>
   )
 }
+
+export const dynamic = 'force-dynamic'
