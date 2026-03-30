@@ -14,7 +14,7 @@ export default function HomeContact() {
     <section
       className="
         rounded-xl p-6
-        bg-gradient-to-br from-emerald-700 via-pink-900 to-emerald-900
+        bg-gradient-to-br from-gray-900/100 to-pink-900/100
         text-white shadow-lg
         transition-all hover:shadow-2xl
       "
@@ -51,7 +51,7 @@ export default function HomeContact() {
 
       {/* Social Links */}
       <div className="mt-6">
-        <p className="text-xs text-green-200 mb-3 font-medium">
+        <p className="text-xs text-green-200 mb-3 font-bold">
           Tufuate Mitandaoni
         </p>
 

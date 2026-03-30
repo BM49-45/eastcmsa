@@ -1,3 +1,19 @@
 {
-    "editor.formatOnSave": true
+  "json.schemas": [
+    {
+      "fileMatch": ["package.json"],
+      "url": "./.vscode/package.schema.json"
+    },
+    {
+      "fileMatch": ["tsconfig.json"],
+      "url": "./.vscode/tsconfig.schema.json"
+    }
+  ],
+  "json.validate.enable": false,
+  "typescript.validate.enable": true,
+  "javascript.validate.enable": true,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
 }

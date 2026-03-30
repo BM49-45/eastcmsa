@@ -21,13 +21,13 @@ const campusImages: CampusImage[] = [
   {
     src: "/eastc1.jpeg",
     r2Url: "https://pub-7729259c73e646759f7039886bf31b23.r2.dev/image/eastc1.jpeg",
-    caption: "Library & Resource Center",
+    caption: "Takwimu Rasmi Administration Block",
     location: "Changanyikeni, Dar es Salaam"
   },
   {
     src: "/eastc2.jpeg",
     r2Url: "https://pub-7729259c73e646759f7039886bf31b23.r2.dev/image/eastc2.jpeg",
-    caption: "Students' Lounge Area",
+    caption: "Old Conference",
     location: "Changanyikeni, Dar es Salaam"
   }
 ];

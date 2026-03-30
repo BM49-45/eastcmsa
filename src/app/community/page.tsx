@@ -1,358 +1,371 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
-import Link from 'next/link'
 import { 
-  Users, MessageCircle, Heart, Share2, UserPlus, 
-  Calendar, Clock, ThumbsUp, MessageSquare, Send, Trash2, Edit,
-  MoreVertical, Flag, Reply, Eye, Award, Sparkles
-} from 'lucide-react'
+  getMessages, 
+  addMessage, 
+  updateMessage, 
+  deleteMessage 
+} from '@/lib/storage'
+import { Send, Trash2, Edit2, Check, X, AlertCircle, User, Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 
-interface Post {
-  _id: string
+interface Message {
+  id: string
+  text: string
   userId: string
   userName: string
-  userRole: string
   userImage?: string
-  content: string
-  reactions: { [key: string]: string }
-  reactionCounts: { [key: string]: number }
-  comments: Comment[]
-  commentCount: number
-  createdAt: string
-  edited?: boolean
-  editedAt?: string
-}
-
-interface Comment {
-  _id: string
-  userId: string
-  userName: string
-  content: string
-  createdAt: string
-}
-
-interface Member {
-  _id: string
-  name: string
-  role: string
-  image?: string
-  joinedAt: string
-  postsCount: number
+  createdAt: Date
+  editedAt?: Date
 }
 
 export default function CommunityPage() {
-  const { data: session } = useSession()
-  const [activeTab, setActiveTab] = useState<'feed' | 'members'>('feed')
-  const [posts, setPosts] = useState<Post[]>([])
-  const [members, setMembers] = useState<Member[]>([])
-  const [newPost, setNewPost] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [posting, setPosting] = useState(false)
-  const [editingPost, setEditingPost] = useState<string | null>(null)
-  const [editContent, setEditContent] = useState('')
-  const [replyingTo, setReplyingTo] = useState<string | null>(null)
-  const [replyContent, setReplyContent] = useState('')
-  const [userReactions, setUserReactions] = useState<{ [key: string]: string }>({})
+  const { data: session, status } = useSession()
+  const [messages, setMessages] = useState<Message[]>([])
+  const [newMessage, setNewMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null)
+  const [editText, setEditText] = useState('')
+  const [showAuthAlert, setShowAuthAlert] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
 
+  // Check if user is admin
   useEffect(() => {
-    fetchCommunityData()
+    if (session?.user?.email) {
+      const adminEmails = ['admin@eastcmsa.com', 'your-email@example.com']
+      setIsAdmin(adminEmails.includes(session.user.email))
+    }
+  }, [session])
+
+  // Load messages
+  useEffect(() => {
+    const loadMessages = () => {
+      const loaded = getMessages()
+      setMessages(loaded)
+    }
+    
+    loadMessages()
+    
+    // Listen for storage changes (if multiple tabs)
+    const handleStorageChange = () => {
+      loadMessages()
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
-  const fetchCommunityData = async () => {
-    setLoading(true)
-    try {
-      const [postsRes, membersRes] = await Promise.all([
-        fetch('/api/community/posts'),
-        fetch('/api/community/members')
-      ])
-      if (postsRes.ok) {
-        const postsData = await postsRes.json()
-        setPosts(postsData)
-        if (session) {
-          const reactions: { [key: string]: string } = {}
-          postsData.forEach((post: Post) => {
-            if (post.reactions && post.reactions[session.user.id]) {
-              reactions[post._id] = post.reactions[session.user.id]
-            }
-          })
-          setUserReactions(reactions)
-        }
-      }
-      if (membersRes.ok) {
-        const membersData = await membersRes.json()
-        setMembers(membersData)
-      }
-    } catch (error) {
-      console.error('Error fetching community data:', error)
-    } finally {
-      setLoading(false)
+  // Auto-scroll
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
+  // Send message
+  const sendMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (status !== 'authenticated') {
+      setShowAuthAlert(true)
+      setTimeout(() => setShowAuthAlert(false), 3000)
+      return
     }
+
+    if (!newMessage.trim() || isLoading) return
+
+    setIsLoading(true)
+    
+    const newMsg = addMessage({
+      text: newMessage.trim(),
+      userId: session.user.id,
+      userName: session.user.name || 'Anonymous',
+      userImage: session.user.image || undefined,
+    })
+    
+    setMessages(prev => [...prev, newMsg])
+    setNewMessage('')
+    setIsLoading(false)
   }
 
-  const handleCreatePost = async () => {
-    if (!newPost.trim()) return
-    setPosting(true)
-    try {
-      const res = await fetch('/api/community/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newPost })
-      })
-      if (res.ok) {
-        const newPostData = await res.json()
-        setPosts([newPostData, ...posts])
-        setNewPost('')
-      }
-    } catch (error) {
-      console.error('Error creating post:', error)
-    } finally {
-      setPosting(false)
+  // Delete message
+  const handleDeleteMessage = (messageId: string) => {
+    if (!isAdmin) {
+      alert('Only admins can delete messages')
+      return
     }
+
+    if (!confirm('Are you sure you want to delete this message?')) return
+
+    deleteMessage(messageId)
+    setMessages(prev => prev.filter(m => m.id !== messageId))
   }
 
-  const handleReaction = async (postId: string, type: string) => {
-    if (!session) return
-    try {
-      const res = await fetch(`/api/community/posts/${postId}/reactions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type })
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setPosts(posts.map(post => {
-          if (post._id === postId) {
-            return { ...post, reactionCounts: data.reactions }
-          }
-          return post
-        }))
-        if (userReactions[postId] === type) {
-          const newReactions = { ...userReactions }
-          delete newReactions[postId]
-          setUserReactions(newReactions)
-        } else {
-          setUserReactions({ ...userReactions, [postId]: type })
-        }
-      }
-    } catch (error) {
-      console.error('Error adding reaction:', error)
+  // Edit message
+  const startEdit = (message: Message) => {
+    if (session?.user?.id !== message.userId) {
+      alert('You can only edit your own messages')
+      return
     }
+    setEditingMessage(message)
+    setEditText(message.text)
   }
 
-  const handleDeletePost = async (postId: string) => {
-    if (!confirm('Je, una uhakika unataka kufuta chapisho hili?')) return
-    try {
-      const res = await fetch(`/api/community/posts/${postId}`, { method: 'DELETE' })
-      if (res.ok) {
-        setPosts(posts.filter(p => p._id !== postId))
-      }
-    } catch (error) {
-      console.error('Error deleting post:', error)
+  const saveEdit = async () => {
+    if (!editingMessage || !editText.trim()) return
+
+    const updated = updateMessage(editingMessage.id, editText.trim())
+    if (updated) {
+      setMessages(prev => prev.map(m => m.id === updated.id ? updated : m))
     }
+    setEditingMessage(null)
+    setEditText('')
   }
 
-  const handleEditPost = async (postId: string) => {
-    if (!editContent.trim()) return
-    try {
-      const res = await fetch(`/api/community/posts/${postId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: editContent })
-      })
-      if (res.ok) {
-        setPosts(posts.map(post => 
-          post._id === postId 
-            ? { ...post, content: editContent, edited: true, editedAt: new Date().toISOString() }
-            : post
-        ))
-        setEditingPost(null)
-        setEditContent('')
-      }
-    } catch (error) {
-      console.error('Error editing post:', error)
-    }
+  const cancelEdit = () => {
+    setEditingMessage(null)
+    setEditText('')
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
-
-    if (diffMins < 1) return 'sasa hivi'
-    if (diffMins < 60) return `dakika ${diffMins} zilizopita`
-    if (diffHours < 24) return `saa ${diffHours} zilizopita`
-    if (diffDays < 7) return `siku ${diffDays} zilizopita`
-    return date.toLocaleDateString('sw-TZ', { year: 'numeric', month: 'short', day: 'numeric' })
+  // Format time
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Inapakia jumuiya...</p>
-        </div>
-      </div>
-    )
+  const formatFullDate = (date: Date) => {
+    return date.toLocaleString()
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 to-green-800 rounded-2xl p-8 text-white mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-white/20 rounded-xl"><Users size={32} /></div>
-            <div><h1 className="text-3xl font-bold">Jumuiya ya Waislamu EASTC</h1><p className="text-green-100">Ungana na wanajumuiya wengine, shiriki mawazo na maswali</p></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Auth Alert */}
+      {showAuthAlert && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-5 duration-300">
+          <div className="bg-amber-500/95 backdrop-blur-md text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-amber-400">
+            <AlertCircle size={20} aria-hidden="true" />
+            <div>
+              <p className="font-semibold">Registration Required</p>
+              <p className="text-sm">Please sign up or log in to join the conversation</p>
+            </div>
+            <Link 
+              href="/auth/signin" 
+              className="ml-4 px-4 py-2 bg-white text-amber-600 rounded-xl text-sm font-semibold hover:bg-gray-100 transition"
+            >
+              Sign In
+            </Link>
           </div>
-          <div className="flex gap-4"><div className="bg-white/10 px-4 py-2 rounded-full text-sm"><span className="font-bold">{members.length}</span> Wanachama</div><div className="bg-white/10 px-4 py-2 rounded-full text-sm"><span className="font-bold">{posts.length}</span> Machapisho</div></div>
+        </div>
+      )}
+
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent">
+            Community Discussion
+          </h1>
+          <p className="text-gray-300 mt-2">
+            {status === 'authenticated' 
+              ? `Welcome, ${session.user.name}! Share your thoughts...` 
+              : 'Sign in to join the discussion'}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Messages are saved locally in your browser
+          </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          <button onClick={() => setActiveTab('feed')} className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'feed' ? 'bg-green-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>Machapisho</button>
-          <button onClick={() => setActiveTab('members')} className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'members' ? 'bg-green-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>Wanachama</button>
-        </div>
-
-        {activeTab === 'feed' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
-              {/* Create Post */}
-              {session && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border">
-                  <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold">
-                      {session.user?.name?.charAt(0) || 'U'}
-                    </div>
-                    <div className="flex-1">
-                      <label htmlFor="newPost" className="sr-only">Chapisho jipya</label>
-                      <textarea
-                        id="newPost"
-                        placeholder="Andika chapisho lako..."
-                        value={newPost}
-                        onChange={(e) => setNewPost(e.target.value)}
-                        className="w-full p-3 border rounded-lg resize-none"
-                        rows={3}
-                        aria-label="Chapisho jipya"
-                        title="Andika chapisho lako hapa"
-                      />
-                      <div className="flex justify-end mt-2">
-                        <button
-                          onClick={handleCreatePost}
-                          disabled={!newPost.trim() || posting}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
-                          aria-label="Chapisha ujumbe"
-                          title="Chapisha ujumbe"
-                        >
-                          {posting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <Send size={16} />} Chapisha
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Posts */}
-              {posts.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border"><MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" /><p className="text-gray-600">Hakuna machapisho. Kuwa wa kwanza kuchapisha!</p></div>
-              ) : (
-                posts.map((post) => (
-                  <div key={post._id} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-bold text-lg">
-                          {post.userName?.charAt(0) || 'U'}
-                        </div>
-                        <div><h3 className="font-bold">{post.userName}</h3><p className="text-xs text-gray-500">{post.userRole === 'admin' ? 'Msimamizi' : 'Mwanachama'} • {formatDate(post.createdAt)}</p></div>
-                      </div>
-                      {session?.user?.role === 'admin' && (
-                        <div className="flex gap-1">
-                          <button onClick={() => { setEditingPost(post._id); setEditContent(post.content) }} className="p-1 text-gray-500 hover:text-blue-600" title="Hariri" aria-label="Hariri chapisho"><Edit size={16} /></button>
-                          <button onClick={() => handleDeletePost(post._id)} className="p-1 text-gray-500 hover:text-red-600" title="Futa" aria-label="Futa chapisho"><Trash2 size={16} /></button>
+        {/* Messages Container */}
+        <div className="bg-black/30 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+          <div className="h-[500px] overflow-y-auto p-4 space-y-4">
+            {messages.length === 0 ? (
+              <div className="text-center text-gray-400 py-12">
+                <User size={48} className="mx-auto mb-3 opacity-50" aria-hidden="true" />
+                <p>No messages yet. Be the first to start the conversation!</p>
+                {status !== 'authenticated' && (
+                  <Link 
+                    href="/auth/signin" 
+                    className="inline-block mt-4 px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm hover:bg-emerald-700 transition"
+                  >
+                    Sign in to chat
+                  </Link>
+                )}
+              </div>
+            ) : (
+              messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex gap-3 ${
+                    session?.user?.id === message.userId ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  {/* Avatar for other users */}
+                  {session?.user?.id !== message.userId && (
+                    <div className="flex-shrink-0">
+                      {message.userImage ? (
+                        <Image
+                          src={message.userImage}
+                          alt={message.userName}
+                          width={40}
+                          height={40}
+                          className="rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-blue-500 flex items-center justify-center">
+                          <span className="text-white font-semibold">
+                            {message.userName?.charAt(0).toUpperCase() || 'U'}
+                          </span>
                         </div>
                       )}
                     </div>
+                  )}
 
-                    {editingPost === post._id ? (
-                      <div className="mb-4">
-                        <label htmlFor={`edit-${post._id}`} className="sr-only">Hariri chapisho</label>
+                  {/* Message Bubble */}
+                  <div
+                    className={`max-w-[70%] ${
+                      session?.user?.id === message.userId
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-gray-800/80 text-gray-100'
+                    } rounded-2xl px-4 py-2 shadow-lg`}
+                  >
+                    {session?.user?.id !== message.userId && (
+                      <p className="text-xs font-semibold text-emerald-400 mb-1">
+                        {message.userName}
+                      </p>
+                    )}
+                    
+                    {editingMessage?.id === message.id ? (
+                      <div className="space-y-2">
                         <textarea
-                          id={`edit-${post._id}`}
-                          value={editContent}
-                          onChange={(e) => setEditContent(e.target.value)}
-                          className="w-full p-3 border rounded-lg"
-                          rows={3}
-                          aria-label="Hariri chapisho"
-                          title="Hariri maudhui ya chapisho"
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          rows={2}
+                          autoFocus
+                          placeholder="Edit your message..."
+                          aria-label="Edit message text"
                         />
-                        <div className="flex justify-end gap-2 mt-2">
-                          <button onClick={() => setEditingPost(null)} className="px-3 py-1 border rounded-lg" aria-label="Ghairi">Ghairi</button>
-                          <button onClick={() => handleEditPost(post._id)} className="px-3 py-1 bg-green-600 text-white rounded-lg" aria-label="Hifadhi mabadiliko">Hifadhi</button>
+                        <div className="flex gap-2 justify-end">
+                          <button
+                            onClick={saveEdit}
+                            className="p-1 hover:bg-green-700 rounded transition"
+                            title="Save changes"
+                            aria-label="Save edited message"
+                          >
+                            <Check size={16} aria-hidden="true" />
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            className="p-1 hover:bg-red-700 rounded transition"
+                            title="Cancel editing"
+                            aria-label="Cancel message edit"
+                          >
+                            <X size={16} aria-hidden="true" />
+                          </button>
                         </div>
                       </div>
                     ) : (
-                      <p className="text-gray-700 dark:text-gray-300 mb-4">{post.content}{post.edited && <span className="text-xs text-gray-400 ml-2">(imehaririwa)</span>}</p>
+                      <p className="text-sm break-words">{message.text}</p>
                     )}
-
-                    {/* Reactions */}
-                    <div className="flex items-center gap-4 pt-4 border-t">
-                      <button onClick={() => handleReaction(post._id, 'like')} className={`flex items-center gap-1 px-2 py-1 rounded-lg transition ${userReactions[post._id] === 'like' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`} aria-label="Penda" title="Penda chapisho">
-                        <ThumbsUp size={16} /> {post.reactionCounts?.like || 0}
-                      </button>
-                      <button onClick={() => handleReaction(post._id, 'love')} className={`flex items-center gap-1 px-2 py-1 rounded-lg transition ${userReactions[post._id] === 'love' ? 'bg-red-100 text-red-600' : 'text-gray-500 hover:bg-gray-100'}`} aria-label="Penda sana" title="Penda sana chapisho">
-                        <Heart size={16} /> {post.reactionCounts?.love || 0}
-                      </button>
-                      <button onClick={() => setReplyingTo(replyingTo === post._id ? null : post._id)} className="flex items-center gap-1 px-2 py-1 text-gray-500 hover:bg-gray-100 rounded-lg transition" aria-label="Jibu" title="Jibu chapisho">
-                        <MessageSquare size={16} /> {post.commentCount || 0}
-                      </button>
-                    </div>
-
-                    {/* Reply Form */}
-                    {replyingTo === post._id && (
-                      <div className="mt-4 pt-4 border-t">
-                        <div className="flex gap-2">
-                          <label htmlFor={`reply-${post._id}`} className="sr-only">Jibu</label>
-                          <input
-                            id={`reply-${post._id}`}
-                            type="text"
-                            placeholder="Andika jibu..."
-                            value={replyContent}
-                            onChange={(e) => setReplyContent(e.target.value)}
-                            className="flex-1 p-2 border rounded-lg"
-                            aria-label="Jibu chapisho"
-                            title="Andika jibu lako hapa"
-                          />
-                          <button className="px-3 py-2 bg-green-600 text-white rounded-lg" aria-label="Tuma jibu" title="Tuma jibu">Jibu</button>
-                        </div>
+                    
+                    <div className="flex items-center justify-end gap-2 mt-1">
+                      <span 
+                        className="text-[10px] opacity-70 cursor-help"
+                        title={formatFullDate(message.createdAt)}
+                      >
+                        {formatTime(message.createdAt)}
+                        {message.editedAt && ' (edited)'}
+                      </span>
+                      
+                      {/* Action Buttons */}
+                      <div className="flex gap-1">
+                        {session?.user?.id === message.userId && !editingMessage && (
+                          <button
+                            onClick={() => startEdit(message)}
+                            className="opacity-50 hover:opacity-100 transition"
+                            title="Edit message"
+                            aria-label="Edit this message"
+                          >
+                            <Edit2 size={12} aria-hidden="true" />
+                          </button>
+                        )}
+                        {(isAdmin || session?.user?.id === message.userId) && !editingMessage && (
+                          <button
+                            onClick={() => handleDeleteMessage(message.id)}
+                            className="opacity-50 hover:opacity-100 transition hover:text-red-400"
+                            title="Delete message"
+                            aria-label="Delete this message"
+                          >
+                            <Trash2 size={12} aria-hidden="true" />
+                          </button>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                ))
-              )}
-            </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border"><h3 className="font-bold mb-4">Wanachama Walio na Shughuli</h3>{members.slice(0, 5).map(m => (<div key={m._id} className="flex items-center gap-3 py-2"><div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center font-bold">{m.name.charAt(0)}</div><div><p className="font-medium">{m.name}</p><p className="text-xs text-gray-500">{m.role === 'admin' ? 'Msimamizi' : 'Mwanachama'} • Machapisho {m.postsCount}</p></div></div>))}</div>
-              <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-xl p-6 text-white"><h3 className="font-bold mb-4">Matukio Yajayo</h3><div className="flex items-start gap-3 mb-3"><Calendar size={16} className="mt-1" /><div><p className="font-medium">Darsa ya Tawhiid</p><p className="text-xs text-green-200">Jumamosi, Baada ya Maghrib</p></div></div><Link href="/events" className="flex items-center justify-center gap-2 mt-4 p-2 bg-white/20 rounded-lg hover:bg-white/30">Tazama Ratiba Kamili →</Link></div>
+                  {/* Avatar for current user */}
+                  {session?.user?.id === message.userId && (
+                    <div className="flex-shrink-0">
+                      {session.user.image ? (
+                        <Image
+                          src={session.user.image}
+                          alt={session.user.name || 'User'}
+                          width={40}
+                          height={40}
+                          className="rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-blue-500 flex items-center justify-center">
+                          <span className="text-white font-semibold">
+                            {session.user.name?.charAt(0).toUpperCase() || 'U'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Message Input */}
+          <form onSubmit={sendMessage} className="p-4 border-t border-white/10">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder={
+                  status === 'authenticated'
+                    ? 'Type your message...'
+                    : 'Sign in to join the conversation'
+                }
+                disabled={status !== 'authenticated'}
+                className="flex-1 bg-gray-800/50 text-white rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="New message input"
+                title="Type your message here"
+              />
+              <button
+                type="submit"
+                disabled={status !== 'authenticated' || !newMessage.trim() || isLoading}
+                className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl px-4 py-2 transition"
+                title="Send message"
+                aria-label="Send message"
+              >
+                {isLoading ? (
+                  <Loader2 size={20} className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <Send size={20} aria-hidden="true" />
+                )}
+              </button>
             </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {members.map(m => (
-              <div key={m._id} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border">
-                <div className="flex items-center gap-4 mb-4"><div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-bold text-2xl">{m.name.charAt(0)}</div><div><h3 className="font-bold">{m.name}</h3><p className="text-sm text-green-600">{m.role === 'admin' ? 'Msimamizi' : 'Mwanachama'}</p></div></div>
-                <div className="space-y-2 text-sm text-gray-600"><div className="flex items-center gap-2"><Calendar size={14} /> Amejiunga {new Date(m.joinedAt).toLocaleDateString('sw-TZ', { month: 'short', year: 'numeric' })}</div><div className="flex items-center gap-2"><MessageCircle size={14} /> Machapisho {m.postsCount}</div></div>
-                <button className="w-full mt-4 p-2 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 flex items-center justify-center gap-2" aria-label="Fuata" title="Fuata mwanachama"><UserPlus size={16} /> Fuata</button>
-              </div>
-            ))}
-          </div>
-        )}
+          </form>
+        </div>
       </div>
     </div>
   )

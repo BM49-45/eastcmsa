@@ -77,7 +77,7 @@ export default function AboutPage() {
   const slides = [
     {
       title: '📚 Darsa za Tawhiid',
-      content: 'Darsa za Silsila ya Tawhiid - Al-Usuul Al-Thalatha, Al-Qawaid Al-Arbaa, Al-Usuul Al-Sitta',
+      content: 'Darsa za Silsila ya Tawhiid - Al-Usuul Al-Thalatha, Al-Qawaid Al-Arbaa, Al-Usuul Al-Sitta, na mwendelezo wake',
       icon: <BookOpen className="w-6 h-6" />
     },
     {
@@ -581,7 +581,7 @@ export default function AboutPage() {
                 <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
                   <BookOpen className="text-orange-600 dark:text-orange-400" size={24} />
                 </div>
-                <h3 className="text-xl font-bold">Masomo Yanayofundishwa</h3>
+                <h3 className="text-xl font-bold">Masomo Yanayoendelea Kufundishwa kwa sasa</h3>
               </div>
               
               <div className="space-y-3">

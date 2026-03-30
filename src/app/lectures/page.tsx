@@ -269,7 +269,7 @@ export default function LecturesPage() {
         <div className="lectures-hero-content">
           <div className="lectures-category-badge">
             <div className="lectures-category-dot"></div>
-            <span className="lectures-category-text">Mihadhara ya Semister</span>
+            <span className="lectures-category-text">Mihadhara ya kila Muhula</span>
           </div>
 
           <h1 className="lectures-title">Mihadariko ya Kiislamu</h1>
@@ -555,7 +555,7 @@ export default function LecturesPage() {
           <div>
             <h4 className="location-title">Mahali: Msikiti Mkuu Changanyikeni, EASTC</h4>
             <p className="location-description">
-              Mihadhara hufanyika kila semister. Audio zote zimehifadhiwa kwa ubora wa juu.
+              Mihadhara hufanyika kila Muhula. Audio zote zimehifadhiwa kwa ubora wa juu.
             </p>
           </div>
         </div>

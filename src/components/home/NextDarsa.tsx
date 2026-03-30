@@ -69,7 +69,7 @@ export default function NextDarsa() {
   if (!nextDarsa) return null;
 
   return (
-    <div className="bg-gradient-to-r from-pink-700 to-gray-900 p-4 rounded-xl shadow-lg text-white hover:from-pink-600 hover:to-gray-800 transition-all mb-8">
+    <div className="bg-gradient-to-r from-pink-900/90 to-gray-900/90 p-4 rounded-xl shadow-lg text-white hover:from-pink-600 hover:to-gray-800 transition-all mb-8">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4" />

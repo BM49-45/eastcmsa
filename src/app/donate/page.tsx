@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Heart, Clock, CheckCircle, Mail, Shield, BookOpen, Users, Home } from 'lucide-react'
+import { Heart, Clock, CheckCircle, Mail, Shield, BookOpen, Users, Home, CreditCard } from 'lucide-react'
+import { title } from 'process'
 
 export default function DonatePage() {
   const [countdown, setCountdown] = useState(30)
@@ -46,7 +47,7 @@ export default function DonatePage() {
     {
       icon: <Shield className="w-8 h-8" />,
       title: "Usalama wa Malipo",
-      description: "Tumia njia salama za M-Pesa, Tigo Pesa, Airtel Money na benki."
+      description: "Tumia njia salama za kutuma pesa kupia mradi wetu kwa kutumia account zetu za benki au huduma za malipo mtandaoni."
     },
     {
       icon: <Mail className="w-8 h-8" />,
@@ -58,18 +59,28 @@ export default function DonatePage() {
   const donationAreas = [
     {
       icon: <BookOpen className="w-6 h-6" />,
-      title: "Manunuzi ya Vitabu",
-      description: "Ununuzi wa Vitabu."
+      title: "Manunuzi ya Vitabu vya kujifunzia.",
+      description: "Ununuzi wa Vitabu  kama vitabu vya Aqeedah na vinginevyo."
     },
     {
       icon: <Users className="w-6 h-6" />,
       title: "Shughuli za Darsa",
-      description: "Kuendesha shughuli za darsa zinazofanyika"
+      description: "Kuendesha shughuli za darsa zinazofanyika pamoja na ununuzi wa vifaaa na mahitaji mengine yanayohitajika katika kuendesha darsa zetu za kila wiki na mihadhara inayofanyika kwa kila muhula."
     },
     {
       icon: <Home className="w-6 h-6" />,
       title: "Shughuli za Jumuiya",
-      description: "Uendeshaji wa shughuli zote za jumuiya."
+      description: "Uendeshaji wa shughuli zote za jumuiya ikijumuisha sehemu ya uhitaji wa msikiti zinapoendeshwa harakati zetu za kielimu na Ibada."
+    },
+    {
+      icon: <CheckCircle className="w-6 h-6" />,
+      title: "Kusaidia katika dharura za jumuiya na wanajumuiya",
+      description: "Kusaidia wanafunzi wenye uhitaji wa dharura za matibabu, elimu, au msaada mwingine wowote."
+    },
+    {
+      icon: <CreditCard className="w-6 h-6" />,
+      title: "Malipo ya Mtandaoni",
+      description: "Kulipia Domain, Server, Storage, na huduma zingine kama hosting ya tovuti yetu, huduma za barua pepe, na huduma zingine zinazohitajika katika kuendesha shughuli zetu mtandaoni."
     }
   ]
 

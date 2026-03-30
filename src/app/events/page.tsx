@@ -413,8 +413,8 @@ export default function EventsPage() {
 
             <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-3 text-xs">
               <div className="flex items-center"><div className="w-2 h-2 bg-green-600 rounded-full mr-1"></div><span>Leo - {islamicMonthsSw[islamicMonth]} {islamicDay}</span></div>
-              <div className="flex items-center"><div className="w-2 h-2 bg-yellow-400 rounded-full mr-1"></div><span>Laylatul Qadr (27)</span></div>
-              <div className="flex items-center"><div className="w-2 h-2 bg-green-100 dark:bg-green-900/20 rounded-full mr-1"></div><span>Ashra za Ramadan</span></div>
+              <div className="flex items-center"><div className="w-2 h-2 bg-yellow-400 rounded-full mr-1"></div><span>kufunga masiku sita ya Shawwal (6)</span></div>
+              <div className="flex items-center"><div className="w-2 h-2 bg-green-100 dark:bg-green-900/20 rounded-full mr-1"></div><span>Ashra za Shawwal</span></div>
             </div>
 
             {islamicMonth === 8 && (

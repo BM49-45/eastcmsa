@@ -71,7 +71,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium mb-2">Barua Pepe</label>
-                      <input id="email" type="email" name="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full p-3 border rounded-lg" required placeholder="barua@pepe.com" />
+                      <input id="email" type="email" name="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full p-3 border rounded-lg" required placeholder="email@gmail.com" />
                     </div>
                   </div>
                   <div className="mb-6">

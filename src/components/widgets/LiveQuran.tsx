@@ -326,7 +326,7 @@ const LiveQuran = memo(function LiveQuran() {
   const [liked, setLiked] = useState(false)
   const [audioAvailable, setAudioAvailable] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
-  const [imageErrors, setImageErrors] = useState<{[key: number]: boolean}>({})
+  const [imageErrors, setImageErrors] = useState<{ [key: number]: boolean }>({})
 
   // Refs for elements where styles are updated dynamically
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -335,7 +335,7 @@ const LiveQuran = memo(function LiveQuran() {
   const progressKnobRef = useRef<HTMLDivElement | null>(null)
   const progressTrackRef = useRef<HTMLDivElement | null>(null)
   const volumeSliderRef = useRef<HTMLInputElement | null>(null)
-  
+
   // Animation refs to prevent re-renders
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -374,34 +374,34 @@ const LiveQuran = memo(function LiveQuran() {
   // Optimized progress updates using requestAnimationFrame
   useEffect(() => {
     let rafId: number
-    
+
     const updateProgress = () => {
       const pct = (audioState.currentTime / (audioState.duration || 1)) * 100
-      
+
       if (progressFillRef.current) {
         progressFillRef.current.style.width = `${pct}%`
       }
-      
+
       if (progressKnobRef.current && progressTrackRef.current) {
         const trackWidth = progressTrackRef.current.offsetWidth
         const knobWidth = progressKnobRef.current.offsetWidth
         let leftPosition = (pct / 100) * trackWidth
-        
+
         // Ensure knob stays within track
         if (leftPosition < knobWidth / 2) {
           leftPosition = knobWidth / 2
         } else if (leftPosition > trackWidth - knobWidth / 2) {
           leftPosition = trackWidth - knobWidth / 2
         }
-        
+
         progressKnobRef.current.style.left = `${leftPosition}px`
       }
-      
+
       rafId = requestAnimationFrame(updateProgress)
     }
-    
+
     rafId = requestAnimationFrame(updateProgress)
-    
+
     return () => {
       cancelAnimationFrame(rafId)
     }
@@ -436,13 +436,13 @@ const LiveQuran = memo(function LiveQuran() {
   const checkAudioAvailability = useCallback(async (surahNumber: number) => {
     const audioUrl = getAudioUrl(surahNumber)
     console.log('🔍 Checking audio URL:', audioUrl)
-    
+
     try {
-      const response = await fetch(audioUrl, { 
+      const response = await fetch(audioUrl, {
         method: 'HEAD',
         cache: 'no-cache'
       })
-      
+
       console.log(`📡 Audio check for ${surahNumber}:`, response.status, response.ok)
       setAudioAvailable(response.ok)
       return response.ok
@@ -467,7 +467,7 @@ const LiveQuran = memo(function LiveQuran() {
       }
 
       const isSameAudio = audioState.currentSurah?.number === surah.number &&
-                         audioState.currentReciter?.id === reciter.id
+        audioState.currentReciter?.id === reciter.id
 
       if (isSameAudio) {
         await togglePlay()
@@ -476,7 +476,7 @@ const LiveQuran = memo(function LiveQuran() {
           pauseAudio()
           await new Promise(resolve => setTimeout(resolve, 100))
         }
-        
+
         await playAudio(surah, reciter)
       }
     } catch (error) {
@@ -617,8 +617,8 @@ const LiveQuran = memo(function LiveQuran() {
   // Check if this surah is currently playing
   const isThisSurahPlaying = useMemo(() => {
     return audioState.isPlaying &&
-           audioState.currentSurah?.number === surah.number &&
-           audioState.currentReciter?.id === reciter.id
+      audioState.currentSurah?.number === surah.number &&
+      audioState.currentReciter?.id === reciter.id
   }, [audioState.isPlaying, audioState.currentSurah, audioState.currentReciter, surah.number, reciter.id])
 
   // Memoized volume values
@@ -660,18 +660,18 @@ const LiveQuran = memo(function LiveQuran() {
               src={!imageErrors[currentAnimation] ? animationPatterns[currentAnimation].r2Image : animationPatterns[currentAnimation].localImage}
               alt="Quran background"
               className="transition-opacity duration-700"
-              onError={() => setImageErrors(prev => ({...prev, [currentAnimation]: true}))}
+              onError={() => setImageErrors(prev => ({ ...prev, [currentAnimation]: true }))}
             />
             <div className="overlay"></div>
             <div className="content">
               <div className="arabic-text-main">
                 {animationPatterns[currentAnimation].verse}
               </div>
-              
+
               <div className="verse-translation">
                 "{animationPatterns[currentAnimation].translation}"
               </div>
-              
+
               <div className="flex flex-wrap justify-center items-center gap-3 mt-2">
                 <div className="text-sm text-emerald-300 bg-emerald-900/30 px-3 py-1 rounded-full">
                   {animationPatterns[currentAnimation].reference}
@@ -680,7 +680,7 @@ const LiveQuran = memo(function LiveQuran() {
                   {animationPatterns[currentAnimation].teaching}
                 </div>
               </div>
-              
+
               <div className="text-xs text-white/60 mt-3">
                 Quote {currentAnimation + 1} of {animationPatterns.length}
               </div>
@@ -763,7 +763,7 @@ const LiveQuran = memo(function LiveQuran() {
           </div>
 
           <div className="relative h-6 flex items-center">
-            <div 
+            <div
               ref={progressTrackRef}
               className="relative w-full h-2"
             >
@@ -843,48 +843,50 @@ const LiveQuran = memo(function LiveQuran() {
         </div>
 
         {/* RECITER SELECTOR */}
-        <div className="mb-4 relative">
-          <button
-            type="button"
-            onClick={() => setShowReciters(!showReciters)}
-            className="reciter-selector"
-            aria-haspopup="listbox"
-            aria-controls="reciter-list"
-            disabled={isLoading}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full ${(reciter.color ?? reciters[0].color).split(' ')[0].replace('from-', 'bg-')}`}></div>
-              <div className="text-left">
-                <div className="text-sm font-medium">{reciter.name}</div>
-                <div className="text-xs text-white/70">Folder: {reciter.folder}</div>
-              </div>
-            </div>
-            <ChevronDown size={18} className={`transition-transform ${showReciters ? 'rotate-180' : ''}`} />
-          </button>
+<div className="mb-4 relative">
+  <button
+    type="button"
+    onClick={() => setShowReciters(!showReciters)}
+    className="reciter-selector w-full flex items-center justify-between p-3 rounded-xl bg-black/60 backdrop-blur-md border border-white/20 hover:bg-black/70 transition-all"
+    aria-haspopup="listbox"
+    aria-controls="reciter-list"
+    disabled={isLoading}
+  >
+    <div className="flex items-center gap-3">
+      <div className={`w-2 h-2 rounded-full ${reciter.color.split(' ')[0].replace('from-', 'bg-')}`}></div>
+      <div className="text-left">
+        <div className="text-sm font-medium text-white">{reciter.name}</div>
+        <div className="text-xs text-gray-300">Folder: {reciter.folder}</div>
+      </div>
+    </div>
+    <ChevronDown size={18} className={`transition-transform text-white ${showReciters ? 'rotate-180' : ''}`} />
+  </button>
 
-          {showReciters && (
-            <div className="reciter-dropdown">
-              {reciters.map((r) => (
-                <button
-                  type="button"
-                  key={r.id}
-                  onClick={() => handleReciterChange(r)}
-                  className={`w-full flex items-center gap-3 p-3 text-left transition-colors hover:bg-white/10 ${reciter.id === r.id ? 'bg-green-900/30' : ''}`}
-                  aria-label={`Select ${r.name}`}
-                >
-                  <div className={`w-2 h-2 rounded-full ${r.color.split(' ')[0].replace('from-', 'bg-')}`}></div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-white">{r.name}</div>
-                    <div className="text-xs text-white/70">{r.folder} • {r.description}</div>
-                  </div>
-                  {reciter.id === r.id && (
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  )}
-                </button>
-              ))}
-            </div>
+  {showReciters && (
+    <div className="reciter-dropdown-up absolute bottom-full left-0 right-0 mb-2 bg-gray-900/95 backdrop-blur-md rounded-xl border border-white/20 max-h-80 overflow-y-auto z-50 shadow-xl">
+      {reciters.map((r) => (
+        <button
+          type="button"
+          key={r.id}
+          onClick={() => handleReciterChange(r)}
+          className={`w-full flex items-center gap-3 p-3 text-left transition-colors hover:bg-white/10 ${
+            reciter.id === r.id ? 'bg-emerald-900/40 border-l-2 border-emerald-500' : ''
+          }`}
+          aria-label={`Select ${r.name}`}
+        >
+          <div className={`w-2 h-2 rounded-full ${r.color.split(' ')[0].replace('from-', 'bg-')}`}></div>
+          <div className="flex-1">
+            <div className="text-sm font-medium text-white">{r.name}</div>
+            <div className="text-xs text-gray-300">{r.folder} • {r.description}</div>
+          </div>
+          {reciter.id === r.id && (
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
           )}
-        </div>
+        </button>
+      ))}
+    </div>
+  )}
+</div>
 
         {/* SURAH SELECTOR */}
         <div className="mb-4">

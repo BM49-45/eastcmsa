@@ -8,9 +8,12 @@
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  transform: translateZ(0); /* Hardware acceleration */
-  backface-visibility: hidden; /* Prevent flickering */
-  will-change: transform, opacity; /* Optimize animations */
+  transform: translateZ(0);
+  /* Hardware acceleration */
+  backface-visibility: hidden;
+  /* Prevent flickering */
+  will-change: transform, opacity;
+  /* Optimize animations */
 }
 
 /* Hardware acceleration for all animated elements */
@@ -31,7 +34,8 @@
 .quran-animation-section {
   position: relative;
   min-height: 220px;
-  height: 220px; /* Fixed height */
+  height: 220px;
+  /* Fixed height */
   border-radius: 0.75rem;
   overflow: hidden;
   margin-bottom: 1rem;
@@ -89,8 +93,15 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0) translateZ(0); }
-  50% { transform: translateY(-5px) translateZ(0); }
+
+  0%,
+  100% {
+    transform: translateY(0) translateZ(0);
+  }
+
+  50% {
+    transform: translateY(-5px) translateZ(0);
+  }
 }
 
 /* Verse Translation - stable */
@@ -107,15 +118,21 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* Now Playing Card - fixed */
 .now-playing-card {
   background: rgba(255, 255, 255, 0.05);
-   -webkit-backdrop-filter: blur(15px);
-  backdrop-filter: blur(15px);  border: 1px solid rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.75rem;
   padding: 1rem;
@@ -255,35 +272,37 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* Reciter Dropdown */
 .reciter-dropdown {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  margin-top: 0.25rem;
-  background: rgba(17, 24, 39, 0.95);
-   -webkit-backdrop-filter: blur(15px);
-  backdrop-filter: blur(15px);  border: 1px solid rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 0.5rem;
+  background: #1a1a2e;
+  /* Badilisha na rangi nzito */
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   border-radius: 0.75rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
   z-index: 50;
-  overflow: hidden;
-  animation: dropdown 0.2s ease-out;
-  transform-origin: top;
-  transform: translateZ(0);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
-@keyframes dropdown {
-  from {
-    opacity: 0;
-    transform: scaleY(0.95) translateZ(0);
-  }
-  to {
-    opacity: 1;
-    transform: scaleY(1) translateZ(0);
-  }
+.reciter-selector {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  color: white;
+  transition: all 0.2s;
 }
 
 /* Volume Slider - custom styling */
@@ -344,7 +363,7 @@
 /* Card styles */
 .glass-card {
   background: rgba(255, 255, 255, 0.05);
-   -webkit-backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.75rem;
@@ -357,15 +376,15 @@
     min-height: 180px;
     height: 180px;
   }
-  
+
   .arabic-text-main {
     font-size: 1.4rem;
   }
-  
+
   .arabic-surah-name {
     font-size: 1.8rem;
   }
-  
+
   .verse-translation {
     font-size: 0.9rem;
   }
@@ -373,8 +392,13 @@
 
 /* Loading spinner */
 @keyframes spin {
-  from { transform: rotate(0deg) translateZ(0); }
-  to { transform: rotate(360deg) translateZ(0); }
+  from {
+    transform: rotate(0deg) translateZ(0);
+  }
+
+  to {
+    transform: rotate(360deg) translateZ(0);
+  }
 }
 
 .loading-spinner {
@@ -384,8 +408,15 @@
 
 /* Live indicator */
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .live-indicator {
@@ -395,6 +426,8 @@
 .progress-knob {
   left: 0px;
   /* add other styles that were previously inline here */
-  position: absolute; /* likely needed for left to take effect */
-  top: 0; /* adjust as necessary */
+  position: absolute;
+  /* likely needed for left to take effect */
+  top: 0;
+  /* adjust as necessary */
 }
