@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useAudio } from '@/context/AudioContext'
 import type { Surah as AudioSurah, Reciter as AudioReciter } from '@/context/AudioContext'
 import './LiveQuran.css'
+import { useAnalytics } from '@/hooks/useAnalytics'
 
 import {
   Play,
@@ -318,6 +319,9 @@ const LiveQuran = memo(function LiveQuran() {
     seekTo
   } = useAudio()
 
+  // Analytics tracking
+  const { trackAudioPlay } = useAnalytics()
+
   // Local state for UI
   const [reciter, setReciter] = useState<typeof reciters[0]>(reciters[0])
   const [surah, setSurah] = useState<Surah>(surahs[0])
@@ -327,6 +331,7 @@ const LiveQuran = memo(function LiveQuran() {
   const [audioAvailable, setAudioAvailable] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [imageErrors, setImageErrors] = useState<{ [key: number]: boolean }>({})
+  const [autoNextEnabled, setAutoNextEnabled] = useState(true)
 
   // Refs for elements where styles are updated dynamically
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -339,26 +344,29 @@ const LiveQuran = memo(function LiveQuran() {
   // Animation refs to prevent re-renders
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Optimized animation rotation - doesn't cause re-renders of parent
+  // Track when audio ends to auto-play next surah
+  const wasPlayingRef = useRef(false)
+
+  // Optimized animation rotation - slower (15 seconds instead of 6)
   useEffect(() => {
     animationIntervalRef.current = setInterval(() => {
       setCurrentAnimation((prev) => (prev + 1) % animationPatterns.length)
-    }, 6000)
+    }, 15000) // Changed from 6000ms to 15000ms for slower rotation
 
     return () => {
       if (animationIntervalRef.current) {
         clearInterval(animationIntervalRef.current)
       }
     }
-  }, []) // Empty dependency array - runs once
+  }, [])
 
-  // Update background color
+  // Auto color change - updates background based on animation index
   useEffect(() => {
     if (containerRef.current) {
-      const bgColor = reciter?.bgColor || animationPatterns[currentAnimation].bgColor
+      const bgColor = animationPatterns[currentAnimation].bgColor
       containerRef.current.style.background = `linear-gradient(135deg, ${bgColor} 0%, #0f172a 100%)`
     }
-  }, [reciter, currentAnimation])
+  }, [currentAnimation])
 
   // Update ayah progress
   useEffect(() => {
@@ -370,6 +378,33 @@ const LiveQuran = memo(function LiveQuran() {
       ayahProgressRef.current.style.width = `${width}%`
     }
   }, [audioState.currentTime, audioState.duration, surah.numberOfAyahs])
+
+  // Auto-next functionality when audio ends
+  useEffect(() => {
+    if (audioState.isPlaying) {
+      wasPlayingRef.current = true
+    }
+
+    // Check if audio has ended (was playing and now not playing and current time is near duration)
+    if (!audioState.isPlaying && wasPlayingRef.current && audioState.currentTime > 0 && audioState.duration > 0) {
+      const isNearEnd = audioState.currentTime >= audioState.duration - 0.5
+      if (isNearEnd && autoNextEnabled) {
+        wasPlayingRef.current = false
+        // Auto-play next surah
+        if (surah.number < 114) {
+          const nextSurahObj = surahs.find(s => s.number === surah.number + 1)
+          if (nextSurahObj) {
+            console.log('🎵 Auto-playing next surah:', nextSurahObj.englishName)
+            setTimeout(() => {
+              playNextSurah(nextSurahObj)
+            }, 500)
+          }
+        }
+      } else if (!isNearEnd) {
+        wasPlayingRef.current = false
+      }
+    }
+  }, [audioState.isPlaying, audioState.currentTime, audioState.duration, surah.number, autoNextEnabled])
 
   // Optimized progress updates using requestAnimationFrame
   useEffect(() => {
@@ -453,6 +488,23 @@ const LiveQuran = memo(function LiveQuran() {
     }
   }, [getAudioUrl])
 
+  // Function to play next surah
+  const playNextSurah = useCallback(async (nextSurahObj: Surah) => {
+    const isAvailable = await checkAudioAvailability(nextSurahObj.number)
+    if (!isAvailable) {
+      console.log(`⚠️ Audio not available for surah ${nextSurahObj.number}`)
+      return
+    }
+
+    try {
+      setSurah(nextSurahObj)
+      await playAudio(nextSurahObj, reciter)
+      trackAudioPlay(`surah_${nextSurahObj.number}`, nextSurahObj.englishName, 'quran')
+    } catch (error) {
+      console.error('🎵 Error playing next surah:', error)
+    }
+  }, [reciter, checkAudioAvailability, playAudio, trackAudioPlay])
+
   // Handle play/pause
   const handleTogglePlay = useCallback(async () => {
     if (isLoading) return
@@ -478,6 +530,8 @@ const LiveQuran = memo(function LiveQuran() {
         }
 
         await playAudio(surah, reciter)
+        // Track audio play with analytics
+        trackAudioPlay(`surah_${surah.number}`, surah.englishName, 'quran')
       }
     } catch (error) {
       console.error('🎵 LiveQuran: Error in handleTogglePlay:', error)
@@ -485,7 +539,7 @@ const LiveQuran = memo(function LiveQuran() {
     } finally {
       setIsLoading(false)
     }
-  }, [isLoading, checkAudioAvailability, surah, reciter, audioState, togglePlay, pauseAudio, playAudio])
+  }, [isLoading, checkAudioAvailability, surah, reciter, audioState, togglePlay, pauseAudio, playAudio, trackAudioPlay])
 
   // Next Surah
   const nextSurah = useCallback(async () => {
@@ -502,13 +556,14 @@ const LiveQuran = memo(function LiveQuran() {
 
         try {
           await playAudio(nextSurahObj, reciter)
+          trackAudioPlay(`surah_${nextSurahObj.number}`, nextSurahObj.englishName, 'quran')
         } catch (error) {
           console.error('🎵 LiveQuran: Error playing next surah:', error)
           alert('Kuna tatizo la kusikiliza audio. Tafadhali jaribu tena.')
         }
       }
     }
-  }, [surah.number, reciter, checkAudioAvailability, playAudio])
+  }, [surah.number, reciter, checkAudioAvailability, playAudio, trackAudioPlay])
 
   // Previous Surah
   const prevSurah = useCallback(async () => {
@@ -525,13 +580,14 @@ const LiveQuran = memo(function LiveQuran() {
 
         try {
           await playAudio(prevSurahObj, reciter)
+          trackAudioPlay(`surah_${prevSurahObj.number}`, prevSurahObj.englishName, 'quran')
         } catch (error) {
           console.error('🎵 LiveQuran: Error playing previous surah:', error)
           alert('Kuna tatizo la kusikiliza audio. Tafadhali jaribu tena.')
         }
       }
     }
-  }, [surah.number, reciter, checkAudioAvailability, playAudio])
+  }, [surah.number, reciter, checkAudioAvailability, playAudio, trackAudioPlay])
 
   // Handle seek
   const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -597,6 +653,7 @@ const LiveQuran = memo(function LiveQuran() {
       if (isAvailable) {
         try {
           await playAudio(surah, newReciter)
+          trackAudioPlay(`surah_${surah.number}`, surah.englishName, 'quran')
         } catch (error) {
           console.error('🎵 LiveQuran: Error changing reciter:', error)
           pauseAudio()
@@ -605,7 +662,7 @@ const LiveQuran = memo(function LiveQuran() {
         pauseAudio()
       }
     }
-  }, [surah, audioState, checkAudioAvailability, playAudio, pauseAudio])
+  }, [surah, audioState, checkAudioAvailability, playAudio, pauseAudio, trackAudioPlay])
 
   // Calculate current ayah
   const currentAyah = useMemo(() => {
@@ -654,7 +711,7 @@ const LiveQuran = memo(function LiveQuran() {
             </div>
           )}
 
-          {/* QURAN QUOTES ANIMATION SECTION - WITH R2 IMAGES */}
+          {/* QURAN QUOTES ANIMATION SECTION - WITH SMALLER FONT AND SLOWER ROTATION */}
           <div className="quran-animation-section">
             <img
               src={!imageErrors[currentAnimation] ? animationPatterns[currentAnimation].r2Image : animationPatterns[currentAnimation].localImage}
@@ -686,6 +743,7 @@ const LiveQuran = memo(function LiveQuran() {
               </div>
             </div>
           </div>
+
 
           <h2 className="text-xl font-bold text-white flex items-center justify-center gap-2 mb-1">
             <BookOpen size={20} className="text-green-300" />
@@ -750,6 +808,21 @@ const LiveQuran = memo(function LiveQuran() {
               ></div>
             </div>
           </div>
+        </div>
+
+        {/* AUTO-NEXT TOGGLE */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="text-sm text-white/70">Auto-play Next Surah</div>
+          <button
+            type="button"
+            onClick={() => setAutoNextEnabled(!autoNextEnabled)}
+            className={`px-3 py-1 rounded-full text-xs transition-all ${autoNextEnabled
+                ? 'bg-green-600 text-white'
+                : 'bg-white/10 text-white/70'
+              }`}
+          >
+            {autoNextEnabled ? 'ON' : 'OFF'}
+          </button>
         </div>
 
         {/* TIME PROGRESS */}
@@ -843,50 +916,49 @@ const LiveQuran = memo(function LiveQuran() {
         </div>
 
         {/* RECITER SELECTOR */}
-<div className="mb-4 relative">
-  <button
-    type="button"
-    onClick={() => setShowReciters(!showReciters)}
-    className="reciter-selector w-full flex items-center justify-between p-3 rounded-xl bg-black/60 backdrop-blur-md border border-white/20 hover:bg-black/70 transition-all"
-    aria-haspopup="listbox"
-    aria-controls="reciter-list"
-    disabled={isLoading}
-  >
-    <div className="flex items-center gap-3">
-      <div className={`w-2 h-2 rounded-full ${reciter.color.split(' ')[0].replace('from-', 'bg-')}`}></div>
-      <div className="text-left">
-        <div className="text-sm font-medium text-white">{reciter.name}</div>
-        <div className="text-xs text-gray-300">Folder: {reciter.folder}</div>
-      </div>
-    </div>
-    <ChevronDown size={18} className={`transition-transform text-white ${showReciters ? 'rotate-180' : ''}`} />
-  </button>
+        <div className="mb-4 relative">
+          <button
+            type="button"
+            onClick={() => setShowReciters(!showReciters)}
+            className="reciter-selector w-full flex items-center justify-between p-3 rounded-xl bg-black/60 backdrop-blur-md border border-white/20 hover:bg-black/70 transition-all"
+            aria-haspopup="listbox"
+            aria-controls="reciter-list"
+            disabled={isLoading}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`w-2 h-2 rounded-full ${reciter.color.split(' ')[0].replace('from-', 'bg-')}`}></div>
+              <div className="text-left">
+                <div className="text-sm font-medium text-white">{reciter.name}</div>
+                <div className="text-xs text-gray-300">Folder: {reciter.folder}</div>
+              </div>
+            </div>
+            <ChevronDown size={18} className={`transition-transform text-white ${showReciters ? 'rotate-180' : ''}`} />
+          </button>
 
-  {showReciters && (
-    <div className="reciter-dropdown-up absolute bottom-full left-0 right-0 mb-2 bg-gray-900/95 backdrop-blur-md rounded-xl border border-white/20 max-h-80 overflow-y-auto z-50 shadow-xl">
-      {reciters.map((r) => (
-        <button
-          type="button"
-          key={r.id}
-          onClick={() => handleReciterChange(r)}
-          className={`w-full flex items-center gap-3 p-3 text-left transition-colors hover:bg-white/10 ${
-            reciter.id === r.id ? 'bg-emerald-900/40 border-l-2 border-emerald-500' : ''
-          }`}
-          aria-label={`Select ${r.name}`}
-        >
-          <div className={`w-2 h-2 rounded-full ${r.color.split(' ')[0].replace('from-', 'bg-')}`}></div>
-          <div className="flex-1">
-            <div className="text-sm font-medium text-white">{r.name}</div>
-            <div className="text-xs text-gray-300">{r.folder} • {r.description}</div>
-          </div>
-          {reciter.id === r.id && (
-            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+          {showReciters && (
+            <div className="reciter-dropdown-up absolute bottom-full left-0 right-0 mb-2 bg-gray-900/95 backdrop-blur-md rounded-xl border border-white/20 max-h-80 overflow-y-auto z-50 shadow-xl">
+              {reciters.map((r) => (
+                <button
+                  type="button"
+                  key={r.id}
+                  onClick={() => handleReciterChange(r)}
+                  className={`w-full flex items-center gap-3 p-3 text-left transition-colors hover:bg-white/10 ${reciter.id === r.id ? 'bg-emerald-900/40 border-l-2 border-emerald-500' : ''
+                    }`}
+                  aria-label={`Select ${r.name}`}
+                >
+                  <div className={`w-2 h-2 rounded-full ${r.color.split(' ')[0].replace('from-', 'bg-')}`}></div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-white">{r.name}</div>
+                    <div className="text-xs text-gray-300">{r.folder} • {r.description}</div>
+                  </div>
+                  {reciter.id === r.id && (
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                  )}
+                </button>
+              ))}
+            </div>
           )}
-        </button>
-      ))}
-    </div>
-  )}
-</div>
+        </div>
 
         {/* SURAH SELECTOR */}
         <div className="mb-4">

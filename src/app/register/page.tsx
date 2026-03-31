@@ -3,12 +3,15 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Eye, EyeOff, User, Mail, Lock, UserPlus } from "lucide-react"
+import { Eye, EyeOff, User, Mail, Lock, UserPlus, Phone, MapPin, Users } from "lucide-react"
 
 export default function RegisterPage() {
   const router = useRouter()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [gender, setGender] = useState("")
+  const [location, setLocation] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -21,13 +24,13 @@ export default function RegisterPage() {
     setError("")
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match")
+      setError("Maneno ya siri hayafanani")
       setLoading(false)
       return
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters")
+      setError("Neno la siri lazima iwe na herufi 6 au zaidi")
       setLoading(false)
       return
     }
@@ -36,13 +39,20 @@ export default function RegisterPage() {
       const res = await fetch("/api/user/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          gender,
+          location,
+          password
+        })
       })
 
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || "Registration failed")
+        throw new Error(data.error || "Imeshindwa kujisajili")
       }
 
       router.push("/login?registered=true")
@@ -58,8 +68,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create Account</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Join EASTCMSA community</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Unda Akaunti</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">Jiunge na jumuiya ya EASTCMSA</p>
           </div>
 
           {error && (
@@ -68,10 +78,10 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Full Name
+                Jina Kamili
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -88,7 +98,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email Address
+                Barua Pepe
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -105,7 +115,58 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Password
+                Namba ya Simu
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700"
+                  placeholder="+255 123 456 789"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="gender" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Jinsia
+              </label>
+              <div className="relative">
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <select
+                  id="gender"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 appearance-none"
+                >
+                  <option value="">Chagua Jinsia</option>
+                  <option value="male">Mwanaume</option>
+                  <option value="female">Mwanamke</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Eneo/Kanda
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700"
+                  placeholder="Dar es Salaam, Tanzania"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Neno la Siri
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -129,7 +190,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Confirm Password
+                Thibitisha Neno la Siri
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -154,16 +215,16 @@ export default function RegisterPage() {
               ) : (
                 <>
                   <UserPlus size={18} />
-                  Sign Up
+                  Jisajili
                 </>
               )}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
-            Already have an account?{" "}
+            Tayari una akaunti?{" "}
             <Link href="/login" className="text-green-600 hover:text-green-700 font-medium">
-              Sign in
+              Ingia
             </Link>
           </p>
         </div>

@@ -15,18 +15,35 @@ export async function PATCH(
     }
 
     const { id } = await params
-    const { role, status } = await req.json()
+    const { role, status, isSubscribed, phone, gender, location, name } = await req.json()
 
     const client = await clientPromise
     const db = client.db("eastcmsa")
     
+    const updateFields: any = { updatedAt: new Date() }
+    if (role !== undefined) updateFields.role = role
+    if (status !== undefined) updateFields.status = status
+    if (isSubscribed !== undefined) {
+      updateFields.isSubscribed = isSubscribed
+      if (isSubscribed === true) {
+        updateFields.subscribedAt = new Date()
+      } else {
+        updateFields.subscribedAt = null
+      }
+    }
+    if (phone !== undefined) updateFields.phone = phone
+    if (gender !== undefined) updateFields.gender = gender
+    if (location !== undefined) updateFields.location = location
+    if (name !== undefined) updateFields.name = name
+
     await db.collection("users").updateOne(
       { _id: new ObjectId(id) },
-      { $set: { role, status, updatedAt: new Date() } }
+      { $set: updateFields }
     )
 
     return NextResponse.json({ success: true })
   } catch (error) {
+    console.error("PATCH user error:", error)
     return NextResponse.json({ error: "Failed" }, { status: 500 })
   }
 }
@@ -49,6 +66,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
+    console.error("DELETE user error:", error)
     return NextResponse.json({ error: "Failed" }, { status: 500 })
   }
 }

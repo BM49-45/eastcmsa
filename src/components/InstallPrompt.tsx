@@ -1,16 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Download, X, Smartphone } from 'lucide-react'
+import { Download, X, Smartphone, CheckCircle } from 'lucide-react'
+import { useAnalytics } from '@/hooks/useAnalytics'
 
 export default function InstallPrompt() {
+  const { trackDownload } = useAnalytics()
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [showPrompt, setShowPrompt] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
 
   useEffect(() => {
-    // Check if on iOS
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
     setIsIOS(isIOSDevice)
 
@@ -20,13 +21,29 @@ export default function InstallPrompt() {
       return
     }
 
-    // Check if user dismissed in last 7 days
+    // Check if user already installed (from localStorage)
+    const hasInstalled = localStorage.getItem('app-installed') === 'true'
+    if (hasInstalled) {
+      setIsInstalled(true)
+      return
+    }
+
+    // Check if user dismissed permanently
+    const permanentlyDismissed = localStorage.getItem('install-prompt-permanently-dismissed') === 'true'
+    if (permanentlyDismissed) return
+
+    // Check if user dismissed recently
     const dismissed = localStorage.getItem('install-prompt-dismissed')
     if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) {
       return
     }
 
-    // Listen for beforeinstallprompt event
+    const timer = setTimeout(() => {
+      if (!isInstalled) {
+        setShowPrompt(true)
+      }
+    }, 5000)
+
     const handler = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e)
@@ -35,55 +52,40 @@ export default function InstallPrompt() {
 
     window.addEventListener('beforeinstallprompt', handler)
 
-    // For iOS, show prompt after 5 seconds
-    if (isIOSDevice) {
-      const timer = setTimeout(() => {
-        const dismissedIOS = localStorage.getItem('install-prompt-dismissed')
-        if (!dismissedIOS && !window.matchMedia('(display-mode: standalone)').matches) {
-          setShowPrompt(true)
-        }
-      }, 5000)
-      return () => clearTimeout(timer)
-    }
-
     return () => {
       window.removeEventListener('beforeinstallprompt', handler)
+      clearTimeout(timer)
     }
-  }, [])
+  }, [isInstalled])
 
   const handleInstall = async () => {
-    if (!deferredPrompt) {
-      // For iOS or when no prompt available
-      if (isIOS) {
-        alert('Bonyeza "Share" button (square with arrow) kisha "Add to Home Screen"')
-      } else {
-        // Try to show install instructions
-        alert('Fungua menu ya browser (⋮) kisha chagua "Install App" au "Add to Home Screen"')
-      }
-      handleDismiss()
-      return
-    }
-
-    try {
-      // Show the install prompt
+    if (deferredPrompt) {
       deferredPrompt.prompt()
       const { outcome } = await deferredPrompt.userChoice
       
       if (outcome === 'accepted') {
         setShowPrompt(false)
         setIsInstalled(true)
-        localStorage.setItem('install-prompt-dismissed', Date.now().toString())
+        trackDownload()
+        localStorage.setItem('app-installed', 'true')
+        localStorage.setItem('install-prompt-permanently-dismissed', 'true')
       }
-    } catch (error) {
-      console.error('Install prompt error:', error)
-    } finally {
       setDeferredPrompt(null)
+    } else if (isIOS) {
+      alert('Bonyeza "Share" button (mraba na mshale) kisha "Add to Home Screen"')
+      // For iOS, we can't track installation, so we'll assume they installed
+      localStorage.setItem('app-installed', 'true')
+      setShowPrompt(false)
     }
   }
 
-  const handleDismiss = () => {
+  const handleDismiss = (permanent: boolean = false) => {
     setShowPrompt(false)
-    localStorage.setItem('install-prompt-dismissed', Date.now().toString())
+    if (permanent) {
+      localStorage.setItem('install-prompt-permanently-dismissed', 'true')
+    } else {
+      localStorage.setItem('install-prompt-dismissed', Date.now().toString())
+    }
   }
 
   if (isInstalled) return null
@@ -106,7 +108,7 @@ export default function InstallPrompt() {
             </h3>
             <p className="text-white/80 text-xs mt-1">
               {isIOS 
-                ? 'Bonyeza "Share" (mraba na mshale) kisha "Add to Home Screen"'
+                ? 'Bonyeza "Share" → "Add to Home Screen" ili kupakua app'
                 : 'Pakua app kwenye simu yako. Inafanya kazi offline na matumizi bora!'
               }
             </p>
@@ -114,12 +116,17 @@ export default function InstallPrompt() {
               <button
                 onClick={handleInstall}
                 className="bg-white text-emerald-600 px-4 py-1.5 rounded-xl text-xs font-semibold hover:bg-white/90 transition"
-                title="Pakua App"
               >
                 Pakua Sasa
               </button>
               <button
-                onClick={handleDismiss}
+                onClick={() => handleDismiss(true)}
+                className="text-white/80 hover:text-white text-xs px-2 py-1.5 transition"
+              >
+                Usionyeshe Tena
+              </button>
+              <button
+                onClick={() => handleDismiss(false)}
                 className="text-white/80 hover:text-white text-xs px-2 py-1.5 transition"
               >
                 Sio Sasa
@@ -127,7 +134,7 @@ export default function InstallPrompt() {
             </div>
           </div>
           <button
-            onClick={handleDismiss}
+            onClick={() => handleDismiss(false)}
             className="text-white/60 hover:text-white transition flex-shrink-0"
             aria-label="Funga"
           >

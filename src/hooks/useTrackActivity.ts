@@ -1,45 +1,46 @@
 'use client'
 
-import { useActivity } from '@/context/ActivityContext'
+import { useAnalytics } from './useAnalytics'
 
 export function useTrackActivity() {
-  const { trackActivity } = useActivity()
+  const { trackAudioPlay, trackShare } = useAnalytics()
 
   return {
     trackLectureWatch: (lectureId: string, lectureTitle: string) => {
-      trackActivity('lecture_watch', lectureId, lectureTitle)
+      trackAudioPlay(lectureId, lectureTitle, 'lecture')
     },
     
     trackLectureDownload: (lectureId: string, lectureTitle: string) => {
-      trackActivity('lecture_download', lectureId, lectureTitle)
+      // Can add download tracking if needed
+      console.log('Lecture download:', lectureId, lectureTitle)
     },
     
     trackBookRead: (bookId: string, bookTitle: string) => {
-      trackActivity('book_read', bookId, bookTitle)
+      trackAudioPlay(bookId, bookTitle, 'book')
     },
     
     trackBookDownload: (bookId: string, bookTitle: string) => {
-      trackActivity('book_download', bookId, bookTitle)
+      console.log('Book download:', bookId, bookTitle)
     },
     
     trackComment: (itemId: string, itemTitle: string, comment: string) => {
-      trackActivity('comment', itemId, itemTitle, { comment })
+      console.log('Comment:', itemId, itemTitle, comment)
     },
     
     trackLike: (itemId: string, itemTitle: string) => {
-      trackActivity('like', itemId, itemTitle)
+      console.log('Like:', itemId, itemTitle)
     },
     
     trackShare: (itemId: string, itemTitle: string) => {
-      trackActivity('share', itemId, itemTitle)
+      trackShare(itemId, itemTitle)
     },
     
     trackLogin: () => {
-      trackActivity('login')
+      // Handled by useAnalytics automatically
     },
     
     trackRegister: () => {
-      trackActivity('register')
+      // Handled by useAnalytics automatically
     }
   }
 }

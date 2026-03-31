@@ -295,7 +295,7 @@ export default function Navbar() {
             </div>
 
             {/* Right section - Search, Notifications, User menu */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
               <SearchBar />
               {isLoggedIn && <NotificationBell />}
 

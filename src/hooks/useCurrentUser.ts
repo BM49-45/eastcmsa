@@ -4,9 +4,15 @@ export interface User {
   _id: string
   name: string
   email: string
+  phone?: string
+  gender?: string
+  location?: string
   role: string
+  status?: string
+  isSubscribed?: boolean
   createdAt?: string
   updatedAt?: string
+  lastLogin?: string
 }
 
 export function useCurrentUser() {
