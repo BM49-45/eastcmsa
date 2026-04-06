@@ -27,12 +27,18 @@ export default function CommunityPage() {
   const [editText, setEditText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const shouldAutoScrollRef = useRef(true)
+  const prevMessagesLengthRef = useRef(0)
 
-  // Check admin
+  // Check admin - using both email and role
   useEffect(() => {
-    if (session?.user?.email === 'admin@eastcmsa.com') {
-      setIsAdmin(true)
+    if (session?.user) {
+      // Check by email
+      const adminEmails = ['admin@eastcmsa.com', 'bm49@eastcmsa.com']
+      if (adminEmails.includes(session.user.email || '') || session.user.role === 'admin') {
+        setIsAdmin(true)
+      }
     }
   }, [session])
 
@@ -42,8 +48,23 @@ export default function CommunityPage() {
       const res = await fetch('/api/community/messages')
       if (!res.ok) throw new Error('Failed')
       const data = await res.json()
+      
+      // Check if new message arrived (for auto-scroll)
+      const newMessageArrived = data.length > prevMessagesLengthRef.current
+      prevMessagesLengthRef.current = data.length
+      
       setMessages(data)
       setError(null)
+      
+      // Only auto-scroll if user was already at bottom or new message is from current user
+      if (shouldAutoScrollRef.current && newMessageArrived) {
+        setTimeout(() => {
+          messagesContainerRef.current?.scrollTo({
+            top: messagesContainerRef.current.scrollHeight,
+            behavior: 'smooth'
+          })
+        }, 100)
+      }
     } catch (err) {
       setError('Failed to load messages')
     } finally {
@@ -58,10 +79,14 @@ export default function CommunityPage() {
     return () => clearInterval(interval)
   }, [fetchMessages])
 
-  // Auto scroll
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  // Detect if user is at bottom
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 50
+      shouldAutoScrollRef.current = isAtBottom
+    }
+  }
 
   // Send message
   const sendMessage = async (e: React.FormEvent) => {
@@ -83,6 +108,9 @@ export default function CommunityPage() {
       })
       if (!res.ok) throw new Error('Failed')
       setNewMessage('')
+      
+      // After sending, auto-scroll to bottom
+      shouldAutoScrollRef.current = true
       await fetchMessages()
     } catch (err) {
       setError('Failed to send message')
@@ -91,13 +119,16 @@ export default function CommunityPage() {
     }
   }
 
-  // Delete message
+  // Delete message - Admin can delete any message
   const handleDelete = async (messageId: string, messageUserId: string) => {
+    // Admin can delete any message, regular users only their own
     const canDelete = isAdmin || session?.user?.id === messageUserId
+    
     if (!canDelete) {
       alert('You can only delete your own messages')
       return
     }
+    
     if (!confirm('Delete this message?')) return
 
     try {
@@ -165,7 +196,9 @@ export default function CommunityPage() {
         <div className="max-w-4xl mx-auto px-4">
           <h1 className="text-xl font-bold text-white text-center">Community</h1>
           <p className="text-gray-400 text-center text-sm">
-            {status === 'authenticated' ? `Welcome, ${session.user.name}` : 'Login to join'}
+            {status === 'authenticated' 
+              ? `Welcome, ${session.user.name}${isAdmin ? ' (Admin)' : ''}` 
+              : 'Login to join'}
           </p>
         </div>
       </div>
@@ -183,9 +216,14 @@ export default function CommunityPage() {
         </div>
       )}
 
-      {/* Messages */}
-      <div className="max-w-4xl mx-auto px-4 pb-28">
-        <div className="space-y-3">
+      {/* Messages Container - Fixed height with scroll */}
+      <div 
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className="max-w-4xl mx-auto px-4 pb-28 overflow-y-auto"
+        style={{ height: 'calc(100vh - 64px - 80px)' }}
+      >
+        <div className="space-y-3 py-2">
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 py-12">
               <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -199,6 +237,7 @@ export default function CommunityPage() {
           ) : (
             messages.map((msg) => {
               const isOwn = session?.user?.id === msg.userId
+              // Admin can delete any message, regular users only their own
               const canDelete = isAdmin || isOwn
               
               return (
@@ -219,7 +258,10 @@ export default function CommunityPage() {
                   {/* Message Bubble */}
                   <div className={`max-w-[70%] ${isOwn ? 'bg-emerald-600 text-white' : 'bg-gray-800 text-gray-100'} rounded-2xl px-3 py-2 shadow`}>
                     {!isOwn && (
-                      <p className="text-xs font-semibold text-emerald-400 mb-0.5">{msg.userName}</p>
+                      <p className="text-xs font-semibold text-emerald-400 mb-0.5">
+                        {msg.userName}
+                        {isAdmin && ` (${msg.userId})`}
+                      </p>
                     )}
                     
                     {editingId === msg.id ? (
@@ -306,7 +348,6 @@ export default function CommunityPage() {
               )
             })
           )}
-          <div ref={messagesEndRef} />
         </div>
       </div>
 
