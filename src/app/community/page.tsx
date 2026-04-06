@@ -27,6 +27,7 @@ export default function CommunityPage() {
   const [editText, setEditText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({})
 
   // Check admin
   useEffect(() => {
@@ -60,7 +61,7 @@ export default function CommunityPage() {
   // Send message
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (status !== 'authenticated') {
       alert('Please login to send message')
       return
@@ -85,13 +86,8 @@ export default function CommunityPage() {
     }
   }
 
-  // Delete message
-  const handleDelete = async (messageId: string, messageUserId: string) => {
-    const canDelete = isAdmin || session?.user?.id === messageUserId
-    if (!canDelete) {
-      alert('You can only delete your own messages')
-      return
-    }
+  // Delete message - ANYONE can delete ANY message
+  const handleDelete = async (messageId: string) => {
     if (!confirm('Delete this message?')) return
 
     try {
@@ -103,7 +99,7 @@ export default function CommunityPage() {
     }
   }
 
-  // Edit message
+  // Edit message - Only owner can edit
   const startEdit = (message: Message) => {
     if (session?.user?.id !== message.userId) {
       alert('You can only edit your own messages')
@@ -144,6 +140,14 @@ export default function CommunityPage() {
     }
   }
 
+  const handleImageError = (userId: string) => {
+    setImageErrors(prev => ({ ...prev, [userId]: true }))
+  }
+
+  const getUserInitial = (name: string) => {
+    return name?.charAt(0).toUpperCase() || 'U'
+  }
+
   if (isFetching) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -159,8 +163,8 @@ export default function CommunityPage() {
         <div className="max-w-4xl mx-auto px-4">
           <h1 className="text-xl font-bold text-white text-center">Community</h1>
           <p className="text-gray-400 text-center text-sm">
-            {status === 'authenticated' 
-              ? `Welcome, ${session.user.name}${isAdmin ? ' (Admin)' : ''}` 
+            {status === 'authenticated'
+              ? `Welcome, ${session.user.name}${isAdmin ? ' (Admin)' : ''}`
               : 'Login to join'}
           </p>
         </div>
@@ -176,7 +180,7 @@ export default function CommunityPage() {
         </div>
       )}
 
-      {/* Messages - NO AUTO-SCROLL AT ALL */}
+      {/* Messages */}
       <div className="max-w-4xl mx-auto px-4 py-4 pb-32">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 py-12">
@@ -192,18 +196,25 @@ export default function CommunityPage() {
           <div className="space-y-3">
             {messages.map((msg) => {
               const isOwn = session?.user?.id === msg.userId
-              const canDelete = isAdmin || isOwn
-              
+              const showImageError = imageErrors[msg.userId]
+
               return (
                 <div key={msg.id} className={`flex gap-2 ${isOwn ? 'justify-end' : 'justify-start'}`}>
                   {/* Avatar - Left side for others */}
                   {!isOwn && (
                     <div className="flex-shrink-0">
-                      {msg.userImage ? (
-                        <Image src={msg.userImage} alt={msg.userName} width={32} height={32} className="rounded-full" />
+                      {msg.userImage && !showImageError ? (
+                        <Image
+                          src={msg.userImage}
+                          alt={msg.userName}
+                          width={32}
+                          height={32}
+                          className="rounded-full object-cover"
+                          onError={() => handleImageError(msg.userId)}
+                        />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">{msg.userName?.charAt(0).toUpperCase() || 'U'}</span>
+                          <span className="text-white text-xs font-bold">{getUserInitial(msg.userName)}</span>
                         </div>
                       )}
                     </div>
@@ -214,7 +225,7 @@ export default function CommunityPage() {
                     {!isOwn && (
                       <p className="text-xs font-semibold text-emerald-400 mb-0.5">{msg.userName}</p>
                     )}
-                    
+
                     {editingId === msg.id ? (
                       <div className="space-y-2">
                         <textarea
@@ -223,34 +234,61 @@ export default function CommunityPage() {
                           className="w-full bg-gray-700 text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                           rows={2}
                           autoFocus
+                          aria-label="Edit message"
+                          placeholder="Edit your message..."
                         />
                         <div className="flex gap-2 justify-end">
-                          <button onClick={saveEdit} className="p-1 hover:bg-green-700 rounded">✓</button>
-                          <button onClick={cancelEdit} className="p-1 hover:bg-red-700 rounded">✗</button>
+                          <button
+                            onClick={saveEdit}
+                            className="p-1 hover:bg-green-700 rounded transition"
+                            title="Save"
+                            aria-label="Save changes"
+                          >
+                            <Check size={14} />
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            className="p-1 hover:bg-red-700 rounded transition"
+                            title="Cancel"
+                            aria-label="Cancel editing"
+                          >
+                            <X size={14} />
+                          </button>
                         </div>
                       </div>
                     ) : (
                       <p className="text-sm break-words">{msg.text}</p>
                     )}
-                    
+
                     <div className="flex items-center justify-end gap-2 mt-0.5">
                       <span className="text-[10px] opacity-70">
                         {formatTime(msg.createdAt)}
                         {msg.isEdited && ' (edited)'}
                       </span>
-                      
+
+                      {/* Action Buttons - Edit only for owner, Delete for everyone */}
                       {!editingId && (
                         <div className="flex gap-1">
+                          {/* Edit - Only message owner can edit */}
                           {isOwn && (
-                            <button onClick={() => startEdit(msg)} className="opacity-50 hover:opacity-100" title="Edit">
-                              ✏️
+                            <button
+                              onClick={() => startEdit(msg)}
+                              className="opacity-50 hover:opacity-100 transition"
+                              title="Edit message"
+                              aria-label="Edit message"
+                            >
+                              <Edit2 size={12} />
                             </button>
                           )}
-                          {canDelete && (
-                            <button onClick={() => handleDelete(msg.id, msg.userId)} className="opacity-50 hover:opacity-100 hover:text-red-400" title="Delete">
-                              🗑️
-                            </button>
-                          )}
+                          {/* Delete - EVERYONE can delete ANY message */}
+                          <button
+                            onClick={() => handleDelete(msg.id)}
+                            className="opacity-50 hover:opacity-100 hover:text-red-400 transition"
+                            title="Delete message"
+                            aria-label="Delete message"
+                          >
+                            <Trash2 size={12} />
+                          </button>
                         </div>
                       )}
                     </div>
@@ -259,11 +297,18 @@ export default function CommunityPage() {
                   {/* Avatar - Right side for own messages */}
                   {isOwn && (
                     <div className="flex-shrink-0">
-                      {session?.user?.image ? (
-                        <Image src={session.user.image} alt={session.user.name || 'User'} width={32} height={32} className="rounded-full" />
+                      {session?.user?.image && !imageErrors['current'] ? (
+                        <Image
+                          src={session.user.image}
+                          alt={session.user.name || 'User'}
+                          width={32}
+                          height={32}
+                          className="rounded-full object-cover"
+                          onError={() => handleImageError('current')}
+                        />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">{session?.user?.name?.charAt(0).toUpperCase() || 'U'}</span>
+                          <span className="text-white text-xs font-bold">{getUserInitial(session?.user?.name || 'U')}</span>
                         </div>
                       )}
                     </div>
@@ -279,18 +324,24 @@ export default function CommunityPage() {
       <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 p-3">
         <div className="max-w-4xl mx-auto px-4">
           <form onSubmit={sendMessage} className="flex gap-2">
+            <label htmlFor="message-input" className="sr-only">Message</label>
             <input
+              id="message-input"
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder={status === 'authenticated' ? 'Type a message...' : 'Login to chat'}
               disabled={status !== 'authenticated'}
               className="flex-1 bg-gray-800 text-white rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
+              title="Type your message"
+              aria-label="Type your message"
             />
             <button
               type="submit"
               disabled={status !== 'authenticated' || !newMessage.trim() || isLoading}
               className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-700 text-white rounded-full px-5 py-2 transition"
+              title="Send message"
+              aria-label="Send message"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </button>
