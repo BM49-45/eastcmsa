@@ -10,6 +10,12 @@ export async function GET() {
     const client = await clientPromise
     const db = client.db("eastcmsa")
     
+    // Check if collection exists, if not create it
+    const collections = await db.listCollections({ name: "community_messages" }).toArray()
+    if (collections.length === 0) {
+      await db.createCollection("community_messages")
+    }
+    
     const messages = await db.collection("community_messages")
       .find({ isDeleted: { $ne: true } })
       .sort({ createdAt: -1 })
@@ -24,8 +30,7 @@ export async function GET() {
       userImage: msg.userImage || null,
       createdAt: msg.createdAt,
       editedAt: msg.editedAt || null,
-      isEdited: !!msg.editedAt,
-      isDeleted: msg.isDeleted || false
+      isEdited: !!msg.editedAt
     }))
 
     return NextResponse.json(formattedMessages.reverse())
@@ -62,12 +67,9 @@ export async function POST(req: Request) {
       userId: session.user.id,
       userName: session.user.name || "Anonymous",
       userImage: session.user.image || null,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
       isDeleted: false,
-      isEdited: false,
-      editedAt: null,
-      likes: [],
-      replies: []
+      isEdited: false
     }
 
     const result = await db.collection("community_messages").insertOne(message)
@@ -82,13 +84,18 @@ export async function POST(req: Request) {
   }
 }
 
-// DELETE - Soft delete a message (admin or owner)
+// DELETE - Soft delete a message (admin only)
 export async function DELETE(req: Request) {
   try {
     const session = await getServerSession(authOptions)
     
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Check if user is admin
+    if (session.user.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden - Admin only" }, { status: 403 })
     }
 
     const { searchParams } = new URL(req.url)
@@ -101,23 +108,9 @@ export async function DELETE(req: Request) {
     const client = await clientPromise
     const db = client.db("eastcmsa")
 
-    const message = await db.collection("community_messages").findOne({ _id: new ObjectId(messageId) })
-
-    if (!message) {
-      return NextResponse.json({ error: "Message not found" }, { status: 404 })
-    }
-
-    // Check if user is admin or message owner
-    const isAdmin = session.user.role === "admin"
-    const isOwner = message.userId === session.user.id
-
-    if (!isAdmin && !isOwner) {
-      return NextResponse.json({ error: "Forbidden - You can only delete your own messages" }, { status: 403 })
-    }
-
     await db.collection("community_messages").updateOne(
       { _id: new ObjectId(messageId) },
-      { $set: { isDeleted: true, deletedAt: new Date() } }
+      { $set: { isDeleted: true, deletedAt: new Date().toISOString() } }
     )
 
     return NextResponse.json({ success: true })
@@ -127,7 +120,7 @@ export async function DELETE(req: Request) {
   }
 }
 
-// PATCH - Edit a message
+// PATCH - Edit a message (owner only)
 export async function PATCH(req: Request) {
   try {
     const session = await getServerSession(authOptions)
@@ -158,7 +151,7 @@ export async function PATCH(req: Request) {
 
     await db.collection("community_messages").updateOne(
       { _id: new ObjectId(messageId) },
-      { $set: { text: text.trim(), editedAt: new Date(), isEdited: true } }
+      { $set: { text: text.trim(), editedAt: new Date().toISOString(), isEdited: true } }
     )
 
     return NextResponse.json({ success: true })

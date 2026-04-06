@@ -61,7 +61,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-100 dark:bg-gray-950 overflow-hidden">
+    <div className="relative min-h-screen bg-gray-100 dark:bg-gray-950 overflow-hidden pt-16">
 
       {/* Soft Islamic Background */}
       <div

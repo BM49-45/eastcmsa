@@ -18,13 +18,6 @@ interface Message {
   isDeleted?: boolean
 }
 
-interface CommunitySettings {
-  isLocked: boolean
-  onlyAdminsCanPost: boolean
-  announcementsOnly: boolean
-  welcomeMessage: string  // Add this line
-}
-
 export default function CommunityPage() {
   const { data: session, status } = useSession()
   const [messages, setMessages] = useState<Message[]>([])
@@ -35,15 +28,9 @@ export default function CommunityPage() {
   const [editText, setEditText] = useState('')
   const [showAuthAlert, setShowAuthAlert] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [settings, setSettings] = useState<CommunitySettings>({
-    isLocked: false,
-    onlyAdminsCanPost: false,
-    announcementsOnly: false,
-    welcomeMessage: ''
-  })
   const [isAdmin, setIsAdmin] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Check if user is admin
   useEffect(() => {
@@ -53,20 +40,7 @@ export default function CommunityPage() {
     }
   }, [session])
 
-  // Fetch community settings
-  const fetchSettings = useCallback(async () => {
-    try {
-      const res = await fetch('/api/admin/community-settings')
-      if (res.ok) {
-        const data = await res.json()
-        setSettings(data)
-      }
-    } catch (err) {
-      console.error('Error fetching settings:', err)
-    }
-  }, [])
-
-  // Fetch messages with polling (real-time simulation)
+  // Fetch messages
   const fetchMessages = useCallback(async () => {
     try {
       const res = await fetch('/api/community/messages')
@@ -82,24 +56,18 @@ export default function CommunityPage() {
     }
   }, [])
 
-  // Initial fetch and polling setup
+  // Initial fetch and polling every 2 seconds
   useEffect(() => {
     fetchMessages()
-    fetchSettings()
     
-    // Poll every 3 seconds for real-time updates
-    pollingInterval.current = setInterval(() => {
+    const interval = setInterval(() => {
       fetchMessages()
-    }, 3000)
+    }, 2000)
     
-    return () => {
-      if (pollingInterval.current) {
-        clearInterval(pollingInterval.current)
-      }
-    }
-  }, [fetchMessages, fetchSettings])
+    return () => clearInterval(interval)
+  }, [fetchMessages])
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
@@ -116,18 +84,6 @@ export default function CommunityPage() {
 
     if (!newMessage.trim() || isLoading) return
 
-    // Check if community is locked
-    if (settings.isLocked && !isAdmin) {
-      alert('Jumuiya imefungwa kwa sasa. Jaribu tena baadaye.')
-      return
-    }
-
-    // Check if only admins can post
-    if (settings.onlyAdminsCanPost && !isAdmin) {
-      alert('Watumiaji pekee ndio wanaweza kutuma ujumbe kwa sasa.')
-      return
-    }
-
     setIsLoading(true)
     setError(null)
 
@@ -139,8 +95,8 @@ export default function CommunityPage() {
       })
 
       if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Failed to send')
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Failed to send')
       }
 
       setNewMessage('')
@@ -215,7 +171,6 @@ export default function CommunityPage() {
     setEditText('')
   }
 
-  // Format time
   const formatTime = (timestamp: string) => {
     try {
       const date = new Date(timestamp)
@@ -225,18 +180,9 @@ export default function CommunityPage() {
     }
   }
 
-  const formatFullDate = (timestamp: string) => {
-    try {
-      const date = new Date(timestamp)
-      return date.toLocaleString()
-    } catch {
-      return ''
-    }
-  }
-
   if (isFetching) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center pt-20">
         <div className="text-center">
           <Loader2 size={48} className="text-emerald-500 animate-spin mx-auto mb-4" />
           <p className="text-gray-400">Inapakia jumuiya...</p>
@@ -246,7 +192,7 @@ export default function CommunityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 pt-16">
       {/* Auth Alert */}
       {showAuthAlert && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-5 duration-300">
@@ -266,43 +212,17 @@ export default function CommunityPage() {
         </div>
       )}
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent">
             Jumuiya ya EASTCMSA
           </h1>
-          <p className="text-gray-300 mt-2">
+          <p className="text-gray-300 mt-1 text-sm">
             {status === 'authenticated' 
-              ? `Karibu, ${session.user.name}! Shiriki maoni yako...` 
+              ? `Karibu, ${session.user.name}!` 
               : 'Ingia ili kushiriki kwenye majadiliano'}
           </p>
-          
-          {/* Welcome Message from Settings */}
-          {settings.welcomeMessage && (
-            <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-sm">
-              {settings.welcomeMessage}
-            </div>
-          )}
-
-          {/* Community Status Badge */}
-          <div className="flex justify-center gap-2 mt-3">
-            {settings.isLocked && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-500/20 text-red-400 rounded-full text-xs">
-                <Lock size={12} /> Jumuiya Imefungwa
-              </span>
-            )}
-            {settings.onlyAdminsCanPost && !settings.isLocked && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-500/20 text-amber-400 rounded-full text-xs">
-                <Lock size={12} /> Watumiaji pekee
-              </span>
-            )}
-            {!settings.isLocked && !settings.onlyAdminsCanPost && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">
-                <Globe size={12} /> Wote wanaweza kushiriki
-              </span>
-            )}
-          </div>
         </div>
 
         {/* Error Message */}
@@ -317,7 +237,7 @@ export default function CommunityPage() {
 
         {/* Messages Container */}
         <div className="bg-black/30 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
-          <div className="h-[500px] overflow-y-auto p-4 space-y-4">
+          <div className="h-[500px] overflow-y-auto p-4 space-y-4" ref={containerRef}>
             {messages.length === 0 ? (
               <div className="text-center text-gray-400 py-12">
                 <MessageCircle size={48} className="mx-auto mb-3 opacity-50" aria-hidden="true" />
@@ -346,13 +266,13 @@ export default function CommunityPage() {
                         <Image
                           src={message.userImage}
                           alt={message.userName}
-                          width={40}
-                          height={40}
+                          width={36}
+                          height={36}
                           className="rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-blue-500 flex items-center justify-center">
-                          <span className="text-white font-semibold">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-blue-500 flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">
                             {message.userName?.charAt(0).toUpperCase() || 'U'}
                           </span>
                         </div>
@@ -366,14 +286,11 @@ export default function CommunityPage() {
                       session?.user?.id === message.userId
                         ? 'bg-emerald-600 text-white'
                         : 'bg-gray-800/80 text-gray-100'
-                    } rounded-2xl px-4 py-2 shadow-lg`}
+                    } rounded-2xl px-3 py-2 shadow-lg`}
                   >
                     {session?.user?.id !== message.userId && (
-                      <p className="text-xs font-semibold text-emerald-400 mb-1">
+                      <p className="text-xs font-semibold text-emerald-400 mb-0.5">
                         {message.userName}
-                        {message.isEdited && (
-                          <span className="text-gray-400 text-[10px] ml-1">(imehaririwa)</span>
-                        )}
                       </p>
                     )}
                     
@@ -386,24 +303,21 @@ export default function CommunityPage() {
                           rows={2}
                           autoFocus
                           placeholder="Hariri ujumbe wako..."
-                          aria-label="Hariri ujumbe"
                         />
                         <div className="flex gap-2 justify-end">
                           <button
                             onClick={saveEdit}
                             className="p-1 hover:bg-green-700 rounded transition"
-                            title="Hifadhi mabadiliko"
-                            aria-label="Hifadhi mabadiliko"
+                            title="Hifadhi"
                           >
-                            <Check size={16} aria-hidden="true" />
+                            <Check size={14} />
                           </button>
                           <button
                             onClick={cancelEdit}
                             className="p-1 hover:bg-red-700 rounded transition"
                             title="Ghairi"
-                            aria-label="Ghairi uhariri"
                           >
-                            <X size={16} aria-hidden="true" />
+                            <X size={14} />
                           </button>
                         </div>
                       </div>
@@ -411,11 +325,8 @@ export default function CommunityPage() {
                       <p className="text-sm break-words">{message.text}</p>
                     )}
                     
-                    <div className="flex items-center justify-end gap-2 mt-1">
-                      <span 
-                        className="text-[10px] opacity-70 cursor-help"
-                        title={formatFullDate(message.createdAt)}
-                      >
+                    <div className="flex items-center justify-end gap-1 mt-0.5">
+                      <span className="text-[10px] opacity-70">
                         {formatTime(message.createdAt)}
                         {message.isEdited && ' (imehaririwa)'}
                       </span>
@@ -426,20 +337,18 @@ export default function CommunityPage() {
                           <button
                             onClick={() => startEdit(message)}
                             className="opacity-50 hover:opacity-100 transition"
-                            title="Hariri ujumbe"
-                            aria-label="Hariri ujumbe"
+                            title="Hariri"
                           >
-                            <Edit2 size={12} aria-hidden="true" />
+                            <Edit2 size={10} />
                           </button>
                         )}
                         {isAdmin && !editingMessage && (
                           <button
                             onClick={() => deleteMessage(message.id)}
                             className="opacity-50 hover:opacity-100 transition hover:text-red-400"
-                            title="Futa ujumbe"
-                            aria-label="Futa ujumbe"
+                            title="Futa"
                           >
-                            <Trash2 size={12} aria-hidden="true" />
+                            <Trash2 size={10} />
                           </button>
                         )}
                       </div>
@@ -453,13 +362,13 @@ export default function CommunityPage() {
                         <Image
                           src={session.user.image}
                           alt={session.user.name || 'User'}
-                          width={40}
-                          height={40}
+                          width={36}
+                          height={36}
                           className="rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-blue-500 flex items-center justify-center">
-                          <span className="text-white font-semibold">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-blue-500 flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">
                             {session.user.name?.charAt(0).toUpperCase() || 'U'}
                           </span>
                         </div>
@@ -473,7 +382,7 @@ export default function CommunityPage() {
           </div>
 
           {/* Message Input */}
-          <form onSubmit={sendMessage} className="p-4 border-t border-white/10">
+          <form onSubmit={sendMessage} className="p-3 border-t border-white/10">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -482,39 +391,24 @@ export default function CommunityPage() {
                 placeholder={
                   status === 'authenticated'
                     ? 'Andika ujumbe wako...'
-                    : 'Ingia ili kushiriki kwenye mazungumzo'
+                    : 'Ingia ili kushiriki...'
                 }
-                disabled={status !== 'authenticated' || (settings.isLocked && !isAdmin) || (settings.onlyAdminsCanPost && !isAdmin)}
-                className="flex-1 bg-gray-800/50 text-white rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Ujumbe mpya"
-                title="Andika ujumbe wako hapa"
+                disabled={status !== 'authenticated'}
+                className="flex-1 bg-gray-800/50 text-white rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button
                 type="submit"
-                disabled={status !== 'authenticated' || !newMessage.trim() || isLoading || (settings.isLocked && !isAdmin) || (settings.onlyAdminsCanPost && !isAdmin)}
+                disabled={status !== 'authenticated' || !newMessage.trim() || isLoading}
                 className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl px-4 py-2 transition"
                 title="Tuma ujumbe"
-                aria-label="Tuma ujumbe"
               >
                 {isLoading ? (
-                  <Loader2 size={20} className="animate-spin" aria-hidden="true" />
+                  <Loader2 size={18} className="animate-spin" />
                 ) : (
-                  <Send size={20} aria-hidden="true" />
+                  <Send size={18} />
                 )}
               </button>
             </div>
-            
-            {/* Community restrictions notice */}
-            {settings.isLocked && !isAdmin && (
-              <p className="text-xs text-amber-400 mt-2 text-center">
-                ⚠️ Jumuiya imefungwa kwa sasa. Watumiaji pekee ndio wanaweza kutuma ujumbe.
-              </p>
-            )}
-            {settings.onlyAdminsCanPost && !isAdmin && !settings.isLocked && (
-              <p className="text-xs text-amber-400 mt-2 text-center">
-                ⚠️ Watumiaji pekee ndio wanaweza kutuma ujumbe kwa sasa.
-              </p>
-            )}
           </form>
         </div>
       </div>
