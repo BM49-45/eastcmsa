@@ -176,7 +176,7 @@ export default function CommunityPage() {
         </div>
       )}
 
-      {/* Messages - Simple scrolling without auto-scroll */}
+      {/* Messages - NO AUTO-SCROLL AT ALL */}
       <div className="max-w-4xl mx-auto px-4 py-4 pb-32">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 py-12">
