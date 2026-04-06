@@ -323,3 +323,24 @@
 .reciter-dropdown-up::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* Chat container styles - no inline styles */
+.chat-messages-container {
+  height: calc(100vh - 120px);
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for cleaner look */
+.chat-messages-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-messages-container::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.chat-messages-container::-webkit-scrollbar-thumb {
+  background: #10b981;
+  border-radius: 4px;
+}

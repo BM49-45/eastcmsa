@@ -27,14 +27,11 @@ export default function CommunityPage() {
   const [editText, setEditText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
-  const messagesContainerRef = useRef<HTMLDivElement>(null)
-  const shouldAutoScrollRef = useRef(true)
-  const prevMessagesLengthRef = useRef(0)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Check admin - using both email and role
+  // Check admin
   useEffect(() => {
     if (session?.user) {
-      // Check by email
       const adminEmails = ['admin@eastcmsa.com', 'bm49@eastcmsa.com']
       if (adminEmails.includes(session.user.email || '') || session.user.role === 'admin') {
         setIsAdmin(true)
@@ -48,23 +45,8 @@ export default function CommunityPage() {
       const res = await fetch('/api/community/messages')
       if (!res.ok) throw new Error('Failed')
       const data = await res.json()
-      
-      // Check if new message arrived (for auto-scroll)
-      const newMessageArrived = data.length > prevMessagesLengthRef.current
-      prevMessagesLengthRef.current = data.length
-      
       setMessages(data)
       setError(null)
-      
-      // Only auto-scroll if user was already at bottom or new message is from current user
-      if (shouldAutoScrollRef.current && newMessageArrived) {
-        setTimeout(() => {
-          messagesContainerRef.current?.scrollTo({
-            top: messagesContainerRef.current.scrollHeight,
-            behavior: 'smooth'
-          })
-        }, 100)
-      }
     } catch (err) {
       setError('Failed to load messages')
     } finally {
@@ -79,14 +61,10 @@ export default function CommunityPage() {
     return () => clearInterval(interval)
   }, [fetchMessages])
 
-  // Detect if user is at bottom
-  const handleScroll = () => {
-    if (messagesContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 50
-      shouldAutoScrollRef.current = isAtBottom
-    }
-  }
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   // Send message
   const sendMessage = async (e: React.FormEvent) => {
@@ -108,9 +86,6 @@ export default function CommunityPage() {
       })
       if (!res.ok) throw new Error('Failed')
       setNewMessage('')
-      
-      // After sending, auto-scroll to bottom
-      shouldAutoScrollRef.current = true
       await fetchMessages()
     } catch (err) {
       setError('Failed to send message')
@@ -119,16 +94,13 @@ export default function CommunityPage() {
     }
   }
 
-  // Delete message - Admin can delete any message
+  // Delete message
   const handleDelete = async (messageId: string, messageUserId: string) => {
-    // Admin can delete any message, regular users only their own
     const canDelete = isAdmin || session?.user?.id === messageUserId
-    
     if (!canDelete) {
       alert('You can only delete your own messages')
       return
     }
-    
     if (!confirm('Delete this message?')) return
 
     try {
@@ -190,9 +162,9 @@ export default function CommunityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="flex flex-col h-screen bg-gray-900">
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-gray-900 border-b border-gray-800 py-3">
+      <div className="flex-shrink-0 bg-gray-900 border-b border-gray-800 py-3">
         <div className="max-w-4xl mx-auto px-4">
           <h1 className="text-xl font-bold text-white text-center">Community</h1>
           <p className="text-gray-400 text-center text-sm">
@@ -203,27 +175,16 @@ export default function CommunityPage() {
         </div>
       </div>
 
-      {/* Spacer */}
-      <div className="h-16"></div>
+      {/* Messages Container - Takes remaining space */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          {error && (
+            <div className="bg-red-500/20 border border-red-500 rounded-lg p-2 text-red-400 text-sm text-center mb-4">
+              {error}
+              <button onClick={fetchMessages} className="ml-2 underline">Retry</button>
+            </div>
+          )}
 
-      {/* Error */}
-      {error && (
-        <div className="max-w-4xl mx-auto px-4 mt-2">
-          <div className="bg-red-500/20 border border-red-500 rounded-lg p-2 text-red-400 text-sm text-center">
-            {error}
-            <button onClick={fetchMessages} className="ml-2 underline">Retry</button>
-          </div>
-        </div>
-      )}
-
-      {/* Messages Container - Fixed height with scroll */}
-      <div 
-        ref={messagesContainerRef}
-        onScroll={handleScroll}
-        className="max-w-4xl mx-auto px-4 pb-28 overflow-y-auto"
-        style={{ height: 'calc(100vh - 64px - 80px)' }}
-      >
-        <div className="space-y-3 py-2">
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 py-12">
               <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -235,124 +196,125 @@ export default function CommunityPage() {
               )}
             </div>
           ) : (
-            messages.map((msg) => {
-              const isOwn = session?.user?.id === msg.userId
-              // Admin can delete any message, regular users only their own
-              const canDelete = isAdmin || isOwn
-              
-              return (
-                <div key={msg.id} className={`flex gap-2 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                  {/* Avatar - Left side for others */}
-                  {!isOwn && (
-                    <div className="flex-shrink-0">
-                      {msg.userImage ? (
-                        <Image src={msg.userImage} alt={msg.userName} width={32} height={32} className="rounded-full" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">{msg.userName?.charAt(0).toUpperCase() || 'U'}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Message Bubble */}
-                  <div className={`max-w-[70%] ${isOwn ? 'bg-emerald-600 text-white' : 'bg-gray-800 text-gray-100'} rounded-2xl px-3 py-2 shadow`}>
+            <div className="space-y-3">
+              {messages.map((msg) => {
+                const isOwn = session?.user?.id === msg.userId
+                const canDelete = isAdmin || isOwn
+                
+                return (
+                  <div key={msg.id} className={`flex gap-2 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                    {/* Avatar - Left side for others */}
                     {!isOwn && (
-                      <p className="text-xs font-semibold text-emerald-400 mb-0.5">
-                        {msg.userName}
-                        {isAdmin && ` (${msg.userId})`}
-                      </p>
-                    )}
-                    
-                    {editingId === msg.id ? (
-                      <div className="space-y-2">
-                        <textarea
-                          value={editText}
-                          onChange={(e) => setEditText(e.target.value)}
-                          className="w-full bg-gray-700 text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                          rows={2}
-                          autoFocus
-                          aria-label="Edit message text"
-                          placeholder="Edit your message..."
-                        />
-                        <div className="flex gap-2 justify-end">
-                          <button 
-                            onClick={saveEdit} 
-                            className="p-1 hover:bg-green-700 rounded transition"
-                            title="Save changes"
-                            aria-label="Save changes"
-                          >
-                            <Check size={14} />
-                          </button>
-                          <button 
-                            onClick={cancelEdit} 
-                            className="p-1 hover:bg-red-700 rounded transition"
-                            title="Cancel editing"
-                            aria-label="Cancel editing"
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
+                      <div className="flex-shrink-0">
+                        {msg.userImage ? (
+                          <Image src={msg.userImage} alt={msg.userName} width={32} height={32} className="rounded-full" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">{msg.userName?.charAt(0).toUpperCase() || 'U'}</span>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <p className="text-sm break-words">{msg.text}</p>
                     )}
-                    
-                    <div className="flex items-center justify-end gap-2 mt-0.5">
-                      <span className="text-[10px] opacity-70">
-                        {formatTime(msg.createdAt)}
-                        {msg.isEdited && ' (edited)'}
-                      </span>
-                      
-                      {/* Action Buttons */}
-                      {!editingId && (
-                        <div className="flex gap-1">
-                          {isOwn && (
-                            <button 
-                              onClick={() => startEdit(msg)} 
-                              className="opacity-50 hover:opacity-100 transition"
-                              title="Edit message"
-                              aria-label="Edit message"
-                            >
-                              <Edit2 size={10} />
-                            </button>
-                          )}
-                          {canDelete && (
-                            <button 
-                              onClick={() => handleDelete(msg.id, msg.userId)} 
-                              className="opacity-50 hover:opacity-100 hover:text-red-400 transition"
-                              title="Delete message"
-                              aria-label="Delete message"
-                            >
-                              <Trash2 size={10} />
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Avatar - Right side for own messages */}
-                  {isOwn && (
-                    <div className="flex-shrink-0">
-                      {session?.user?.image ? (
-                        <Image src={session.user.image} alt={session.user.name || 'User'} width={32} height={32} className="rounded-full" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">{session?.user?.name?.charAt(0).toUpperCase() || 'U'}</span>
-                        </div>
+                    {/* Message Bubble */}
+                    <div className={`max-w-[70%] ${isOwn ? 'bg-emerald-600 text-white' : 'bg-gray-800 text-gray-100'} rounded-2xl px-3 py-2 shadow`}>
+                      {!isOwn && (
+                        <p className="text-xs font-semibold text-emerald-400 mb-0.5">
+                          {msg.userName}
+                        </p>
                       )}
+                      
+                      {editingId === msg.id ? (
+                        <div className="space-y-2">
+                          <textarea
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                            className="w-full bg-gray-700 text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            rows={2}
+                            autoFocus
+                            aria-label="Edit message text"
+                            placeholder="Edit your message..."
+                          />
+                          <div className="flex gap-2 justify-end">
+                            <button 
+                              onClick={saveEdit} 
+                              className="p-1 hover:bg-green-700 rounded transition"
+                              title="Save changes"
+                              aria-label="Save changes"
+                            >
+                              <Check size={14} />
+                            </button>
+                            <button 
+                              onClick={cancelEdit} 
+                              className="p-1 hover:bg-red-700 rounded transition"
+                              title="Cancel editing"
+                              aria-label="Cancel editing"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm break-words">{msg.text}</p>
+                      )}
+                      
+                      <div className="flex items-center justify-end gap-2 mt-0.5">
+                        <span className="text-[10px] opacity-70">
+                          {formatTime(msg.createdAt)}
+                          {msg.isEdited && ' (edited)'}
+                        </span>
+                        
+                        {/* Action Buttons */}
+                        {!editingId && (
+                          <div className="flex gap-1">
+                            {isOwn && (
+                              <button 
+                                onClick={() => startEdit(msg)} 
+                                className="opacity-50 hover:opacity-100 transition"
+                                title="Edit message"
+                                aria-label="Edit message"
+                              >
+                                <Edit2 size={10} />
+                              </button>
+                            )}
+                            {canDelete && (
+                              <button 
+                                onClick={() => handleDelete(msg.id, msg.userId)} 
+                                className="opacity-50 hover:opacity-100 hover:text-red-400 transition"
+                                title="Delete message"
+                                aria-label="Delete message"
+                              >
+                                <Trash2 size={10} />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              )
-            })
+
+                    {/* Avatar - Right side for own messages */}
+                    {isOwn && (
+                      <div className="flex-shrink-0">
+                        {session?.user?.image ? (
+                          <Image src={session.user.image} alt={session.user.name || 'User'} width={32} height={32} className="rounded-full" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">{session?.user?.name?.charAt(0).toUpperCase() || 'U'}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+              <div ref={messagesEndRef} />
+            </div>
           )}
         </div>
       </div>
 
-      {/* Fixed Input */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 p-3">
+      {/* Fixed Input at Bottom */}
+      <div className="flex-shrink-0 bg-gray-900 border-t border-gray-800 p-3">
         <div className="max-w-4xl mx-auto px-4">
           <form onSubmit={sendMessage} className="flex gap-2">
             <label htmlFor="message-input" className="sr-only">Message</label>
