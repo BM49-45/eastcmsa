@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { Send, Trash2, Edit2, Check, X, AlertCircle, User, Loader2 } from 'lucide-react'
 import Image from 'next/image'
@@ -12,9 +12,12 @@ interface Message {
   userId: string
   userName: string
   userImage?: string
-  createdAt: string
-  editedAt?: string
+  createdAt: Date
+  editedAt?: Date
 }
+
+// Storage key for localStorage
+const STORAGE_KEY = 'community_messages'
 
 export default function CommunityPage() {
   const { data: session, status } = useSession()
@@ -25,7 +28,6 @@ export default function CommunityPage() {
   const [editingMessage, setEditingMessage] = useState<Message | null>(null)
   const [editText, setEditText] = useState('')
   const [showAuthAlert, setShowAuthAlert] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isAdmin, setIsAdmin] = useState(false)
 
@@ -33,38 +35,56 @@ export default function CommunityPage() {
   useEffect(() => {
     if (session?.user?.email) {
       const adminEmails = ['admin@eastcmsa.com', 'bm49@example.com']
-      setIsAdmin(adminEmails.includes(session.user.email) || session.user.role === 'admin')
+      setIsAdmin(adminEmails.includes(session.user.email) || (session.user as any).role === 'admin')
     }
   }, [session])
 
-  // Fetch messages from API
-  const fetchMessages = useCallback(async () => {
+  // Load messages from localStorage
+  useEffect(() => {
     try {
-      setIsLoading(true)
-      setError(null)
-      const res = await fetch('/api/community/messages')
-      
-      if (!res.ok) {
-        throw new Error('Failed to fetch messages')
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        const messagesWithDates = parsed.map((msg: any) => ({
+          ...msg,
+          createdAt: new Date(msg.createdAt),
+          editedAt: msg.editedAt ? new Date(msg.editedAt) : undefined
+        }))
+        setMessages(messagesWithDates)
+      } else {
+        // Load sample messages
+        const sampleMessages: Message[] = [
+          {
+            id: '1',
+            text: 'Karibu kwenye jumuiya ya EASTCMSA! Jisikie huru kuuliza maswali kuhusu Quran na Darsa.',
+            userId: 'system',
+            userName: 'Admin',
+            createdAt: new Date(),
+          },
+          {
+            id: '2',
+            text: 'Darsa ya Fiqhi itakuwa Jumatatu saa 6:30 mchana. Karibu sana!',
+            userId: 'system',
+            userName: 'Admin',
+            createdAt: new Date(Date.now() - 3600000),
+          }
+        ]
+        setMessages(sampleMessages)
+        saveMessages(sampleMessages)
       }
-      
-      const data = await res.json()
-      setMessages(data)
     } catch (error) {
-      console.error('Error fetching messages:', error)
-      setError('Imeshindwa kupakia ujumbe. Tafadhali onyesha upya ukurasa.')
-    } finally {
-      setIsLoading(false)
+      console.error('Error loading messages:', error)
     }
   }, [])
 
-  useEffect(() => {
-    fetchMessages()
-    
-    // Refresh messages every 5 seconds
-    const interval = setInterval(fetchMessages, 5000)
-    return () => clearInterval(interval)
-  }, [fetchMessages])
+  // Save messages to localStorage
+  const saveMessages = (msgs: Message[]) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs))
+    } catch (error) {
+      console.error('Error saving messages:', error)
+    }
+  }
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -88,28 +108,21 @@ export default function CommunityPage() {
     if (!newMessage.trim() || isSending) return
 
     setIsSending(true)
-    setError(null)
-
-    try {
-      const res = await fetch('/api/community/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: newMessage.trim() })
-      })
-
-      if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error || 'Failed to send')
-      }
-
-      setNewMessage('')
-      await fetchMessages() // Refresh messages
-    } catch (error) {
-      console.error('Error sending message:', error)
-      setError('Imeshindwa kutuma ujumbe. Tafadhali jaribu tena.')
-    } finally {
-      setIsSending(false)
+    
+    const newMsg: Message = {
+      id: Date.now().toString(),
+      text: newMessage.trim(),
+      userId: session.user.id,
+      userName: session.user.name || 'Anonymous',
+      userImage: session.user.image || undefined,
+      createdAt: new Date(),
     }
+    
+    const updatedMessages = [...messages, newMsg]
+    setMessages(updatedMessages)
+    saveMessages(updatedMessages)
+    setNewMessage('')
+    setIsSending(false)
   }
 
   // Delete message
@@ -121,20 +134,9 @@ export default function CommunityPage() {
 
     if (!confirm('Je, una uhakika unataka kufuta ujumbe huu?')) return
 
-    try {
-      const res = await fetch(`/api/community/messages/${messageId}`, {
-        method: 'DELETE'
-      })
-
-      if (!res.ok) {
-        throw new Error('Failed to delete')
-      }
-
-      await fetchMessages() // Refresh messages
-    } catch (error) {
-      console.error('Error deleting message:', error)
-      alert('Imeshindwa kufuta ujumbe. Tafadhali jaribu tena.')
-    }
+    const updatedMessages = messages.filter(msg => msg.id !== messageId)
+    setMessages(updatedMessages)
+    saveMessages(updatedMessages)
   }
 
   // Edit message
@@ -150,24 +152,16 @@ export default function CommunityPage() {
   const saveEdit = async () => {
     if (!editingMessage || !editText.trim()) return
 
-    try {
-      const res = await fetch(`/api/community/messages/${editingMessage.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: editText.trim() })
-      })
-
-      if (!res.ok) {
-        throw new Error('Failed to edit')
-      }
-
-      setEditingMessage(null)
-      setEditText('')
-      await fetchMessages() // Refresh messages
-    } catch (error) {
-      console.error('Error editing message:', error)
-      alert('Imeshindwa kuhariri ujumbe. Tafadhali jaribu tena.')
-    }
+    const updatedMessages = messages.map(msg => 
+      msg.id === editingMessage.id 
+        ? { ...msg, text: editText.trim(), editedAt: new Date() }
+        : msg
+    )
+    
+    setMessages(updatedMessages)
+    saveMessages(updatedMessages)
+    setEditingMessage(null)
+    setEditText('')
   }
 
   const cancelEdit = () => {
@@ -176,35 +170,12 @@ export default function CommunityPage() {
   }
 
   // Format time
-  const formatTime = (timestamp: string) => {
-    if (!timestamp) return ''
-    try {
-      const date = new Date(timestamp)
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    } catch {
-      return ''
-    }
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
-  const formatFullDate = (timestamp: string) => {
-    if (!timestamp) return ''
-    try {
-      const date = new Date(timestamp)
-      return date.toLocaleString()
-    } catch {
-      return ''
-    }
-  }
-
-  if (isLoading && messages.length === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 size={40} className="text-emerald-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Inapakia mazungumzo...</p>
-        </div>
-      </div>
-    )
+  const formatFullDate = (date: Date) => {
+    return date.toLocaleString()
   }
 
   return (
@@ -224,25 +195,6 @@ export default function CommunityPage() {
             >
               Ingia
             </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Error Alert */}
-      {error && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-5 duration-300">
-          <div className="bg-red-500/95 backdrop-blur-md text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-red-400">
-            <AlertCircle size={20} aria-hidden="true" />
-            <div>
-              <p className="font-semibold">Hitilafu</p>
-              <p className="text-sm">{error}</p>
-            </div>
-            <button
-              onClick={fetchMessages}
-              className="ml-4 px-4 py-2 bg-white text-red-600 rounded-xl text-sm font-semibold hover:bg-gray-100 transition"
-            >
-              Jaribu Tena
-            </button>
           </div>
         </div>
       )}
@@ -447,6 +399,11 @@ export default function CommunityPage() {
             </div>
           </form>
         </div>
+
+        {/* Note about local storage */}
+        <p className="text-center text-gray-500 text-xs mt-4">
+          Kumbuka: Ujumbe unahifadhiwa kwenye kifaa chako kwa sasa. Kwa ushirikiano wa watumiaji wote, tutaongeza database baadaye.
+        </p>
       </div>
     </div>
   )
