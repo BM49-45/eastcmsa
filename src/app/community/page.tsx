@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send, Trash2, Edit2, Check, X, Loader2, MessageCircle } from 'lucide-react'
+import { Send, Trash2, Edit2, Check, X, Loader2, MessageCircle, Shield } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -26,15 +26,10 @@ export default function CommunityPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({})
 
-  // Check admin
-  useEffect(() => {
-    if (session?.user?.email === 'admin@eastcmsa.com') {
-      setIsAdmin(true)
-    }
-  }, [session])
+  // Check if user is admin
+  const isAdmin = session?.user?.email === 'admin@eastcmsa.com' || session?.user?.role === 'admin'
 
   // Fetch messages
   const fetchMessages = useCallback(async () => {
@@ -45,7 +40,7 @@ export default function CommunityPage() {
       setMessages(data)
       setError(null)
     } catch (err) {
-      setError('Failed to load messages')
+      setError('Imeshindwa kupakia ujumbe')
     } finally {
       setIsFetching(false)
     }
@@ -63,7 +58,7 @@ export default function CommunityPage() {
     e.preventDefault()
 
     if (status !== 'authenticated') {
-      alert('Please login to send message')
+      alert('Tafadhali ingia ili kutuma ujumbe')
       return
     }
 
@@ -80,29 +75,42 @@ export default function CommunityPage() {
       setNewMessage('')
       await fetchMessages()
     } catch (err) {
-      setError('Failed to send message')
+      setError('Imeshindwa kutuma ujumbe')
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Delete message - ANYONE can delete ANY message
-  const handleDelete = async (messageId: string) => {
-    if (!confirm('Delete this message?')) return
+  // Delete - Admin au mwenyewe
+  const handleDelete = async (messageId: string, messageUserId: string) => {
+    // Kama si admin na si mwenyewe - kataa
+    if (!isAdmin && session?.user?.id !== messageUserId) {
+      alert('Unaweza kufuta ujumbe wako tu!')
+      return
+    }
+
+    const confirmMessage = isAdmin && session?.user?.id !== messageUserId
+      ? 'Kama admin, utafuta ujumbe wa mtumiaji mwingine. Endelea?'
+      : 'Futa ujumbe huu?'
+
+    if (!confirm(confirmMessage)) return
 
     try {
       const res = await fetch(`/api/community/messages?id=${messageId}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed')
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed')
+      }
       await fetchMessages()
     } catch (err) {
-      alert('Failed to delete message')
+      alert(err instanceof Error ? err.message : 'Imeshindwa kufuta ujumbe')
     }
   }
 
-  // Edit message - Only owner can edit
+  // Edit - Mwenyewe tu
   const startEdit = (message: Message) => {
     if (session?.user?.id !== message.userId) {
-      alert('You can only edit your own messages')
+      alert('Unaweza kuhariri ujumbe wako tu!')
       return
     }
     setEditingId(message.id)
@@ -118,12 +126,15 @@ export default function CommunityPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messageId: editingId, text: editText.trim() })
       })
-      if (!res.ok) throw new Error('Failed')
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed')
+      }
       setEditingId(null)
       setEditText('')
       await fetchMessages()
     } catch (err) {
-      alert('Failed to edit message')
+      alert(err instanceof Error ? err.message : 'Imeshindwa kuhariri ujumbe')
     }
   }
 
@@ -159,13 +170,13 @@ export default function CommunityPage() {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Header */}
-      <div className="bg-gray-900 border-b border-gray-800 py-64">
+      <div className="bg-gray-900 border-b border-gray-800 py-6">
         <div className="max-w-4xl mx-auto px-4">
-          <h1 className="text-xl font-bold text-white text-center">Community</h1>
+          <h1 className="text-xl font-bold text-white text-center">Jumuiya</h1>
           <p className="text-gray-400 text-center text-sm">
             {status === 'authenticated'
-              ? `Welcome, ${session.user.name}${isAdmin ? ' (Admin)' : ''}`
-              : 'Login to join'}
+              ? `Karibu, ${session.user.name}${isAdmin ? ' (Msimamizi)' : ''}`
+              : 'Ingia ili uhusike'}
           </p>
         </div>
       </div>
@@ -175,7 +186,7 @@ export default function CommunityPage() {
         <div className="max-w-4xl mx-auto px-4 mt-2">
           <div className="bg-red-500/20 border border-red-500 rounded-lg p-2 text-red-400 text-sm text-center">
             {error}
-            <button onClick={fetchMessages} className="ml-2 underline">Retry</button>
+            <button onClick={fetchMessages} className="ml-2 underline">Jaribu tena</button>
           </div>
         </div>
       )}
@@ -185,10 +196,10 @@ export default function CommunityPage() {
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 py-12">
             <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>No messages yet. Be the first!</p>
+            <p>Hakuna ujumbe bado. Kuwa wa kwanza!</p>
             {status !== 'authenticated' && (
               <Link href="/login" className="inline-block mt-3 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm">
-                Login to Chat
+                Ingia kuzungumza
               </Link>
             )}
           </div>
@@ -197,6 +208,8 @@ export default function CommunityPage() {
             {messages.map((msg) => {
               const isOwn = session?.user?.id === msg.userId
               const showImageError = imageErrors[msg.userId]
+              const canDelete = isAdmin || isOwn
+              const canEdit = isOwn
 
               return (
                 <div key={msg.id} className={`flex gap-2 ${isOwn ? 'justify-end' : 'justify-start'}`}>
@@ -223,7 +236,13 @@ export default function CommunityPage() {
                   {/* Message Bubble */}
                   <div className={`max-w-[70%] ${isOwn ? 'bg-emerald-600 text-white' : 'bg-gray-800 text-gray-100'} rounded-2xl px-3 py-2 shadow`}>
                     {!isOwn && (
-                      <p className="text-xs font-semibold text-emerald-400 mb-0.5">{msg.userName}</p>
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <p className="text-xs font-semibold text-emerald-400">{msg.userName}</p>
+                        {/* Ikiwa mtumiaji ni admin (angalia email) - tumia isAdmin kulinganisha na email */}
+                        {msg.userId === session?.user?.id && isAdmin && (
+                          <Shield size={10} className="text-emerald-400" />
+                        )}
+                      </div>
                     )}
 
                     {editingId === msg.id ? (
@@ -234,23 +253,20 @@ export default function CommunityPage() {
                           className="w-full bg-gray-700 text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                           rows={2}
                           autoFocus
-                          aria-label="Edit message"
-                          placeholder="Edit your message..."
+                          placeholder="Hariri ujumbe wako..."
                         />
                         <div className="flex gap-2 justify-end">
                           <button
                             onClick={saveEdit}
                             className="p-1 hover:bg-green-700 rounded transition"
-                            title="Save"
-                            aria-label="Save changes"
+                            title="Hifadhi"
                           >
                             <Check size={14} />
                           </button>
                           <button
                             onClick={cancelEdit}
                             className="p-1 hover:bg-red-700 rounded transition"
-                            title="Cancel"
-                            aria-label="Cancel editing"
+                            title="Ghairi"
                           >
                             <X size={14} />
                           </button>
@@ -263,32 +279,33 @@ export default function CommunityPage() {
                     <div className="flex items-center justify-end gap-2 mt-0.5">
                       <span className="text-[10px] opacity-70">
                         {formatTime(msg.createdAt)}
-                        {msg.isEdited && ' (edited)'}
+                        {msg.isEdited && ' (imehaririwa)'}
                       </span>
 
-                      {/* Action Buttons - Edit only for owner, Delete for everyone */}
+                      {/* Action Buttons */}
                       {!editingId && (
                         <div className="flex gap-1">
-                          {/* Edit - Only message owner can edit */}
-                          {isOwn && (
+                          {/* Edit - Only message owner */}
+                          {canEdit && (
                             <button
                               onClick={() => startEdit(msg)}
                               className="opacity-50 hover:opacity-100 transition"
-                              title="Edit message"
-                              aria-label="Edit message"
+                              title="Hariri ujumbe wako"
                             >
                               <Edit2 size={12} />
                             </button>
                           )}
-                          {/* Delete - EVERYONE can delete ANY message */}
-                          <button
-                            onClick={() => handleDelete(msg.id)}
-                            className="opacity-50 hover:opacity-100 hover:text-red-400 transition"
-                            title="Delete message"
-                            aria-label="Delete message"
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                          
+                          {/* Delete - Admin OR owner */}
+                          {canDelete && (
+                            <button
+                              onClick={() => handleDelete(msg.id, msg.userId)}
+                              className="opacity-50 hover:opacity-100 hover:text-red-400 transition"
+                              title={isOwn ? "Futa ujumbe wako" : "Futa ujumbe (Msimamizi)"}
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -324,24 +341,18 @@ export default function CommunityPage() {
       <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 p-3">
         <div className="max-w-4xl mx-auto px-4">
           <form onSubmit={sendMessage} className="flex gap-2">
-            <label htmlFor="message-input" className="sr-only">Message</label>
             <input
-              id="message-input"
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder={status === 'authenticated' ? 'Type a message...' : 'Login to chat'}
+              placeholder={status === 'authenticated' ? 'Andika ujumbe...' : 'Ingia kuzungumza'}
               disabled={status !== 'authenticated'}
               className="flex-1 bg-gray-800 text-white rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
-              title="Type your message"
-              aria-label="Type your message"
             />
             <button
               type="submit"
               disabled={status !== 'authenticated' || !newMessage.trim() || isLoading}
               className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-700 text-white rounded-full px-5 py-2 transition"
-              title="Send message"
-              aria-label="Send message"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </button>
