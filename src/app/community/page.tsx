@@ -1,13 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { 
-  getMessages, 
-  addMessage, 
-  updateMessage, 
-  deleteMessage 
-} from '@/lib/storage'
 import { Send, Trash2, Edit2, Check, X, AlertCircle, User, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -18,8 +12,8 @@ interface Message {
   userId: string
   userName: string
   userImage?: string
-  createdAt: Date
-  editedAt?: Date
+  createdAt: string
+  editedAt?: string
 }
 
 export default function CommunityPage() {
@@ -27,39 +21,52 @@ export default function CommunityPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isSending, setIsSending] = useState(false)
   const [editingMessage, setEditingMessage] = useState<Message | null>(null)
   const [editText, setEditText] = useState('')
   const [showAuthAlert, setShowAuthAlert] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isAdmin, setIsAdmin] = useState(false)
 
   // Check if user is admin
   useEffect(() => {
     if (session?.user?.email) {
-      const adminEmails = ['admin@eastcmsa.com', 'your-email@example.com']
-      setIsAdmin(adminEmails.includes(session.user.email))
+      const adminEmails = ['admin@eastcmsa.com', 'bm49@example.com']
+      setIsAdmin(adminEmails.includes(session.user.email) || session.user.role === 'admin')
     }
   }, [session])
 
-  // Load messages
-  useEffect(() => {
-    const loadMessages = () => {
-      const loaded = getMessages()
-      setMessages(loaded)
+  // Fetch messages from API
+  const fetchMessages = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const res = await fetch('/api/community/messages')
+      
+      if (!res.ok) {
+        throw new Error('Failed to fetch messages')
+      }
+      
+      const data = await res.json()
+      setMessages(data)
+    } catch (error) {
+      console.error('Error fetching messages:', error)
+      setError('Imeshindwa kupakia ujumbe. Tafadhali onyesha upya ukurasa.')
+    } finally {
+      setIsLoading(false)
     }
-    
-    loadMessages()
-    
-    // Listen for storage changes (if multiple tabs)
-    const handleStorageChange = () => {
-      loadMessages()
-    }
-    
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
-  // Auto-scroll
+  useEffect(() => {
+    fetchMessages()
+    
+    // Refresh messages every 5 seconds
+    const interval = setInterval(fetchMessages, 5000)
+    return () => clearInterval(interval)
+  }, [fetchMessages])
+
+  // Auto-scroll to bottom
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -78,39 +85,62 @@ export default function CommunityPage() {
       return
     }
 
-    if (!newMessage.trim() || isLoading) return
+    if (!newMessage.trim() || isSending) return
 
-    setIsLoading(true)
-    
-    const newMsg = addMessage({
-      text: newMessage.trim(),
-      userId: session.user.id,
-      userName: session.user.name || 'Anonymous',
-      userImage: session.user.image || undefined,
-    })
-    
-    setMessages(prev => [...prev, newMsg])
-    setNewMessage('')
-    setIsLoading(false)
+    setIsSending(true)
+    setError(null)
+
+    try {
+      const res = await fetch('/api/community/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: newMessage.trim() })
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Failed to send')
+      }
+
+      setNewMessage('')
+      await fetchMessages() // Refresh messages
+    } catch (error) {
+      console.error('Error sending message:', error)
+      setError('Imeshindwa kutuma ujumbe. Tafadhali jaribu tena.')
+    } finally {
+      setIsSending(false)
+    }
   }
 
   // Delete message
-  const handleDeleteMessage = (messageId: string) => {
+  const deleteMessage = async (messageId: string) => {
     if (!isAdmin) {
-      alert('Only admins can delete messages')
+      alert('Watumiaji wasio admin hawawezi kufuta ujumbe')
       return
     }
 
-    if (!confirm('Are you sure you want to delete this message?')) return
+    if (!confirm('Je, una uhakika unataka kufuta ujumbe huu?')) return
 
-    deleteMessage(messageId)
-    setMessages(prev => prev.filter(m => m.id !== messageId))
+    try {
+      const res = await fetch(`/api/community/messages/${messageId}`, {
+        method: 'DELETE'
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to delete')
+      }
+
+      await fetchMessages() // Refresh messages
+    } catch (error) {
+      console.error('Error deleting message:', error)
+      alert('Imeshindwa kufuta ujumbe. Tafadhali jaribu tena.')
+    }
   }
 
   // Edit message
   const startEdit = (message: Message) => {
     if (session?.user?.id !== message.userId) {
-      alert('You can only edit your own messages')
+      alert('Unaweza tu kuhariri ujumbe wako mwenyewe')
       return
     }
     setEditingMessage(message)
@@ -120,12 +150,24 @@ export default function CommunityPage() {
   const saveEdit = async () => {
     if (!editingMessage || !editText.trim()) return
 
-    const updated = updateMessage(editingMessage.id, editText.trim())
-    if (updated) {
-      setMessages(prev => prev.map(m => m.id === updated.id ? updated : m))
+    try {
+      const res = await fetch(`/api/community/messages/${editingMessage.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: editText.trim() })
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to edit')
+      }
+
+      setEditingMessage(null)
+      setEditText('')
+      await fetchMessages() // Refresh messages
+    } catch (error) {
+      console.error('Error editing message:', error)
+      alert('Imeshindwa kuhariri ujumbe. Tafadhali jaribu tena.')
     }
-    setEditingMessage(null)
-    setEditText('')
   }
 
   const cancelEdit = () => {
@@ -134,12 +176,35 @@ export default function CommunityPage() {
   }
 
   // Format time
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const formatTime = (timestamp: string) => {
+    if (!timestamp) return ''
+    try {
+      const date = new Date(timestamp)
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    } catch {
+      return ''
+    }
   }
 
-  const formatFullDate = (date: Date) => {
-    return date.toLocaleString()
+  const formatFullDate = (timestamp: string) => {
+    if (!timestamp) return ''
+    try {
+      const date = new Date(timestamp)
+      return date.toLocaleString()
+    } catch {
+      return ''
+    }
+  }
+
+  if (isLoading && messages.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 size={40} className="text-emerald-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Inapakia mazungumzo...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -150,15 +215,34 @@ export default function CommunityPage() {
           <div className="bg-amber-500/95 backdrop-blur-md text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-amber-400">
             <AlertCircle size={20} aria-hidden="true" />
             <div>
-              <p className="font-semibold">Registration Required</p>
-              <p className="text-sm">Please sign up or log in to join the conversation</p>
+              <p className="font-semibold">Inahitaji Kujisajili</p>
+              <p className="text-sm">Tafadhali ingia au jisajili kushiriki kwenye mazungumzo</p>
             </div>
             <Link 
-              href="/auth/signin" 
+              href="/login" 
               className="ml-4 px-4 py-2 bg-white text-amber-600 rounded-xl text-sm font-semibold hover:bg-gray-100 transition"
             >
-              Sign In
+              Ingia
             </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Error Alert */}
+      {error && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-5 duration-300">
+          <div className="bg-red-500/95 backdrop-blur-md text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-red-400">
+            <AlertCircle size={20} aria-hidden="true" />
+            <div>
+              <p className="font-semibold">Hitilafu</p>
+              <p className="text-sm">{error}</p>
+            </div>
+            <button
+              onClick={fetchMessages}
+              className="ml-4 px-4 py-2 bg-white text-red-600 rounded-xl text-sm font-semibold hover:bg-gray-100 transition"
+            >
+              Jaribu Tena
+            </button>
           </div>
         </div>
       )}
@@ -167,15 +251,12 @@ export default function CommunityPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent">
-            Community Discussion
+            Jumuiya ya Majadiliano
           </h1>
           <p className="text-gray-300 mt-2">
             {status === 'authenticated' 
-              ? `Welcome, ${session.user.name}! Share your thoughts...` 
-              : 'Sign in to join the discussion'}
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Messages are saved locally in your browser
+              ? `Karibu, ${session.user.name}! Shiriki mawazo yako...` 
+              : 'Ingia kushiriki kwenye majadiliano'}
           </p>
         </div>
 
@@ -185,13 +266,13 @@ export default function CommunityPage() {
             {messages.length === 0 ? (
               <div className="text-center text-gray-400 py-12">
                 <User size={48} className="mx-auto mb-3 opacity-50" aria-hidden="true" />
-                <p>No messages yet. Be the first to start the conversation!</p>
+                <p>Hakuna ujumbe bado. Kuwa wa kwanza kuanza mazungumzo!</p>
                 {status !== 'authenticated' && (
                   <Link 
-                    href="/auth/signin" 
+                    href="/login" 
                     className="inline-block mt-4 px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm hover:bg-emerald-700 transition"
                   >
-                    Sign in to chat
+                    Ingia kuzungumza
                   </Link>
                 )}
               </div>
@@ -246,23 +327,23 @@ export default function CommunityPage() {
                           className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                           rows={2}
                           autoFocus
-                          placeholder="Edit your message..."
-                          aria-label="Edit message text"
+                          placeholder="Hariri ujumbe wako..."
+                          aria-label="Hariri ujumbe"
                         />
                         <div className="flex gap-2 justify-end">
                           <button
                             onClick={saveEdit}
                             className="p-1 hover:bg-green-700 rounded transition"
-                            title="Save changes"
-                            aria-label="Save edited message"
+                            title="Hifadhi mabadiliko"
+                            aria-label="Hifadhi mabadiliko"
                           >
                             <Check size={16} aria-hidden="true" />
                           </button>
                           <button
                             onClick={cancelEdit}
                             className="p-1 hover:bg-red-700 rounded transition"
-                            title="Cancel editing"
-                            aria-label="Cancel message edit"
+                            title="Ghairi uhariri"
+                            aria-label="Ghairi uhariri"
                           >
                             <X size={16} aria-hidden="true" />
                           </button>
@@ -278,7 +359,7 @@ export default function CommunityPage() {
                         title={formatFullDate(message.createdAt)}
                       >
                         {formatTime(message.createdAt)}
-                        {message.editedAt && ' (edited)'}
+                        {message.editedAt && ' (imehaririwa)'}
                       </span>
                       
                       {/* Action Buttons */}
@@ -287,18 +368,18 @@ export default function CommunityPage() {
                           <button
                             onClick={() => startEdit(message)}
                             className="opacity-50 hover:opacity-100 transition"
-                            title="Edit message"
-                            aria-label="Edit this message"
+                            title="Hariri ujumbe"
+                            aria-label="Hariri ujumbe"
                           >
                             <Edit2 size={12} aria-hidden="true" />
                           </button>
                         )}
                         {(isAdmin || session?.user?.id === message.userId) && !editingMessage && (
                           <button
-                            onClick={() => handleDeleteMessage(message.id)}
+                            onClick={() => deleteMessage(message.id)}
                             className="opacity-50 hover:opacity-100 transition hover:text-red-400"
-                            title="Delete message"
-                            aria-label="Delete this message"
+                            title="Futa ujumbe"
+                            aria-label="Futa ujumbe"
                           >
                             <Trash2 size={12} aria-hidden="true" />
                           </button>
@@ -342,22 +423,22 @@ export default function CommunityPage() {
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder={
                   status === 'authenticated'
-                    ? 'Type your message...'
-                    : 'Sign in to join the conversation'
+                    ? 'Andika ujumbe wako...'
+                    : 'Ingia kushiriki kwenye mazungumzo'
                 }
-                disabled={status !== 'authenticated'}
+                disabled={status !== 'authenticated' || isSending}
                 className="flex-1 bg-gray-800/50 text-white rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="New message input"
-                title="Type your message here"
+                aria-label="Ujumbe mpya"
+                title="Andika ujumbe wako hapa"
               />
               <button
                 type="submit"
-                disabled={status !== 'authenticated' || !newMessage.trim() || isLoading}
+                disabled={status !== 'authenticated' || !newMessage.trim() || isSending}
                 className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl px-4 py-2 transition"
-                title="Send message"
-                aria-label="Send message"
+                title="Tuma ujumbe"
+                aria-label="Tuma ujumbe"
               >
-                {isLoading ? (
+                {isSending ? (
                   <Loader2 size={20} className="animate-spin" aria-hidden="true" />
                 ) : (
                   <Send size={20} aria-hidden="true" />
