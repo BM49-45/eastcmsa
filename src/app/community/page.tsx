@@ -40,7 +40,7 @@ export default function CommunityPage() {
   }, [session])
 
   // Load messages from localStorage
-  useEffect(() => {
+  const loadMessages = () => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
@@ -75,7 +75,7 @@ export default function CommunityPage() {
     } catch (error) {
       console.error('Error loading messages:', error)
     }
-  }, [])
+  }
 
   // Save messages to localStorage
   const saveMessages = (msgs: Message[]) => {
@@ -85,6 +85,18 @@ export default function CommunityPage() {
       console.error('Error saving messages:', error)
     }
   }
+
+  // Initial load
+  useEffect(() => {
+    loadMessages()
+    
+    // Refresh messages every 3 seconds to simulate real-time
+    const interval = setInterval(() => {
+      loadMessages()
+    }, 3000)
+    
+    return () => clearInterval(interval)
+  }, [])
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -209,6 +221,9 @@ export default function CommunityPage() {
             {status === 'authenticated' 
               ? `Karibu, ${session.user.name}! Shiriki mawazo yako...` 
               : 'Ingia kushiriki kwenye majadiliano'}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Ujumbe unasasishwa moja kwa moja kila sekunde 3
           </p>
         </div>
 
@@ -400,9 +415,9 @@ export default function CommunityPage() {
           </form>
         </div>
 
-        {/* Note about local storage */}
+        {/* Note */}
         <p className="text-center text-gray-500 text-xs mt-4">
-          Kumbuka: Ujumbe unahifadhiwa kwenye kifaa chako kwa sasa. Kwa ushirikiano wa watumiaji wote, tutaongeza database baadaye.
+          💡 Ujumbe unahifadhiwa kwenye kifaa chako. Kwa ushirikiano wa watumiaji wote, tutaongeza server baadaye.
         </p>
       </div>
     </div>
