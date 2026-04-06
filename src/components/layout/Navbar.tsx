@@ -73,7 +73,7 @@ export default function Navbar() {
     const isInstalled = window.matchMedia('(display-mode: standalone)').matches
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
     setIsIOS(isIOSDevice)
-    
+
     if (!isInstalled) {
       setShowInstall(true)
     }
@@ -130,11 +130,11 @@ export default function Navbar() {
 
   useEffect(() => {
     setMounted(true)
-    
+
     const handleScroll = () => {
       setScrolled(window.scrollY > 10)
     }
-    
+
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -179,9 +179,9 @@ export default function Navbar() {
 
   const handleSignOut = async () => {
     try {
-      await signOut({ 
-        redirect: true, 
-        callbackUrl: '/' 
+      await signOut({
+        redirect: true,
+        callbackUrl: '/'
       })
     } catch (error) {
       console.error('Error signing out:', error)
@@ -196,12 +196,11 @@ export default function Navbar() {
   return (
     <>
       {/* Main Navbar */}
-      <nav 
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled 
-            ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg py-2' 
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+            ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg py-2'
             : 'bg-white dark:bg-gray-900 py-3'
-        }`}
+          }`}
         aria-label="Main navigation"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -240,16 +239,15 @@ export default function Navbar() {
               {mainNavLinks.slice(0, 5).map((link) => {
                 const isActive = isActiveLink(link.href)
                 const IconComponent = link.icon
-                
+
                 return (
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      isActive
+                    className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
                         ? 'bg-green-600 text-white shadow-md'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-green-600 dark:hover:text-green-400'
-                    }`}
+                      }`}
                     aria-current={isActive ? 'page' : undefined}
                     title={link.title}
                   >
@@ -258,7 +256,7 @@ export default function Navbar() {
                   </Link>
                 )
               })}
-              
+
               {/* More dropdown for remaining links */}
               <div className="relative group">
                 <button
@@ -270,19 +268,18 @@ export default function Navbar() {
                   <span>Zaidi</span>
                   <ChevronDown size={14} />
                 </button>
-                
+
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   {mainNavLinks.slice(5).map((link) => {
                     const IconComponent = link.icon
                     const isActive = isActiveLink(link.href)
-                    
+
                     return (
                       <Link
                         key={link.name}
                         href={link.href}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 first:rounded-t-xl last:rounded-b-xl ${
-                          isActive ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-gray-700 dark:text-gray-300'
-                        }`}
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 first:rounded-t-xl last:rounded-b-xl ${isActive ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-gray-700 dark:text-gray-300'
+                          }`}
                         title={link.title}
                       >
                         <IconComponent size={16} />
@@ -348,7 +345,7 @@ export default function Navbar() {
                   >
                     <div className="relative w-6 h-6 rounded-full bg-white/20 overflow-hidden flex-shrink-0">
                       {session?.user?.image && !profileImageError ? (
-                        <img 
+                        <img
                           src={session.user.image}
                           alt={session.user.name || "User"}
                           className="w-full h-full object-cover"
@@ -367,7 +364,7 @@ export default function Navbar() {
                   </button>
 
                   {accountOpen && (
-                    <div 
+                    <div
                       className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
                       aria-label="Account menu"
                     >
@@ -376,7 +373,7 @@ export default function Navbar() {
                         <div className="flex items-center gap-3">
                           <div className="relative w-12 h-12 rounded-full bg-green-600 overflow-hidden flex-shrink-0">
                             {session?.user?.image && !profileImageError ? (
-                              <img 
+                              <img
                                 src={session.user.image}
                                 alt={session.user.name || "User"}
                                 className="w-full h-full object-cover"
@@ -435,11 +432,10 @@ export default function Navbar() {
                             key={link.name}
                             href={link.href}
                             onClick={() => setAccountOpen(false)}
-                            className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                              isActiveLink(link.href)
+                            className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${isActiveLink(link.href)
                                 ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
                                 : 'text-gray-700 dark:text-gray-300'
-                            }`}
+                              }`}
                             role="menuitem"
                             title={link.title}
                           >
@@ -464,11 +460,10 @@ export default function Navbar() {
                                 key={link.name}
                                 href={link.href}
                                 onClick={() => setAccountOpen(false)}
-                                className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                                  isActiveLink(link.href)
+                                className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${isActiveLink(link.href)
                                     ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
                                     : 'text-gray-700 dark:text-gray-300'
-                                }`}
+                                  }`}
                                 role="menuitem"
                                 title={link.title}
                               >
@@ -517,17 +512,16 @@ export default function Navbar() {
                 {mainNavLinks.map((link) => {
                   const isActive = isActiveLink(link.href)
                   const IconComponent = link.icon
-                  
+
                   return (
                     <Link
                       key={link.name}
                       href={link.href}
                       onClick={() => setMobileOpen(false)}
-                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                        isActive
+                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
                           ? 'bg-green-600 text-white'
                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                      }`}
+                        }`}
                       aria-current={isActive ? 'page' : undefined}
                       title={link.title}
                     >
@@ -554,17 +548,16 @@ export default function Navbar() {
                 {isLoggedIn && (
                   <>
                     <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                    
+
                     {sidebarLinks.map((link) => (
                       <Link
                         key={link.name}
                         href={link.href}
                         onClick={() => setMobileOpen(false)}
-                        className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                          isActiveLink(link.href)
+                        className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActiveLink(link.href)
                             ? 'bg-green-600 text-white'
                             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                        }`}
+                          }`}
                         title={link.title}
                       >
                         <link.icon size={20} />
@@ -577,11 +570,10 @@ export default function Navbar() {
                         key={link.name}
                         href={link.href}
                         onClick={() => setMobileOpen(false)}
-                        className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                          isActiveLink(link.href)
+                        className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActiveLink(link.href)
                             ? 'bg-green-600 text-white'
                             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                        }`}
+                          }`}
                         title={link.title}
                       >
                         <link.icon size={20} />
@@ -648,9 +640,8 @@ export default function Navbar() {
       {/* Sidebar */}
       <aside
         ref={sidebarRef}
-        className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-900 shadow-2xl z-40 transition-all duration-300 ease-in-out pt-20 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 ${sidebarOpen ? 'lg:w-64' : 'lg:w-20'}`}
+        className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-900 shadow-2xl z-40 transition-all duration-300 ease-in-out pt-20 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0 ${sidebarOpen ? 'lg:w-64' : 'lg:w-20'}`}
         aria-label="Sidebar navigation"
       >
         <div className="h-full overflow-y-auto py-4 px-3">
@@ -690,11 +681,10 @@ export default function Navbar() {
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-3 py-2 rounded-lg transition-all ${
-                      isActive
+                    className={`flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-3 py-2 rounded-lg transition-all ${isActive
                         ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}
+                      }`}
                     title={link.title}
                   >
                     <Icon size={18} />
@@ -719,11 +709,10 @@ export default function Navbar() {
                     <Link
                       key={link.name}
                       href={link.href}
-                      className={`flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-3 py-2 rounded-lg transition-all ${
-                        isActive
+                      className={`flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-3 py-2 rounded-lg transition-all ${isActive
                           ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                      }`}
+                        }`}
                       title={link.title}
                     >
                       <Icon size={18} />
