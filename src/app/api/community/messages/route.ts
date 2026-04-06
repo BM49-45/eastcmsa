@@ -4,17 +4,11 @@ import { authOptions } from "@/lib/auth"
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 
-// GET - Retrieve all messages
+// GET - Retrieve all messages (public - anyone can read)
 export async function GET() {
   try {
     const client = await clientPromise
     const db = client.db("eastcmsa")
-    
-    // Check if collection exists, if not create it
-    const collections = await db.listCollections({ name: "community_messages" }).toArray()
-    if (collections.length === 0) {
-      await db.createCollection("community_messages")
-    }
     
     const messages = await db.collection("community_messages")
       .find({ isDeleted: { $ne: true } })
@@ -40,7 +34,7 @@ export async function GET() {
   }
 }
 
-// POST - Send a new message
+// POST - Send a new message (authenticated users only)
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
@@ -84,18 +78,13 @@ export async function POST(req: Request) {
   }
 }
 
-// DELETE - Soft delete a message (admin only)
+// DELETE - Delete a message (admin or owner)
 export async function DELETE(req: Request) {
   try {
     const session = await getServerSession(authOptions)
     
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    // Check if user is admin
-    if (session.user.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden - Admin only" }, { status: 403 })
     }
 
     const { searchParams } = new URL(req.url)
@@ -108,10 +97,22 @@ export async function DELETE(req: Request) {
     const client = await clientPromise
     const db = client.db("eastcmsa")
 
-    await db.collection("community_messages").updateOne(
-      { _id: new ObjectId(messageId) },
-      { $set: { isDeleted: true, deletedAt: new Date().toISOString() } }
-    )
+    const message = await db.collection("community_messages").findOne({ _id: new ObjectId(messageId) })
+
+    if (!message) {
+      return NextResponse.json({ error: "Message not found" }, { status: 404 })
+    }
+
+    // Check if user is admin or message owner
+    const isAdmin = session.user.role === "admin"
+    const isOwner = message.userId === session.user.id
+
+    if (!isAdmin && !isOwner) {
+      return NextResponse.json({ error: "Forbidden - You can only delete your own messages" }, { status: 403 })
+    }
+
+    // Hard delete (remove completely) or soft delete? Let's hard delete for simplicity
+    await db.collection("community_messages").deleteOne({ _id: new ObjectId(messageId) })
 
     return NextResponse.json({ success: true })
   } catch (error) {
