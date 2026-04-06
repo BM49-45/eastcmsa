@@ -155,7 +155,7 @@ export default function CommunityPage() {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Header */}
-      <div className="bg-gray-900 border-b border-gray-800 py-32">
+      <div className="bg-gray-900 border-b border-gray-800 py-64">
         <div className="max-w-4xl mx-auto px-4">
           <h1 className="text-xl font-bold text-white text-center">Community</h1>
           <p className="text-gray-400 text-center text-sm">
