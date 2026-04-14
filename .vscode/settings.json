@@ -5,7 +5,7 @@
   "javascript.validate.enable": true,
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  
+
   // ==================== EDITOR FORMATTING ====================
   "editor.formatOnSave": true,
   "editor.formatOnPaste": false,
@@ -21,7 +21,7 @@
   "editor.wordWrap": "on",
   "editor.renderWhitespace": "boundary",
   "editor.renderControlCharacters": true,
-  
+
   // ==================== FILE ASSOCIATIONS ====================
   "files.associations": {
     "*.css": "tailwindcss",
@@ -43,7 +43,7 @@
     "**/.next/**": true,
     "**/dist/**": true
   },
-  
+
   // ==================== SPELL CHECKING (Kiswahili + English) ====================
   "cSpell.enabled": true,
   "cSpell.language": "en,sw",
@@ -212,9 +212,91 @@
     "cmdk",
     "vaul",
     "uploadthing",
-    "tanstack"
+    "tanstack",
+    "usul",
+    "sitta",
+    "Usuul",
+    "Sitta",
+    "الأصول",
+    "السنة",
+    "Shaykh",
+    "Salih",
+    "Fawzan",
+    "Kitabu",
+    "kinachoelezea",
+    "misingi",
+    "muhimu",
+    "imani",
+    "utauhid",
+    "Aqeedah",
+    "muyassar",
+    "Muyassar",
+    "الفقه",
+    "الميسر",
+    "Wizarah",
+    "Awqaf",
+    "kilichorahisishwa",
+    "ufahamu",
+    "kila",
+    "umdatul",
+    "ahkam",
+    "Sharh",
+    "Umdatul",
+    "Ahkam",
+    "عمدة",
+    "الأحكام",
+    "hukumu",
+    "Uislamu",
+    "qawaid",
+    "arba",
+    "Qawaid",
+    "Arba",
+    "القواعد",
+    "الأربع",
+    "Wahhab",
+    "msingi",
+    "katika",
+    "kutofautisha",
+    "kati",
+    "ushirik",
+    "sharh",
+    "السنة",
+    "للإمام",
+    "المزني",
+    "Muzani",
+    "sahihi",
+    "kashf",
+    "shubuhat",
+    "Kashf",
+    "Shubuhat",
+    "الشبهات",
+    "kinachojibu",
+    "kufafanua",
+    "Muislamu",
+    "Tafuta",
+    "kitabu",
+    "jina",
+    "mwandishi",
+    "Zote",
+    "kilichopatikana",
+    "utafutaji",
+    "kurasa",
+    "Mwandishi",
+    "hiki",
+    "kuelewa",
+    "dini",
+    "Onyesha",
+    "favourite",
+    "favourites",
+    "Favourite",
+    "Favourites",
+    "Like",
+    "Share",
+    "liked",
+    "shared",
+    "favourited"
   ],
-  
+
   // ==================== CSS & TAILWIND ====================
   "css.validate": true,
   "scss.validate": true,
@@ -230,7 +312,7 @@
   },
   "tailwindCSS.emmetCompletions": true,
   "tailwindCSS.classAttributes": ["class", "className", "tw", "twMerge", "cn"],
-  
+
   // ==================== EMOJI & ICONS ====================
   "emojisense.languages": {
     "markdown": true,
@@ -239,42 +321,42 @@
     "typescriptreact": true,
     "javascriptreact": true
   },
-  
+
   // ==================== GIT & VERSION CONTROL ====================
   "git.autofetch": true,
   "git.confirmSync": false,
   "git.enableSmartCommit": true,
   "git.inputValidationLength": 1000,
-  
+
   // ==================== TERMINAL ====================
   "terminal.integrated.defaultProfile.windows": "Git Bash",
   "terminal.integrated.fontSize": 13,
   "terminal.integrated.cursorStyle": "line",
   "terminal.integrated.scrollback": 5000,
-  
+
   // ==================== DEBUGGING ====================
   "debug.openDebug": "neverOpen",
   "debug.internalConsoleOptions": "neverOpen",
   "debug.onTaskErrors": "abort",
-  
+
   // ==================== WORKBENCH UI ====================
-  "workbench.colorTheme": "Default Dark Modern",
+  "workbench.colorTheme": "Dark Modern",
   "workbench.iconTheme": "material-icon-theme",
   "workbench.sideBar.location": "left",
   "workbench.editor.enablePreview": false,
   "workbench.editor.closeOnFileDelete": true,
   "workbench.startupEditor": "none",
   "workbench.tree.indent": 16,
-  
+
   // ==================== EXTENSIONS ====================
   "extensions.ignoreRecommendations": false,
-  
+
   // ==================== EXPLORER ====================
   "explorer.confirmDragAndDrop": false,
   "explorer.confirmDelete": false,
   "explorer.autoReveal": true,
   "explorer.compactFolders": false,
-  
+
   // ==================== SEARCH ====================
   "search.exclude": {
     "**/node_modules": true,
@@ -287,42 +369,29 @@
   },
   "search.quickOpen.includeHistory": false,
   "search.followSymlinks": false,
-  
+
   // ==================== TYPESCRIPT ====================
   "typescript.preferences.importModuleSpecifier": "shortest",
   "typescript.preferences.quoteStyle": "single",
   "typescript.updateImportsOnFileMove.enabled": "always",
   "javascript.updateImportsOnFileMove.enabled": "always",
   "typescript.suggest.completeFunctionCalls": true,
-  
+
   // ==================== ESLINT & PRETTIER ====================
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ],
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
   "eslint.format.enable": true,
   "prettier.requireConfig": true,
   "prettier.useEditorConfig": false,
-  
+
   // ==================== EDGE DEVTOOLS ====================
-  "edge-devtools.excludeHosts": [
-    "localhost",
-    "127.0.0.1",
-    "*.vercel.app"
-  ],
-  "edge-devtools.excludeUrls": [
-    "http://localhost:*",
-    "http://127.0.0.1:*",
-    "https://*.vercel.app"
-  ],
+  "edge-devtools.excludeHosts": ["localhost", "127.0.0.1", "*.vercel.app"],
+  "edge-devtools.excludeUrls": ["http://localhost:*", "http://127.0.0.1:*", "https://*.vercel.app"],
   "edge-devtools.enable": false,
-  
+
   // ==================== LIVE SERVER ====================
   "liveServer.settings.donotShowInfoMsg": true,
   "liveServer.settings.donotVerifyTags": true,
-  
+
   // ==================== BETTER COMMENTS ====================
   "better-comments.tags": [
     {
@@ -371,29 +440,29 @@
       "italic": false
     }
   ],
-  
+
   // ==================== AUTO IMPORT ====================
   "javascript.suggest.autoImports": true,
   "typescript.suggest.autoImports": true,
-  
+
   // ==================== INLAY HINTS ====================
   "typescript.inlayHints.parameterNames.enabled": "none",
   "typescript.inlayHints.variableTypes.enabled": false,
   "javascript.inlayHints.parameterNames.enabled": "none",
-  
+
   // ==================== TELEMETRY ====================
   "telemetry.telemetryLevel": "off",
-  
+
   // ==================== WINDOWS SPECIFIC ====================
   "files.eol": "\n",
   "files.encoding": "utf8",
   "files.autoSave": "onFocusChange",
   "files.autoSaveDelay": 1000,
-  
+
   // ==================== MARKDOWN ====================
   "markdown.preview.breaks": true,
   "markdown.extension.toc.levels": "2..6",
-  
+
   // ==================== REMOTE DEVELOPMENT ====================
   "remote.autoForwardPorts": false,
   "remote.downloadExtensionsLocally": true
