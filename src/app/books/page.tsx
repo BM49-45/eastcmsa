@@ -21,7 +21,7 @@ const books: Book[] = [
     title: 'Al-Usuul As-Sitta',
     titleAr: 'الأصول السنة',
     author: 'Shaykh Salih Al-Fawzan',
-    description: 'Kitabu kinachoelezea misingi sita muhimu ya imani na utauhid.',
+    description: 'Kitabu kinachoelezea misingi sita muhimu ya imani na tawhid.',
     category: 'Aqeedah',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D8%A7%D9%84%D8%A3%D8%B5%D9%88%D9%84%20%D8%A7%D9%84%D8%B3%D8%AA%D8%A9.pdf',
     pages: 49,
@@ -54,7 +54,7 @@ const books: Book[] = [
     title: 'Al-Qawaid Al-Arba',
     titleAr: 'متن القواعد الأربع',
     author: 'Shaykh Muhammad Ibn Abdul Wahhab',
-    description: 'Kanuni nne za msingi katika kutofautisha kati ya utauhid na ushirik.',
+    description: 'Kanuni nne za msingi katika kutofautisha kati ya tawhid na ushirikina.',
     category: 'Aqeedah',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D9%85%D8%AA%D9%86%20%D8%A7%D9%84%D9%82%D9%88%D8%A7%D8%B9%D8%AF%20%D8%A7%D9%84%D8%A3%D8%B1%D8%A8%D8%B9.pdf',
     pages: 0,
@@ -76,7 +76,7 @@ const books: Book[] = [
     title: 'Kashf Ash-Shubuhat',
     titleAr: 'كشف الشبهات',
     author: 'Shaykh Muhammad Ibn Abdul Wahhab',
-    description: 'Kitabu kinachojibu na kufafanua mashaka kuhusu utauhid.',
+    description: 'Kitabu kinachojibu na kufafanua mashaka kuhusu tawhid.',
     category: 'Aqeedah',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D9%85%D8%AA%D9%86%20%D9%83%D8%B4%D9%81%20%D8%A7%D9%84%D8%B4%D8%A8%D9%87%D8%A7%D8%AA.PDF',
     pages: 0,
@@ -335,7 +335,7 @@ export default function BooksPage() {
                     <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3 flex-wrap">
                       {isLiked && <span className="text-red-500">Umeipenda</span>}
                       {isFavourited && <span className="text-amber-500">Kwenye Favourites</span>}
-                      {isShared && <span className="text-blue-500">Umeshare</span>}
+                      {isShared && <span className="text-blue-500">Umeshiriki</span>}
                     </div>
 
                     {/* Expandable Description */}
