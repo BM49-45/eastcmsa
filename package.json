@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
-    "@types/pdfjs-dist": "^2.10.378",
     "assert": "^2.1.0",
     "bcryptjs": "^2.4.3",
     "browserify-zlib": "^0.2.0",
@@ -29,7 +28,6 @@
     "nodemailer": "^6.9.13",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
-    "pdfjs-dist": "^5.6.205",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
