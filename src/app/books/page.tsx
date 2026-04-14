@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BookOpen, Download, Eye, ChevronDown, ChevronUp, Heart, Share2, Star } from 'lucide-react'
+import { BookOpen, Download, Eye, ChevronDown, ChevronUp, Heart, Share2, Star, Volume2, Headphones } from 'lucide-react'
 
 interface Book {
   id: string
@@ -12,6 +12,7 @@ interface Book {
   category: string
   fileUrl: string
   pages?: number
+  language: 'arabic' | 'swahili' | 'english'
 }
 
 const books: Book[] = [
@@ -23,7 +24,8 @@ const books: Book[] = [
     description: 'Kitabu kinachoelezea misingi sita muhimu ya imani na utauhid.',
     category: 'Aqeedah',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D8%A7%D9%84%D8%A3%D8%B5%D9%88%D9%84%20%D8%A7%D9%84%D8%B3%D8%AA%D8%A9.pdf',
-    pages: 49
+    pages: 49,
+    language: 'arabic'
   },
   {
     id: 'fiqh-muyassar',
@@ -33,7 +35,8 @@ const books: Book[] = [
     description: 'Kitabu cha fiqh kilichorahisishwa kwa ufahamu wa kila mtu.',
     category: 'Fiqh',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D8%A7%D9%84%D9%81%D9%82%D9%87%20%D8%A7%D9%84%D9%85%D9%8A%D8%B3%D8%B1%20%D9%81%D9%8A%20%D8%B6%D9%88%D8%A1%20%D8%A7%D9%84%D9%83%D8%AA%D8%A7%D8%A8%20%D9%88.pdf',
-    pages: 35
+    pages: 35,
+    language: 'arabic'
   },
   {
     id: 'umdatul-ahkam',
@@ -43,7 +46,8 @@ const books: Book[] = [
     description: 'Ufafanuzi wa hadith za hukumu za muhimu katika Uislamu.',
     category: 'Hadith',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D8%B4%D8%B1%D8%AD%20%D8%B9%D9%85%D8%AF%D8%A9%20%D8%A7%D9%84%D8%A3%D8%AD%D9%83%D8%A7%D9%85.pdf',
-    pages: 0
+    pages: 0,
+    language: 'arabic'
   },
   {
     id: 'qawaid-arba',
@@ -53,7 +57,8 @@ const books: Book[] = [
     description: 'Kanuni nne za msingi katika kutofautisha kati ya utauhid na ushirik.',
     category: 'Aqeedah',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D9%85%D8%AA%D9%86%20%D8%A7%D9%84%D9%82%D9%88%D8%A7%D8%B9%D8%AF%20%D8%A7%D9%84%D8%A3%D8%B1%D8%A8%D8%B9.pdf',
-    pages: 0
+    pages: 0,
+    language: 'arabic'
   },
   {
     id: 'sharh-sunnah',
@@ -63,7 +68,8 @@ const books: Book[] = [
     description: 'Ufafanuzi wa misingi ya Sunnah na imani sahihi.',
     category: 'Aqeedah',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D9%85%D8%AA%D9%86%20%D8%B4%D8%B1%D8%AD%20%D8%A7%D9%84%D8%B3%D9%86%D8%A9%20%D9%84%D9%84%D8%A5%D9%85%D8%A7%D9%85%20%D8%A7%D9%84%D9%85%D8%B2%D9%86%D9%8A%20%D8%B1%D8%AD%D9%85%D9%87%20%D8%A7%D9%84%D9%84%D9%87.pdf',
-    pages: 0
+    pages: 0,
+    language: 'arabic'
   },
   {
     id: 'kashf-shubuhat',
@@ -73,16 +79,54 @@ const books: Book[] = [
     description: 'Kitabu kinachojibu na kufafanua mashaka kuhusu utauhid.',
     category: 'Aqeedah',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D9%85%D8%AA%D9%86%20%D9%83%D8%B4%D9%81%20%D8%A7%D9%84%D8%B4%D8%A8%D9%87%D8%A7%D8%AA.PDF',
-    pages: 0
+    pages: 0,
+    language: 'arabic'
   }
 ]
 
 const categories = ['All', 'Aqeedah', 'Fiqh', 'Hadith']
 
+// Helper function to get voice instructions based on language
+const getVoiceInstructions = (language: string) => {
+  switch (language) {
+    case 'arabic':
+      return {
+        title: '📖 Kusoma kwa Sauti (Arabic)',
+        steps: [
+          'Fungua kitabu kwa kubonyeza "Soma"',
+          'Baada ya PDF kufunguka, bonyeza kulia (right-click) popote kwenye ukurasa',
+          'Chagua "Read Aloud" au "Kusoma kwa Sauti"',
+          'Browser itaanza kusoma kitabu kwa sauti kwa Kiarabu'
+        ]
+      }
+    case 'swahili':
+      return {
+        title: '📖 Kusoma kwa Sauti (Swahili)',
+        steps: [
+          'Fungua kitabu kwa kubonyeza "Soma"',
+          'Baada ya PDF kufunguka, bonyeza kulia (right-click) popote kwenye ukurasa',
+          'Chagua "Read Aloud" au "Kusoma kwa Sauti"',
+          'Browser itaanza kusoma kitabu kwa sauti kwa Kiswahili'
+        ]
+      }
+    default:
+      return {
+        title: '📖 Kusoma kwa Sauti',
+        steps: [
+          'Fungua kitabu kwa kubonyeza "Soma"',
+          'Baada ya PDF kufunguka, bonyeza kulia (right-click) popote kwenye ukurasa',
+          'Chagua "Read Aloud" au "Kusoma kwa Sauti"',
+          'Browser itaanza kusoma kitabu kwa sauti'
+        ]
+      }
+  }
+}
+
 export default function BooksPage() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedBook, setExpandedBook] = useState<string | null>(null)
+  const [showInstructions, setShowInstructions] = useState<string | null>(null)
 
   // User interactions states (stored in localStorage)
   const [likedBooks, setLikedBooks] = useState<string[]>([])
@@ -124,12 +168,23 @@ export default function BooksPage() {
     return matchesCategory && matchesSearch
   })
 
-  const handleDownload = (fileUrl: string, bookId: string) => {
+  const handleDownload = (fileUrl: string) => {
     window.open(fileUrl, '_blank')
   }
 
   const handleRead = (fileUrl: string) => {
     window.open(fileUrl, '_blank')
+  }
+
+  const handleListen = (book: Book) => {
+    // First open the PDF
+    window.open(book.fileUrl, '_blank')
+    // Then show instructions
+    setShowInstructions(book.id)
+    // Auto hide after 10 seconds
+    setTimeout(() => {
+      setShowInstructions(null)
+    }, 10000)
   }
 
   const handleLike = (bookId: string) => {
@@ -173,7 +228,6 @@ export default function BooksPage() {
 
   // Get favourite books for display
   const favouriteBooksList = books.filter(book => favouritedBooks.includes(book.id))
-  const likedBooksList = books.filter(book => likedBooks.includes(book.id))
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-gray-900 dark:to-gray-800 pt-20">
@@ -191,7 +245,7 @@ export default function BooksPage() {
           </p>
         </div>
 
-        {/* Favourites Section - Only shows if there are favourites */}
+        {/* Favourites Section */}
         {favouritedBooks.length > 0 && (
           <div className="mb-8 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-200 dark:border-amber-800">
             <h2 className="text-lg font-semibold text-amber-800 dark:text-amber-400 mb-3 flex items-center gap-2">
@@ -254,6 +308,7 @@ export default function BooksPage() {
               const isLiked = likedBooks.includes(book.id)
               const isFavourited = favouritedBooks.includes(book.id)
               const isShared = sharedBooks.includes(book.id)
+              const instructions = getVoiceInstructions(book.language)
 
               return (
                 <div
@@ -268,6 +323,15 @@ export default function BooksPage() {
                     </div>
                     <h3 className="text-white font-bold text-lg">{book.title}</h3>
                     <p className="text-emerald-100 text-sm">{book.titleAr}</p>
+
+                    {/* Listen Button on Cover */}
+                    <button
+                      onClick={() => handleListen(book)}
+                      className="absolute top-3 left-3 p-1.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition"
+                      title="Sikiliza kitabu kikisomwa"
+                    >
+                      <Headphones size={14} />
+                    </button>
 
                     {/* Interaction Buttons on Cover */}
                     <div className="absolute top-3 right-3 flex gap-1">
@@ -298,6 +362,44 @@ export default function BooksPage() {
                     </div>
                   </div>
 
+                  {/* Instructions Modal/Popup */}
+                  {showInstructions === book.id && (
+                    <div className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center p-4 rounded-2xl">
+                      <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 max-w-sm w-full shadow-2xl">
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                            <Headphones size={18} />
+                            {instructions.title}
+                          </h3>
+                          <button
+                            onClick={() => setShowInstructions(null)}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <div className="space-y-2">
+                          {instructions.steps.map((step, idx) => (
+                            <p key={idx} className="text-sm text-gray-600 dark:text-gray-300">
+                              {idx + 1}. {step}
+                            </p>
+                          ))}
+                        </div>
+                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                          <p className="text-xs text-blue-600 dark:text-blue-400">
+                            💡 Kidokezo: Unaweza pia kutumia shortcut ya keyboard "Ctrl + Shift + S" (Windows) au "Cmd + Shift + S" (Mac) kuanza kusoma kwa sauti.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setShowInstructions(null)}
+                          className="mt-4 w-full py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition"
+                        >
+                          Nimeelewa
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Book Info */}
                   <div className="p-5">
                     <div className="flex items-center justify-between mb-2">
@@ -317,8 +419,20 @@ export default function BooksPage() {
                       {book.description}
                     </p>
 
+                    {/* Language Badge */}
+                    <div className="mb-3">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${book.language === 'arabic'
+                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
+                          : book.language === 'swahili'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'
+                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
+                        }`}>
+                        {book.language === 'arabic' ? '🇸🇦 Kiarabu' : book.language === 'swahili' ? '🇹🇿 Kiswahili' : '🇬🇧 Kiingereza'}
+                      </span>
+                    </div>
+
                     {/* Interaction Stats */}
-                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3 flex-wrap">
                       {isLiked && <span className="text-red-500">❤️ Umeipenda</span>}
                       {isFavourited && <span className="text-amber-500">⭐ Kwenye Favourites</span>}
                       {isShared && <span className="text-blue-500">📤 Umeshare</span>}
@@ -347,20 +461,27 @@ export default function BooksPage() {
                     )}
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3 mt-4">
+                    <div className="flex gap-2 mt-4">
                       <button
                         onClick={() => handleRead(book.fileUrl)}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-colors text-sm font-medium"
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-colors text-sm font-medium"
                       >
-                        <Eye size={16} />
+                        <Eye size={14} />
                         Soma
                       </button>
                       <button
-                        onClick={() => handleDownload(book.fileUrl, book.id)}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-emerald-600 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl transition-colors text-sm font-medium"
+                        onClick={() => handleListen(book)}
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors text-sm font-medium"
                       >
-                        <Download size={16} />
-                        Pakua PDF
+                        <Volume2 size={14} />
+                        Sikiliza
+                      </button>
+                      <button
+                        onClick={() => handleDownload(book.fileUrl)}
+                        className="px-3 py-2 border border-emerald-600 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl transition-colors"
+                        title="Pakua PDF"
+                      >
+                        <Download size={14} />
                       </button>
                     </div>
                   </div>
@@ -370,8 +491,14 @@ export default function BooksPage() {
           </div>
         )}
 
+        {/* Info Note */}
+        <div className="mt-8 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-center text-sm text-gray-600 dark:text-gray-400 border border-emerald-200 dark:border-emerald-800">
+          <Headphones size={16} className="inline mr-2" />
+          Bonyeza 🎧 <strong>"Sikiliza"</strong> kusikiliza kitabu kikisomwa kwa sauti. Kitabu kitafunguka kwenye tab mpya, kisha tumia feature ya "Read Aloud" ya browser yako.
+        </div>
+
         {/* Footer Note */}
-        <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-6">
+        <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-6">
           <p>Vitabu vyote vinapatikana kwa bure. Hakimiliki zimehifadhiwa kwa wamiliki wake.</p>
         </div>
       </div>
