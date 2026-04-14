@@ -35,7 +35,7 @@ const books: Book[] = [
     description: 'Kitabu cha fiqh kilichorahisishwa kwa ufahamu wa kila mtu.',
     category: 'Fiqh',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D8%A7%D9%84%D9%81%D9%82%D9%87%20%D8%A7%D9%84%D9%85%D9%8A%D8%B3%D8%B1%20%D9%81%D9%8A%20%D8%B6%D9%88%D8%A1%20%D8%A7%D9%84%D9%83%D8%AA%D8%A7%D8%A8%20%D9%88.pdf',
-    pages: 35,
+    pages: 452,
     language: 'arabic'
   },
   {
@@ -46,7 +46,7 @@ const books: Book[] = [
     description: 'Ufafanuzi wa hadith za hukumu za muhimu katika Uislamu.',
     category: 'Hadith',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D8%B4%D8%B1%D8%AD%20%D8%B9%D9%85%D8%AF%D8%A9%20%D8%A7%D9%84%D8%A3%D8%AD%D9%83%D8%A7%D9%85.pdf',
-    pages: 0,
+    pages: 768,
     language: 'arabic'
   },
   {
@@ -57,7 +57,7 @@ const books: Book[] = [
     description: 'Kanuni nne za msingi katika kutofautisha kati ya tawhid na ushirikina.',
     category: 'Aqeedah',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D9%85%D8%AA%D9%86%20%D8%A7%D9%84%D9%82%D9%88%D8%A7%D8%B9%D8%AF%20%D8%A7%D9%84%D8%A3%D8%B1%D8%A8%D8%B9.pdf',
-    pages: 0,
+    pages: 6,
     language: 'arabic'
   },
   {
@@ -68,7 +68,7 @@ const books: Book[] = [
     description: 'Ufafanuzi wa misingi ya Sunnah na imani sahihi.',
     category: 'Aqeedah',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D9%85%D8%AA%D9%86%20%D8%B4%D8%B1%D8%AD%20%D8%A7%D9%84%D8%B3%D9%86%D8%A9%20%D9%84%D9%84%D8%A5%D9%85%D8%A7%D9%85%20%D8%A7%D9%84%D9%85%D8%B2%D9%86%D9%8A%20%D8%B1%D8%AD%D9%85%D9%87%20%D8%A7%D9%84%D9%84%D9%87.pdf',
-    pages: 0,
+    pages: 15,
     language: 'arabic'
   },
   {
@@ -79,7 +79,7 @@ const books: Book[] = [
     description: 'Kitabu kinachojibu na kufafanua mashaka kuhusu tawhid.',
     category: 'Aqeedah',
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D9%85%D8%AA%D9%86%20%D9%83%D8%B4%D9%81%20%D8%A7%D9%84%D8%B4%D8%A8%D9%87%D8%A7%D8%AA.PDF',
-    pages: 0,
+    pages: 104,
     language: 'arabic'
   }
 ]
@@ -198,7 +198,7 @@ export default function BooksPage() {
           <div className="mb-8 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-200 dark:border-amber-800">
             <h2 className="text-lg font-semibold text-amber-800 dark:text-amber-400 mb-3 flex items-center gap-2">
               <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
-              Vitabu Uliyovipenda
+              Vitabu Ulivyovipenda
             </h2>
             <div className="flex flex-wrap gap-2">
               {favouriteBooksList.map(book => (
@@ -234,8 +234,8 @@ export default function BooksPage() {
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-4 py-2 rounded-xl transition-colors ${selectedCategory === cat
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
                   }`}
               >
                 {cat === 'All' ? 'Zote' : cat}
@@ -293,7 +293,7 @@ export default function BooksPage() {
                         onClick={() => handleShare(book)}
                         className={`p-1.5 rounded-full transition ${isShared ? 'bg-blue-500 text-white' : 'bg-white/20 text-white hover:bg-white/30'
                           }`}
-                        title={isShared ? 'Imeshare tayari' : 'Share Kitabu'}
+                        title={isShared ? ' tayari umeshiriki' : 'Share Kitabu'}
                       >
                         <Share2 size={14} />
                       </button>
@@ -322,10 +322,10 @@ export default function BooksPage() {
                     {/* Language Badge */}
                     <div className="mb-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${book.language === 'arabic'
-                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
-                          : book.language === 'swahili'
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'
-                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
+                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
+                        : book.language === 'swahili'
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'
+                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
                         }`}>
                         {book.language === 'arabic' ? 'Kiarabu' : book.language === 'swahili' ? 'Kiswahili' : 'Kiingereza'}
                       </span>

@@ -58,20 +58,11 @@
     "vinapatikana",
     "bure",
     "Hakimiliki",
-    "zimehifadhiwa", 
+    "zimehifadhiwa",
     "wamiliki",
-    "interface-declaration",
-    "basic-types"
     "Nimekipenda"
   ],
-  "ignorePaths": [
-    "node_modules",
-    ".next",
-    "dist",
-    "build",
-    "*.min.js",
-    "package-lock.json"
-  ],
+  "ignorePaths": ["node_modules", ".next", "dist", "build", "*.min.js", "package-lock.json"],
   "ignoreRegExpList": [
     "/rgba\\([^)]+\\)/",
     "/url\\([^)]+\\)/",
