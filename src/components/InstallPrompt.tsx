@@ -62,7 +62,7 @@ export default function InstallPrompt() {
     if (deferredPrompt) {
       deferredPrompt.prompt()
       const { outcome } = await deferredPrompt.userChoice
-      
+
       if (outcome === 'accepted') {
         setShowPrompt(false)
         setIsInstalled(true)
@@ -107,9 +107,9 @@ export default function InstallPrompt() {
               Pakua EASTCMSA App
             </h3>
             <p className="text-white/80 text-xs mt-1">
-              {isIOS 
+              {isIOS
                 ? 'Bonyeza "Share" → "Add to Home Screen" ili kupakua app'
-                : 'Pakua app kwenye simu yako. Inafanya kazi offline na matumizi bora!'
+                : 'Pakua app kwenye simu yako. Inapatikana kupitia browser kama chrome na zinginezo, pekee na inafanya kazi vizuri!'
               }
             </p>
             <div className="flex gap-2 mt-3">

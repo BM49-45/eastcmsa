@@ -81,7 +81,18 @@ const books: Book[] = [
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D9%85%D8%AA%D9%86%20%D9%83%D8%B4%D9%81%20%D8%A7%D9%84%D8%B4%D8%A8%D9%87%D8%A7%D8%AA.PDF',
     pages: 104,
     language: 'arabic'
-  }
+  },
+  {
+    id: 'fadhlul-islam',
+    title: 'Fadhlul Islam',
+    titleAr: 'متن فضل الإسلام',
+    author: 'Shaykh Muhammad Ibn Abdul Wahhab',
+    description: 'Kitabu kinachoelezea fadhila na nafasi ya Uislamu, na kutoa onyo dhidi ya bid\'ah na mambo yanayokiua, kwa kutumia dalili kutoka kwenye Qur\'an na Hadith.',
+    category: 'Aqeedah',
+    fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D9%85%D8%AA%D9%86%20%D9%81%D8%B6%D9%84%20%D8%A7%D9%84%D8%A5%D8%B3%D9%84%D8%A7%D9%85%20.pdf',
+    pages: 48,
+    language: 'arabic'
+    }
 ]
 
 const categories = ['All', 'Aqeedah', 'Fiqh', 'Hadith']
