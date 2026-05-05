@@ -1,18 +1,18 @@
 'use client'
 
-import React, { useState, useEffect } from "react";
-import HeroSection from "@/components/home/HeroSection";
-import RotatingWisdom from "@/components/home/RotatingWisdom";
 import CampusSlider from "@/components/home/CampusSlider";
 import FullSchedule from "@/components/home/DarsaSchedule";
-import NextDarsa from "@/components/home/NextDarsa";
-import RegisterCTA from "@/components/home/RegisterCTA";
+import HeroSection from "@/components/home/HeroSection";
 import HomeContact from "@/components/home/HomeContact";
-import SocialLinks from "@/components/home/SocialLinks";
 import IslamicCalendar from "@/components/home/IslamicCalendar";
+import NextDarsa from "@/components/home/NextDarsa";
 import PrayerTimes from "@/components/home/PrayerTimes";
+import RegisterCTA from "@/components/home/RegisterCTA";
+import RotatingWisdom from "@/components/home/RotatingWisdom";
+import SocialLinks from "@/components/home/SocialLinks";
 import LiveQuran from "@/components/widgets/LiveQuran";
 import { Download, Smartphone } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
   const [currentTime, setCurrentTime] = useState("");
@@ -28,19 +28,19 @@ export default function HomePage() {
     };
     updateTime();
     const timer = setInterval(updateTime, 60000);
-    
+
     // Check if app is installed
     const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
     const dismissed = localStorage.getItem('install-banner-dismissed');
-    
+
     if (!isInstalled && !dismissed) {
       setShowInstallBanner(true);
     }
-    
+
     // Check iOS
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(isIOSDevice);
-    
+
     return () => clearInterval(timer);
   }, []);
 
@@ -78,8 +78,8 @@ export default function HomePage() {
                   <Smartphone size={20} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">Pakua EASTCMSA App!</p>
-                  <p className="text-xs text-white/80">Pata matumizi bora, inafanya kazi offline</p>
+                  <p className="text-sm font-semibold">Pakua EASTC-MSA App!</p>
+                  <p className="text-xs text-white/80">Pata matumizi bora, Inapatikana kwenye browser pekee. Haipatikani kwenye App store na Play store</p>
                 </div>
               </div>
               <div className="flex gap-2">
