@@ -1,21 +1,25 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { trackEvent } from '@/lib/analytics';
+import { useRef, useState } from 'react';
 
 interface AudioPlayerFixedProps {
   title: string
   speaker: string
   duration: string
   audioUrl: string
+  category: string
+  audioId: string
+  audioTitle: string
 }
 
-export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }: AudioPlayerFixedProps) {
+export default function AudioPlayerFixed({ title, speaker, duration, audioUrl, category, audioId, audioTitle }: AudioPlayerFixedProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [volume, setVolume] = useState(1)
   const [progress, setProgress] = useState(0)
   const [currentTime, setCurrentTime] = useState('0:00')
   const [playbackRate, setPlaybackRate] = useState(1)
-  
+
   const audioRef = useRef<HTMLAudioElement>(null)
 
   // Format time
@@ -25,9 +29,31 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
+  // Map category to valid type
+  const getValidCategory = (cat: string): 'book' | 'fiqh' | 'general' | 'muhadhara' | 'sirah' | 'tawhiid' => {
+    const validCategories = ['book', 'fiqh', 'general', 'muhadhara', 'sirah', 'tawhiid']
+    if (validCategories.includes(cat)) {
+      return cat as any
+    }
+    return 'general' // Default fallback
+  }
+
+  // When audio starts playing
+  const handlePlay = () => {
+    const validCategory = getValidCategory(category)
+    trackEvent('audio_play', validCategory, audioId, audioTitle)
+  }
+
+  // When audio completes
+  const handleEnded = () => {
+    const validCategory = getValidCategory(category)
+    trackEvent('audio_complete', validCategory, audioId, audioTitle, parseFloat(duration))
+    setIsPlaying(false)
+  }
+
   const togglePlay = () => {
     if (!audioRef.current) return
-    
+
     if (isPlaying) {
       audioRef.current.pause()
     } else {
@@ -38,21 +64,21 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
 
   const handleTimeUpdate = () => {
     if (!audioRef.current) return
-    
+
     const current = audioRef.current.currentTime
     const duration = audioRef.current.duration
-    
+
     setCurrentTime(formatTime(current))
     setProgress((current / duration) * 100)
   }
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!audioRef.current) return
-    
+
     const value = parseFloat(e.target.value)
     const duration = audioRef.current.duration
     const newTime = (value / 100) * duration
-    
+
     audioRef.current.currentTime = newTime
     setProgress(value)
     setCurrentTime(formatTime(newTime))
@@ -61,7 +87,7 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value)
     setVolume(value)
-    
+
     if (audioRef.current) {
       audioRef.current.volume = value
     }
@@ -72,7 +98,7 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
     const currentIndex = rates.indexOf(playbackRate)
     const nextIndex = (currentIndex + 1) % rates.length
     const newRate = rates[nextIndex]
-    
+
     setPlaybackRate(newRate)
     if (audioRef.current) {
       audioRef.current.playbackRate = newRate
@@ -81,13 +107,13 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
 
   const skipForward = (seconds: number) => {
     if (!audioRef.current) return
-    
+
     audioRef.current.currentTime += seconds
   }
 
   const skipBackward = (seconds: number) => {
     if (!audioRef.current) return
-    
+
     audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - seconds)
   }
 
@@ -123,7 +149,8 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
         ref={audioRef}
         src={audioUrl}
         onTimeUpdate={handleTimeUpdate}
-        onEnded={() => setIsPlaying(false)}
+        onPlay={handlePlay}
+        onEnded={handleEnded}
         className="hidden"
       />
 
@@ -146,6 +173,7 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
         <div className="flex items-center space-x-4">
           {/* Skip Backward 15s */}
           <button
+            type="button"
             onClick={() => skipBackward(15)}
             className="p-2 rounded-full bg-gray-800 hover:bg-gray-700"
             aria-label="Skip backward 15 seconds"
@@ -156,6 +184,7 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
 
           {/* Play/Pause */}
           <button
+            type="button"
             onClick={togglePlay}
             className="p-4 rounded-full bg-green-600 hover:bg-green-700"
             aria-label={isPlaying ? 'Pause' : 'Play'}
@@ -165,6 +194,7 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
 
           {/* Skip Forward 15s */}
           <button
+            type="button"
             onClick={() => skipForward(15)}
             className="p-2 rounded-full bg-gray-800 hover:bg-gray-700"
             aria-label="Skip forward 15 seconds"
@@ -175,6 +205,7 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
 
           {/* Playback Speed */}
           <button
+            type="button"
             onClick={changePlaybackRate}
             className="px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-sm"
             aria-label={`Playback speed: ${playbackRate}x`}
@@ -187,6 +218,7 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
         {/* Volume Control */}
         <div className="flex items-center space-x-3">
           <button
+            type="button"
             onClick={() => {
               if (audioRef.current) {
                 audioRef.current.volume = volume > 0 ? 0 : 1
@@ -217,6 +249,7 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
       <div className="flex items-center justify-between">
         <div className="flex space-x-3">
           <button
+            type="button"
             onClick={handleDownload}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center space-x-2"
             aria-label="Download audio"
@@ -227,6 +260,7 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
           </button>
 
           <button
+            type="button"
             className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center space-x-2"
             aria-label="Share audio"
             title="Share"
@@ -237,7 +271,7 @@ export default function AudioPlayerFixed({ title, speaker, duration, audioUrl }:
         </div>
 
         <div className="text-sm text-gray-400">
-          MP3 • 320kbps
+          MP3 • 320 kbps
         </div>
       </div>
 

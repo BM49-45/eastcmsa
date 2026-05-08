@@ -491,5 +491,8 @@
 
   // ==================== REMOTE DEVELOPMENT ====================
   "remote.autoForwardPorts": false,
-  "remote.downloadExtensionsLocally": true
+  "remote.downloadExtensionsLocally": true,
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "TypeScriptTeam.native-preview"
+  }
 }

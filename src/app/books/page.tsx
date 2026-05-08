@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { BookOpen, Download, Eye, ChevronDown, ChevronUp, Heart, Share2, Star } from 'lucide-react'
+import { trackEvent } from '@/lib/analytics';
+import { BookOpen, ChevronDown, ChevronUp, Download, Eye, Heart, Share2, Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface Book {
   id: string
@@ -92,7 +93,7 @@ const books: Book[] = [
     fileUrl: 'https://pub-7729259c73e646759f7039886bf31b23.r2.dev/books/%D9%85%D8%AA%D9%86%20%D9%81%D8%B6%D9%84%20%D8%A7%D9%84%D8%A5%D8%B3%D9%84%D8%A7%D9%85%20.pdf',
     pages: 48,
     language: 'arabic'
-    }
+  }
 ]
 
 const categories = ['All', 'Aqeedah', 'Fiqh', 'Hadith']
@@ -139,23 +140,26 @@ export default function BooksPage() {
     return matchesCategory && matchesSearch
   })
 
-  const handleDownload = (fileUrl: string) => {
+  const handleDownload = (bookId: string, bookTitle: string, fileUrl: string) => {
     window.open(fileUrl, '_blank')
+    trackEvent('book_download', 'book', bookId, bookTitle)
   }
 
-  const handleRead = (fileUrl: string) => {
+  const handleRead = (bookId: string, bookTitle: string, fileUrl: string) => {
     window.open(fileUrl, '_blank')
+    trackEvent('book_view', 'book', bookId, bookTitle)
   }
 
-  const handleLike = (bookId: string) => {
+  const handleLike = (bookId: string, bookTitle: string) => {
     if (likedBooks.includes(bookId)) {
       saveLikes(likedBooks.filter(id => id !== bookId))
     } else {
       saveLikes([...likedBooks, bookId])
     }
+
   }
 
-  const handleFavourite = (bookId: string) => {
+  const handleFavourite = (bookId: string, bookTitle: string) => {
     if (favouritedBooks.includes(bookId)) {
       saveFavourites(favouritedBooks.filter(id => id !== bookId))
     } else {
@@ -184,6 +188,7 @@ export default function BooksPage() {
     } catch (error) {
       console.log('Share cancelled or failed')
     }
+
   }
 
   const favouriteBooksList = books.filter(book => favouritedBooks.includes(book.id))
@@ -285,7 +290,7 @@ export default function BooksPage() {
                     {/* Interaction Buttons */}
                     <div className="absolute top-3 right-3 flex gap-1">
                       <button
-                        onClick={() => handleLike(book.id)}
+                        onClick={() => handleLike(book.id, book.title)}
                         className={`p-1.5 rounded-full transition ${isLiked ? 'bg-red-500 text-white' : 'bg-white/20 text-white hover:bg-white/30'
                           }`}
                         title={isLiked ? 'Ondoa Like' : 'Weka Like'}
@@ -293,7 +298,7 @@ export default function BooksPage() {
                         <Heart size={14} className={isLiked ? 'fill-white' : ''} />
                       </button>
                       <button
-                        onClick={() => handleFavourite(book.id)}
+                        onClick={() => handleFavourite(book.id, book.title)}
                         className={`p-1.5 rounded-full transition ${isFavourited ? 'bg-amber-500 text-white' : 'bg-white/20 text-white hover:bg-white/30'
                           }`}
                         title={isFavourited ? 'Ondoa Favourite' : 'Weka Favourite'}
@@ -374,14 +379,14 @@ export default function BooksPage() {
                     {/* Action Buttons */}
                     <div className="flex gap-3 mt-4">
                       <button
-                        onClick={() => handleRead(book.fileUrl)}
+                        onClick={() => handleRead(book.id, book.title, book.fileUrl)}
                         className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-colors text-sm font-medium"
                       >
                         <Eye size={16} />
                         Soma
                       </button>
                       <button
-                        onClick={() => handleDownload(book.fileUrl)}
+                        onClick={() => handleDownload(book.id, book.title, book.fileUrl)}
                         className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-emerald-600 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl transition-colors text-sm font-medium"
                       >
                         <Download size={16} />

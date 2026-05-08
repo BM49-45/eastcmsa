@@ -44,7 +44,7 @@ import {
 } from 'lucide-react'
 
 import SearchBar from '@/components/search/SearchBar'
-import NotificationBell from '@/components/notifications/NotificationBell'
+import NotificationBell from "../notifications/NotificationBell";
 import ThemeToggle from '@/components/ThemeToggle'
 
 export default function Navbar() {
@@ -198,8 +198,8 @@ export default function Navbar() {
       {/* Main Navbar */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-            ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg py-2'
-            : 'bg-white dark:bg-gray-900 py-3'
+          ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg py-2'
+          : 'bg-white dark:bg-gray-900 py-3'
           }`}
         aria-label="Main navigation"
       >
@@ -245,8 +245,8 @@ export default function Navbar() {
                     key={link.name}
                     href={link.href}
                     className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
-                        ? 'bg-green-600 text-white shadow-md'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-green-600 dark:hover:text-green-400'
+                      ? 'bg-green-600 text-white shadow-md'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-green-600 dark:hover:text-green-400'
                       }`}
                     aria-current={isActive ? 'page' : undefined}
                     title={link.title}
@@ -291,12 +291,17 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* Right section - Search, Notifications, User menu */}
+            {/* Right section - ORDER: Notification → Theme → Download → Profile/Login */}
             <div className="flex items-center space-x-1">
               <SearchBar />
+
+              {/* 1. Kengele ya Taarifa - Inaonyeshwa tu user akiingia */}
               {isLoggedIn && <NotificationBell />}
 
-              {/* Download Button */}
+              {/* 2. Giza/Mwanga - Inaonekana daima */}
+              <ThemeToggle />
+
+              {/* 3. Kitufe cha Pakua - Inaonekana tu kama inawezekana */}
               {showInstall && (
                 <button
                   onClick={handleInstall}
@@ -308,10 +313,7 @@ export default function Navbar() {
                 </button>
               )}
 
-              {/* Theme Toggle - Using ThemeToggle component */}
-              <ThemeToggle />
-
-              {/* Auth Area */}
+              {/* 4. Profaili au Ingia/Jisajili */}
               {status === 'loading' ? (
                 <div className="w-20 h-9 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
               ) : !isLoggedIn ? (
@@ -433,8 +435,8 @@ export default function Navbar() {
                             href={link.href}
                             onClick={() => setAccountOpen(false)}
                             className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${isActiveLink(link.href)
-                                ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
-                                : 'text-gray-700 dark:text-gray-300'
+                              ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+                              : 'text-gray-700 dark:text-gray-300'
                               }`}
                             role="menuitem"
                             title={link.title}
@@ -461,8 +463,8 @@ export default function Navbar() {
                                 href={link.href}
                                 onClick={() => setAccountOpen(false)}
                                 className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${isActiveLink(link.href)
-                                    ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
-                                    : 'text-gray-700 dark:text-gray-300'
+                                  ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+                                  : 'text-gray-700 dark:text-gray-300'
                                   }`}
                                 role="menuitem"
                                 title={link.title}
@@ -519,8 +521,8 @@ export default function Navbar() {
                       href={link.href}
                       onClick={() => setMobileOpen(false)}
                       className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
-                          ? 'bg-green-600 text-white'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-green-600 text-white'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                         }`}
                       aria-current={isActive ? 'page' : undefined}
                       title={link.title}
@@ -555,8 +557,8 @@ export default function Navbar() {
                         href={link.href}
                         onClick={() => setMobileOpen(false)}
                         className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActiveLink(link.href)
-                            ? 'bg-green-600 text-white'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                          ? 'bg-green-600 text-white'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                           }`}
                         title={link.title}
                       >
@@ -571,8 +573,8 @@ export default function Navbar() {
                         href={link.href}
                         onClick={() => setMobileOpen(false)}
                         className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActiveLink(link.href)
-                            ? 'bg-green-600 text-white'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                          ? 'bg-green-600 text-white'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                           }`}
                         title={link.title}
                       >
@@ -682,8 +684,8 @@ export default function Navbar() {
                     key={link.name}
                     href={link.href}
                     className={`flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-3 py-2 rounded-lg transition-all ${isActive
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
                     title={link.title}
                   >
@@ -710,8 +712,8 @@ export default function Navbar() {
                       key={link.name}
                       href={link.href}
                       className={`flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-3 py-2 rounded-lg transition-all ${isActive
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                         }`}
                       title={link.title}
                     >

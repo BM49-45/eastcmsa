@@ -1,6 +1,6 @@
 'use client'
 
-import './globals.css'
+import '@/app/globals.css'
 import { Inter } from 'next/font/google'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -12,7 +12,8 @@ import InstallPrompt from '@/components/InstallPrompt'
 import SubscribePrompt from '@/components/SubscribePrompt'
 import SharePrompt from '@/components/SharePrompt'
 import { useEffect } from 'react'
-import Head from 'next/head'
+import EventPopup from '@/components/EventPopup';
+
 
 const inter = Inter({
   subsets: ['latin'],

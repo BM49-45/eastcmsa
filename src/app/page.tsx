@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react';
 import CampusSlider from "@/components/home/CampusSlider";
 import FullSchedule from "@/components/home/DarsaSchedule";
 import HeroSection from "@/components/home/HeroSection";
@@ -11,14 +12,18 @@ import RegisterCTA from "@/components/home/RegisterCTA";
 import RotatingWisdom from "@/components/home/RotatingWisdom";
 import SocialLinks from "@/components/home/SocialLinks";
 import LiveQuran from "@/components/widgets/LiveQuran";
+import EventPopup from '@/components/EventPopup';
+import { getAnnouncements } from '@/lib/storage';
 import { Download, Smartphone } from "lucide-react";
-import { useEffect, useState } from "react";
 
 export default function HomePage() {
   const [currentTime, setCurrentTime] = useState("");
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [showEventPopup, setShowEventPopup] = useState(false);
+  const [eventData, setEventData] = useState<any>(null);
 
+  // Effect for time and install banner
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
@@ -44,6 +49,35 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
+  // Effect for event popup with localStorage tracking
+  useEffect(() => {
+    // Check if user closed popup within last minute
+    const wasClosed = localStorage.getItem('muhadhara_popup_closed');
+    const closedTime = localStorage.getItem('muhadhara_popup_closed_time');
+    const oneMinutePassed = closedTime && (Date.now() - parseInt(closedTime)) > 60000;
+    
+    // If closed less than a minute ago, don't show
+    if (wasClosed === 'true' && !oneMinutePassed) {
+      return;
+    }
+
+    // Check for event announcement
+    const announcements = getAnnouncements();
+    const muhadharaEvent = announcements.find(a => a.id === 'muhadhara-may-2026' && a.isActive);
+
+    if (muhadharaEvent) {
+      setEventData({
+        title: muhadharaEvent.title,
+        content: muhadharaEvent.content,
+        date: muhadharaEvent.date,
+        time: muhadharaEvent.time,
+        location: muhadharaEvent.location,
+        speaker: muhadharaEvent.speaker,
+      });
+      setShowEventPopup(true);
+    }
+  }, []);
+
   const handleInstallClick = () => {
     if (isIOS) {
       alert('Bonyeza "Share" button (square with arrow) kisha "Add to Home Screen"');
@@ -58,6 +92,13 @@ export default function HomePage() {
   const handleDismissBanner = () => {
     setShowInstallBanner(false);
     localStorage.setItem('install-banner-dismissed', Date.now().toString());
+  };
+
+  const handleClosePopup = () => {
+    setShowEventPopup(false);
+    // Save to localStorage that user closed the popup
+    localStorage.setItem('muhadhara_popup_closed', 'true');
+    localStorage.setItem('muhadhara_popup_closed_time', Date.now().toString());
   };
 
   return (
@@ -135,6 +176,19 @@ export default function HomePage() {
 
         </div>
       </main>
+
+      {/* Event Popup - Muhadhara */}
+      {showEventPopup && eventData && (
+        <EventPopup
+          title={eventData.title}
+          content={eventData.content}
+          date={eventData.date}
+          time={eventData.time}
+          location={eventData.location}
+          speaker={eventData.speaker}
+          onClose={handleClosePopup}
+        />
+      )}
     </div>
   );
 }
