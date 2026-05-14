@@ -278,21 +278,20 @@ const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
     content: `NI IPI NAFASI NA DHIMA YA KIJANA WA KIISLAMU KATIKA MUJTAMAA`,
     type: 'event',
     createdAt: new Date(),
-    isActive: true,
+    isActive: false,
     location: 'Masjid Changanyikeni, Floor ya Kwanza',
     time: '3:00 Asubuhi',
     speaker: 'Sheikh Abuu Ayman Al-Shiiraaziy حفظه الله',
     date: 'Jumamosi, 9 May 2026',
   },
-  // Tangazo la pili - INAWEZA KUFUTWA AU KUWEKWA ISActive: false
-  // {
-  //   id: '2',
-  //   title: '📖 DARSA MPYA KWA TAWHIID',
-  //   content: 'Kitabu: FADHILA ZA UISLAM (فضل الإسلام) - Utangulizi',
-  //   type: 'success',
-  //   createdAt: new Date(),
-  //   isActive: false,  // ← Imezimwa
-  // },
+  {
+    id: '2',
+    title: '📢📖 DARSA MPYA KWA TAWHIID',
+    content: 'Kitabu: FADHILA ZA UISLAM (فضل الإسلام) - Fadhila za kuingia katika Uislam',
+    type: 'success',
+    createdAt: new Date(),
+    isActive: true,
+  },
 ]
 
 export const getAnnouncements = (): Announcement[] => {

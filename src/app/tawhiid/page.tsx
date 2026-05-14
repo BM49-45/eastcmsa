@@ -123,7 +123,7 @@ export default function TawhiidPage() {
         language: 'Arabic/Swahili',
         quality: '320kbps'
       }))
-      
+
       setPlaylist(playlist)
       playlistSetRef.current = true
     }
@@ -133,7 +133,7 @@ export default function TawhiidPage() {
     try {
       setLoading(true)
       setError(null)
-      
+
       const response = await fetch(
         `${AUDIO_BASE_URL}/tawhiid/metadata.json`,
         {
@@ -143,11 +143,11 @@ export default function TawhiidPage() {
           }
         }
       )
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
-      
+
       const data = await response.json()
       if (data && data.files && Array.isArray(data.files)) {
         setMetadata(data)
@@ -210,7 +210,7 @@ export default function TawhiidPage() {
   const filteredAudios = useMemo(() => {
     if (!metadata?.files) return []
     let filtered = [...metadata.files]
-    
+
     if (searchTerm) {
       filtered = filtered.filter(audio =>
         audio.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -219,7 +219,7 @@ export default function TawhiidPage() {
         audio.date.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
-    
+
     filtered.sort((a, b) => {
       let comparison = 0
       switch (sortBy) {
@@ -235,7 +235,7 @@ export default function TawhiidPage() {
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-    
+
     return filtered
   }, [metadata, searchTerm, sortBy, sortOrder])
 
@@ -247,7 +247,7 @@ export default function TawhiidPage() {
 
   const handlePlayAudio = useCallback(async (audio: TawhiidAudio) => {
     const audioUrl = `${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`
-    
+
     const lectureAudio = {
       type: 'lecture' as const,
       id: audio.filename,
@@ -266,7 +266,7 @@ export default function TawhiidPage() {
       language: 'Arabic/Swahili',
       quality: '320kbps'
     }
-    
+
     try {
       // Check if same audio is playing
       if (audioState.currentLecture?.filename === audio.filename && audioState.audioType === 'lecture') {
@@ -281,7 +281,7 @@ export default function TawhiidPage() {
   }, [metadata, audioState.currentLecture, audioState.audioType, playLectureAudio, togglePlay])
 
   const handleDownload = useCallback((audio: TawhiidAudio) => {
-      const audioUrl = `${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`
+    const audioUrl = `${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`
     const link = document.createElement('a')
     link.href = audioUrl
     link.download = audio.filename
@@ -398,7 +398,7 @@ export default function TawhiidPage() {
               </div>
               <div className="tawhiid-hero-stat-value">
                 {metadata.location ? metadata.location.split(',')[0] : 'Chang\'anyikeni'}
-                </div>
+              </div>
             </div>
             <div className="tawhiid-hero-stat">
               <div className="tawhiid-hero-stat-icon">
@@ -622,7 +622,7 @@ export default function TawhiidPage() {
                           <Download size={16} />
                         </button>
                         <a
-                           href={`${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`}
+                          href={`${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="tawhiid-card-action"
