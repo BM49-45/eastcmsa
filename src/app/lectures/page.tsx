@@ -156,6 +156,14 @@ export default function LecturesPage() {
     }
   }
 
+  // Format filename kwa ajili ya kuonyesha
+  const formatFilename = (filename: string) => {
+    // Toa extension (.mp3, .m4a, .zip)
+    const name = filename.replace(/\.(mp3|m4a|zip)$/i, '')
+    // Badilisha underscores na dashes kuwa spaces
+    return name.replace(/[-_]/g, ' ')
+  }
+
   const progressPercentage = useMemo(() => {
     return audioState.duration
       ? (audioState.currentTime / audioState.duration) * 100
@@ -165,37 +173,43 @@ export default function LecturesPage() {
   const volumePercentage = useMemo(() => audioState.volume * 100, [audioState.volume])
 
   useEffect(() => {
-  try {
-    document.documentElement.style.setProperty('--lectures-progress', `${progressPercentage}%`)
-    document.documentElement.style.setProperty('--lectures-volume', `${volumePercentage}%`)
-  } catch {}
-}, [progressPercentage, volumePercentage])
+    try {
+      document.documentElement.style.setProperty('--lectures-progress', `${progressPercentage}%`)
+      document.documentElement.style.setProperty('--lectures-volume', `${volumePercentage}%`)
+    } catch { }
+  }, [progressPercentage, volumePercentage])
 
   const filteredLectures = metadata.files.filter(lecture =>
     lecture.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lecture.speaker.toLowerCase().includes(searchTerm.toLowerCase())
+    lecture.speaker.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    lecture.filename.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const handlePlayLecture = useCallback((lecture: Lecture) => {
-    playLectureAudio({
-      type: 'lecture' as const,
-      id: lecture.filename,
-      title: lecture.title,
-      speaker: lecture.speaker,
-      url: `${AUDIO_BASE_URL}/mihadhara/${lecture.filename}`,
-      downloadUrl: `${AUDIO_BASE_URL}/mihadhara/${lecture.filename}`,
-      filename: lecture.filename,
-      size: lecture.size,
-      duration: lecture.duration,
-      date: lecture.date,
-      category: 'mihadhara',
-      semester: 'Mihadhara Mbalimbali',
-      venue: 'Masjid Chang\'anyikeni, Ubungo',
-      topics: [],
-      language: 'Swahili',
-      quality: '320kbps'
-    })
-  }, [playLectureAudio])
+    // Check if same lecture is playing
+    if (audioState.currentLecture?.filename === lecture.filename && audioState.audioType === 'lecture') {
+      togglePlay()
+    } else {
+      playLectureAudio({
+        type: 'lecture' as const,
+        id: lecture.filename,
+        title: lecture.title,
+        speaker: lecture.speaker,
+        url: `${AUDIO_BASE_URL}/mihadhara/${lecture.filename}`,
+        downloadUrl: `${AUDIO_BASE_URL}/mihadhara/${lecture.filename}`,
+        filename: lecture.filename,
+        size: lecture.size,
+        duration: lecture.duration,
+        date: lecture.date,
+        category: 'mihadhara',
+        semester: 'Mihadhara Mbalimbali',
+        venue: 'Masjid Chang\'anyikeni, Ubungo',
+        topics: [],
+        language: 'Swahili',
+        quality: '320kbps'
+      })
+    }
+  }, [playLectureAudio, togglePlay, audioState.currentLecture, audioState.audioType])
 
   const handleDownload = useCallback((lecture: Lecture) => {
     const audioUrl = `${AUDIO_BASE_URL}/mihadhara/${lecture.filename}`
@@ -208,7 +222,7 @@ export default function LecturesPage() {
   }, [])
 
   const handleShare = useCallback(async (lecture: Lecture) => {
-    const shareText = `${lecture.title}\nMhadhiri: ${lecture.speaker}\nTarehe: ${lecture.date}\nMuda: ${lecture.duration}`
+    const shareText = `${lecture.title}\nMhadhiri: ${lecture.speaker}\nTarehe: ${lecture.date}\nMuda: ${lecture.duration}\nJina la faili: ${lecture.filename}`
     const shareUrl = window.location.href
     if (navigator.share) {
       try {
@@ -278,7 +292,7 @@ export default function LecturesPage() {
             <div className="lectures-search-wrapper">
               <input
                 type="text"
-                placeholder="Tafuta mihadhara au mhadhiri..."
+                placeholder="Tafuta mihadhara, mhadhiri, au jina la faili..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="lectures-search-input"
@@ -323,7 +337,7 @@ export default function LecturesPage() {
         {filteredLectures.length > 0 ? (
           <div className="lectures-grid">
             {filteredLectures.map((lecture, index) => {
-              const isPlaying = audioState.currentLecture?.filename === lecture.filename
+              const isPlaying = audioState.currentLecture?.filename === lecture.filename && audioState.audioType === 'lecture'
 
               return (
                 <div key={index} className={`lecture-card ${isPlaying ? 'lecture-card-playing' : ''}`}>
@@ -397,6 +411,14 @@ export default function LecturesPage() {
                           <span className="lecture-info-text">{formatDate(lecture.date)}</span>
                         </div>
                       </div>
+                    </div>
+
+                    {/* FILENAME DISPLAY */}
+                    <div className="lecture-filename">
+                      <FileAudio size={12} />
+                      <span className="lecture-filename-text" title={lecture.filename}>
+                        {formatFilename(lecture.filename)}
+                      </span>
                     </div>
 
                     {/* Details */}
@@ -495,54 +517,54 @@ export default function LecturesPage() {
             </div>
 
             {/* Progress */}
-<div className="floating-progress-container">
-  <div className="floating-time-display">
-    <span>{formatTime(audioState.currentTime)}</span>
-    <span>{formatTime(audioState.duration)}</span>
-  </div>
-  <div className="floating-progress-bar">
-    <div className="floating-progress-track">
-      <div className="floating-progress-fill"></div>
-    </div>
-    <input
-      type="range"
-      min={0}
-      max={audioState.duration || 100}
-      value={audioState.currentTime}
-      onChange={(e) => seekTo(parseFloat(e.target.value))}
-      className="floating-progress-input"
-      aria-label="Endelea mbele au nyuma"
-    />
-  </div>
-</div>
+            <div className="floating-progress-container">
+              <div className="floating-time-display">
+                <span>{formatTime(audioState.currentTime)}</span>
+                <span>{formatTime(audioState.duration)}</span>
+              </div>
+              <div className="floating-progress-bar">
+                <div className="floating-progress-track">
+                  <div className="floating-progress-fill"></div>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={audioState.duration || 100}
+                  value={audioState.currentTime}
+                  onChange={(e) => seekTo(parseFloat(e.target.value))}
+                  className="floating-progress-input"
+                  aria-label="Endelea mbele au nyuma"
+                />
+              </div>
+            </div>
 
-{/* Volume */}
-<div className="floating-volume-container">
-  <button
-    type="button"
-    onClick={() => setMuted(!audioState.isMuted)}
-    className="floating-volume-btn"
-    aria-label={audioState.isMuted ? "Washa sauti" : "Zima sauti"}
-    title={audioState.isMuted ? "Washa sauti" : "Zima sauti"}
-  >
-    {audioState.isMuted ? <VolumeX className="floating-volume-icon" /> : <Volume2 className="floating-volume-icon" />}
-  </button>
-  <div className="floating-volume-slider">
-    <div className="floating-volume-track">
-      <div className="floating-volume-fill"></div>
-    </div>
-    <input
-      type="range"
-      min={0}
-      max={1}
-      step={0.1}
-      value={audioState.volume}
-      onChange={(e) => setVolume(parseFloat(e.target.value))}
-      className="floating-volume-input"
-      aria-label="Badilisha ukubwa wa sauti"
-    />
-  </div>
-</div>
+            {/* Volume */}
+            <div className="floating-volume-container">
+              <button
+                type="button"
+                onClick={() => setMuted(!audioState.isMuted)}
+                className="floating-volume-btn"
+                aria-label={audioState.isMuted ? "Washa sauti" : "Zima sauti"}
+                title={audioState.isMuted ? "Washa sauti" : "Zima sauti"}
+              >
+                {audioState.isMuted ? <VolumeX className="floating-volume-icon" /> : <Volume2 className="floating-volume-icon" />}
+              </button>
+              <div className="floating-volume-slider">
+                <div className="floating-volume-track">
+                  <div className="floating-volume-fill"></div>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.1}
+                  value={audioState.volume}
+                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  className="floating-volume-input"
+                  aria-label="Badilisha ukubwa wa sauti"
+                />
+              </div>
+            </div>
           </div>
         </div>
       )}

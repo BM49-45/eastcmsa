@@ -102,6 +102,14 @@ export default function TawhiidPage() {
     })
   }
 
+  // Format filename kwa ajili ya kuonyesha
+  const formatFilename = (filename: string) => {
+    // Toa extension (.mp3, .m4a, .zip)
+    const name = filename.replace(/\.(mp3|m4a|zip)$/i, '')
+    // Badilisha underscores na dashes kuwa spaces
+    return name.replace(/[-_]/g, ' ')
+  }
+
   // Set playlist when metadata changes
   useEffect(() => {
     if (metadata?.files && metadata.files.length > 0 && !playlistSetRef.current) {
@@ -216,7 +224,8 @@ export default function TawhiidPage() {
         audio.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         audio.translation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         audio.speaker.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        audio.date.toLowerCase().includes(searchTerm.toLowerCase())
+        audio.date.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        audio.filename.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -268,9 +277,8 @@ export default function TawhiidPage() {
     }
 
     try {
-      // Check if same audio is playing
       if (audioState.currentLecture?.filename === audio.filename && audioState.audioType === 'lecture') {
-        await togglePlay() // Toggle play/pause
+        await togglePlay()
       } else {
         await playLectureAudio(lectureAudio)
       }
@@ -291,7 +299,7 @@ export default function TawhiidPage() {
   }, [])
 
   const handleShare = useCallback(async (audio: TawhiidAudio) => {
-    const shareText = `${audio.title}\n${audio.translation || ''}\nMwalimu: ${audio.speaker}\nTarehe: ${audio.date}\nMuda: ${audio.duration}`
+    const shareText = `${audio.title}\n${audio.translation || ''}\nMwalimu: ${audio.speaker}\nTarehe: ${audio.date}\nMuda: ${audio.duration}\nJina la faili: ${audio.filename}`
     const shareUrl = window.location.href
     if (navigator.share) {
       try {
@@ -429,7 +437,7 @@ export default function TawhiidPage() {
             <Search size={20} className="tawhiid-search-icon" />
             <input
               type="text"
-              placeholder="Tafuta darsa, mwalimu, tarehe..."
+              placeholder="Tafuta darsa, mwalimu, tarehe, au jina la faili..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value)
@@ -601,6 +609,13 @@ export default function TawhiidPage() {
                         <span>{formatDuration(audio.duration)}</span>
                       </div>
                     </div>
+                    {/* FILENAME DISPLAY - HII NDIYO ILIYOONGEZWA */}
+                    <div className="tawhiid-card-filename">
+                      <FileAudio size={12} />
+                      <span className="tawhiid-card-filename-text" title={audio.filename}>
+                        {formatFilename(audio.filename)}
+                      </span>
+                    </div>
                     <div className="tawhiid-card-footer">
                       <div className="tawhiid-card-actions">
                         <button
@@ -692,6 +707,13 @@ export default function TawhiidPage() {
                           <span className="tawhiid-list-meta-item">
                             <FileAudio size={14} />
                             {formatSize(audio.size)}
+                          </span>
+                        </div>
+                        {/* FILENAME DISPLAY - LIST VIEW */}
+                        <div className="tawhiid-list-filename">
+                          <FileAudio size={12} />
+                          <span className="tawhiid-list-filename-text" title={audio.filename}>
+                            {formatFilename(audio.filename)}
                           </span>
                         </div>
                       </div>

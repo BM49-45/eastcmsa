@@ -194,9 +194,17 @@ export default function FiqhPage() {
     })
   }
 
+  // Format filename kwa ajili ya kuonyesha
+  const formatFilename = (filename: string) => {
+    // Toa extension (.mp3, .m4a, .zip)
+    const name = filename.replace(/\.(mp3|m4a|zip)$/i, '')
+    // Badilisha underscores na dashes kuwa spaces
+    return name.replace(/[-_]/g, ' ')
+  }
+
   useEffect(() => {
     const dataToUse = useMockData ? MOCK_METADATA : metadata
-    
+
     if (dataToUse?.files && dataToUse.files.length > 0 && !playlistSetRef.current) {
       const playlist = dataToUse.files.map((audio, index) => ({
         type: 'lecture' as const,
@@ -216,7 +224,7 @@ export default function FiqhPage() {
         language: 'Arabic/Swahili',
         quality: '320kbps'
       }))
-      
+
       setPlaylist(playlist)
       playlistSetRef.current = true
     }
@@ -225,7 +233,7 @@ export default function FiqhPage() {
   const loadMetadata = async () => {
     try {
       setLoading(true)
-      
+
       const response = await fetch(
         `${AUDIO_BASE_URL}/fiqh/metadata.json`,
         {
@@ -235,14 +243,14 @@ export default function FiqhPage() {
           }
         }
       )
-      
+
       if (!response.ok) {
         console.log('⚠️ Metadata haipatikani kwenye R2, tunatumia mock data')
         setUseMockData(true)
         setMetadata(MOCK_METADATA)
         return
       }
-      
+
       const data = await response.json()
       if (data && data.files && Array.isArray(data.files)) {
         setMetadata(data)
@@ -303,15 +311,16 @@ export default function FiqhPage() {
     const dataToUse = useMockData ? MOCK_METADATA : metadata
     if (!dataToUse?.files) return []
     let filtered = [...dataToUse.files]
-    
+
     if (searchTerm) {
       filtered = filtered.filter(audio =>
         audio.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         audio.speaker.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (audio.hijri && audio.hijri.toLowerCase().includes(searchTerm.toLowerCase()))
+        (audio.hijri && audio.hijri.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        audio.filename.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
-    
+
     filtered.sort((a, b) => {
       let comparison = 0
       switch (sortBy) {
@@ -327,7 +336,7 @@ export default function FiqhPage() {
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-    
+
     return filtered
   }, [metadata, useMockData, searchTerm, sortBy, sortOrder])
 
@@ -359,12 +368,16 @@ export default function FiqhPage() {
       quality: '320kbps'
     }
     try {
-      await playLectureAudio(lectureAudio)
+      if (audioState.currentLecture?.filename === audio.filename && audioState.audioType === 'lecture') {
+        await togglePlay()
+      } else {
+        await playLectureAudio(lectureAudio)
+      }
     } catch (error) {
       console.error('Error playing audio:', error)
       alert('Kuna tatizo la kusikiliza audio. Tafadhali jaribu tena.')
     }
-  }, [metadata, useMockData, playLectureAudio])
+  }, [metadata, useMockData, playLectureAudio, togglePlay, audioState.currentLecture, audioState.audioType])
 
   const handleDownload = useCallback((audio: FiqhAudio) => {
     const audioUrl = `${AUDIO_BASE_URL}/fiqh/${audio.filename}`
@@ -377,7 +390,7 @@ export default function FiqhPage() {
   }, [])
 
   const handleShare = useCallback(async (audio: FiqhAudio) => {
-    const shareText = `${audio.title}\nMwalimu: ${audio.speaker}\nTarehe: ${audio.date}${audio.hijri ? ` (${audio.hijri})` : ''}\nMuda: ${audio.duration}`
+    const shareText = `${audio.title}\nMwalimu: ${audio.speaker}\nTarehe: ${audio.date}${audio.hijri ? ` (${audio.hijri})` : ''}\nMuda: ${audio.duration}\nJina la faili: ${audio.filename}`
     const shareUrl = window.location.href
     if (navigator.share) {
       try {
@@ -520,7 +533,7 @@ export default function FiqhPage() {
             <Search size={20} className="fiqh-search-icon" />
             <input
               type="text"
-              placeholder="Tafuta darsa, mwalimu, tarehe..."
+              placeholder="Tafuta darsa, mwalimu, tarehe, au jina la faili..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value)
@@ -689,6 +702,13 @@ export default function FiqhPage() {
                         <span>{formatDuration(audio.duration)}</span>
                       </div>
                     </div>
+                    {/* FILENAME DISPLAY - GRID VIEW */}
+                    <div className="fiqh-card-filename">
+                      <FileAudio size={12} />
+                      <span className="fiqh-card-filename-text" title={audio.filename}>
+                        {formatFilename(audio.filename)}
+                      </span>
+                    </div>
                     <div className="fiqh-card-footer">
                       <div className="fiqh-card-actions">
                         <button
@@ -779,6 +799,13 @@ export default function FiqhPage() {
                             {formatSize(audio.size)}
                           </span>
                         </div>
+                        {/* FILENAME DISPLAY - LIST VIEW */}
+                        <div className="fiqh-list-filename">
+                          <FileAudio size={12} />
+                          <span className="fiqh-list-filename-text" title={audio.filename}>
+                            {formatFilename(audio.filename)}
+                          </span>
+                        </div>
                       </div>
                       <div className="fiqh-list-actions">
                         <button
@@ -835,6 +862,7 @@ export default function FiqhPage() {
             {totalPages > 1 && (
               <div className="fiqh-pagination" data-aos="fade-up">
                 <button
+                  type="button"
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                   className="fiqh-pagination-btn"
@@ -847,6 +875,7 @@ export default function FiqhPage() {
                   Ukurasa {currentPage} wa {totalPages}
                 </span>
                 <button
+                  type="button"
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
                   className="fiqh-pagination-btn"
