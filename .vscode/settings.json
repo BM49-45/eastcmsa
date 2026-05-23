@@ -366,7 +366,7 @@
   "debug.onTaskErrors": "abort",
 
   // ==================== WORKBENCH UI ====================
-  "workbench.colorTheme": "Dark Modern",
+  "workbench.colorTheme": "Tokyo Night",
   "workbench.iconTheme": "material-icon-theme",
   "workbench.sideBar.location": "left",
   "workbench.editor.enablePreview": false,
