@@ -88,22 +88,30 @@ export default function SirahPage() {
   const loadBookmarks = () => {
     const saved = localStorage.getItem('sirah-bookmarks')
     if (saved) {
-      try { 
-        setBookmarked(JSON.parse(saved)) 
-      } catch (e) { 
-        console.error(e) 
+      try {
+        setBookmarked(JSON.parse(saved))
+      } catch (e) {
+        console.error(e)
       }
     }
   }
 
   const toggleBookmark = (filename: string) => {
     setBookmarked(prev => {
-      const newBookmarks = prev.includes(filename) 
-        ? prev.filter(f => f !== filename) 
+      const newBookmarks = prev.includes(filename)
+        ? prev.filter(f => f !== filename)
         : [...prev, filename]
       localStorage.setItem('sirah-bookmarks', JSON.stringify(newBookmarks))
       return newBookmarks
     })
+  }
+
+  // Format filename kwa ajili ya kuonyesha
+  const formatFilename = (filename: string) => {
+    // Toa extension (.mp3, .m4a, .zip)
+    const name = filename.replace(/\.(mp3|m4a|zip)$/i, '')
+    // Badilisha underscores na dashes kuwa spaces
+    return name.replace(/[-_]/g, ' ')
   }
 
   useEffect(() => {
@@ -191,17 +199,18 @@ export default function SirahPage() {
   const filteredAudios = useMemo((): SirahAudio[] => {
     if (!metadata?.files) return []
     let filtered = [...metadata.files]
-    
+
     if (searchTerm) {
       filtered = filtered.filter(audio =>
         audio.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         audio.translation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         audio.speaker.toLowerCase().includes(searchTerm.toLowerCase()) ||
         audio.date.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        audio.hijri.toLowerCase().includes(searchTerm.toLowerCase())
+        audio.hijri.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        audio.filename.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
-    
+
     filtered.sort((a, b) => {
       let comparison = 0
       switch (sortBy) {
@@ -217,7 +226,7 @@ export default function SirahPage() {
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-    
+
     return filtered
   }, [metadata, searchTerm, sortBy, sortOrder])
 
@@ -229,7 +238,7 @@ export default function SirahPage() {
 
   const handlePlayAudio = useCallback(async (audio: SirahAudio): Promise<void> => {
     const audioUrl = `${AUDIO_BASE_URL}/sirah/${audio.filename}`
-    
+
     const lectureAudio = {
       type: 'lecture' as const,
       id: audio.filename,
@@ -248,7 +257,7 @@ export default function SirahPage() {
       language: 'Arabic/Swahili',
       quality: '320kbps'
     }
-    
+
     try {
       if (audioState.currentLecture?.filename === audio.filename && audioState.audioType === 'lecture') {
         await togglePlay()
@@ -272,7 +281,7 @@ export default function SirahPage() {
   }, [])
 
   const handleShare = useCallback(async (audio: SirahAudio): Promise<void> => {
-    const shareText = `${audio.title}\n${audio.translation || ''}\nMwalimu: ${audio.speaker}\nTarehe: ${audio.date} (${audio.hijri})\nMuda: ${audio.duration}`
+    const shareText = `${audio.title}\n${audio.translation || ''}\nMwalimu: ${audio.speaker}\nTarehe: ${audio.date} (${audio.hijri})\nMuda: ${audio.duration}\nJina la faili: ${audio.filename}`
     const shareUrl = window.location.href
     if (navigator.share) {
       try {
@@ -408,7 +417,7 @@ export default function SirahPage() {
             <Search size={20} className="sirah-search-icon" />
             <input
               type="text"
-              placeholder="Tafuta darsa, mwalimu, tarehe..."
+              placeholder="Tafuta darsa, mwalimu, tarehe, au jina la faili..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value)
@@ -516,7 +525,7 @@ export default function SirahPage() {
               {searchTerm && ` zenye "${searchTerm}"`}
             </span>
           </div>
-          
+
           {bookmarked.length > 0 && (
             <div className="sirah-bookmarks-info">
               <Bookmark size={16} />
@@ -569,6 +578,13 @@ export default function SirahPage() {
                         <Clock size={14} />
                         <span>{formatDuration(audio.duration)}</span>
                       </div>
+                    </div>
+                    {/* FILENAME DISPLAY - GRID VIEW */}
+                    <div className="sirah-card-filename">
+                      <FileAudio size={12} />
+                      <span className="sirah-card-filename-text" title={audio.filename}>
+                        {formatFilename(audio.filename)}
+                      </span>
                     </div>
                     <div className="sirah-card-footer">
                       <div className="sirah-card-actions">
@@ -657,6 +673,13 @@ export default function SirahPage() {
                           <span className="sirah-list-meta-item">
                             <FileAudio size={14} />
                             {formatSize(audio.size)}
+                          </span>
+                        </div>
+                        {/* FILENAME DISPLAY - LIST VIEW */}
+                        <div className="sirah-list-filename">
+                          <FileAudio size={12} />
+                          <span className="sirah-list-filename-text" title={audio.filename}>
+                            {formatFilename(audio.filename)}
                           </span>
                         </div>
                       </div>

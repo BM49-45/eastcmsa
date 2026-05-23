@@ -272,34 +272,33 @@ const ANNOUNCEMENTS_KEY = 'announcements'
 
 const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
   // MUHADHARA EVENT - Only this one active
-  // {
-  //   id: 'muhadhara-may-2026',
-  //   title: '📢 TANGAZO LA MUHADHARA',
-  //   content: `NI IPI NAFASI NA DHIMA YA KIJANA WA KIISLAMU KATIKA MUJTAMAA`,
-  //   type: 'event',
-  //   createdAt: new Date(),
-  //   isActive: true,
-  //   location: 'Masjid Changanyikeni, Floor ya Kwanza',
-  //   time: '3:00 Asubuhi',
-  //   speaker: 'Sheikh Abuu Ayman Al-Shiiraaziy حفظه الله',
-  //   date: 'Jumamosi, 9 May 2026',
-  // },
-  // Tangazo la pili - INAWEZA KUFUTWA AU KUWEKWA ISActive: false
-  // {
-  //   id: '2',
-  //   title: '📖 DARSA MPYA KWA TAWHIID',
-  //   content: 'Kitabu: FADHILA ZA UISLAM (فضل الإسلام) - Utangulizi',
-  //   type: 'success',
-  //   createdAt: new Date(),
-  //   isActive: false,  // ← Imezimwa
-  // },
+  {
+    id: 'muhadhara-may-2026',
+    title: '📢 TANGAZO LA MUHADHARA',
+    content: `NI IPI NAFASI NA DHIMA YA KIJANA WA KIISLAMU KATIKA MUJTAMAA`,
+    type: 'event',
+    createdAt: new Date(),
+    isActive: false,
+    location: 'Masjid Changanyikeni, Floor ya Kwanza',
+    time: '3:00 Asubuhi',
+    speaker: 'Sheikh Abuu Ayman Al-Shiiraaziy حفظه الله',
+    date: 'Jumamosi, 9 May 2026',
+  },
+  {
+    id: '2',
+    title: '📖 DARSA MPYA KWA TAWHIID',
+    content: 'Kitabu: FADHILA ZA UISLAM (فضل الإسلام) - Utangulizi',
+    type: 'success',
+    createdAt: new Date(),
+    isActive: false, // ← Imezimwa
+  },
   {
     id: '3',
     title: '📖 AUDIO MPYA YA MUHADHARA',
     content: "IPI NAFASI NA DHIMA YA KIJANA WA KIISLAM KATIKA MUJTAMA'A",
     type: 'success',
     createdAt: new Date(),
-    isActive: true, // ← Imewashwa
+    isActive: true,
   },
 ]
 

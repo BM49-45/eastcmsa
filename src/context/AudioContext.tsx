@@ -106,16 +106,54 @@ export const useAudio = () => {
   return context
 }
 
+// When playing audio
+const logPlayActivity = async (audio: any) => {
+  try {
+    await fetch('/api/activities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'play_audio',
+        category: audio.category,
+        contentId: audio.id,
+        contentTitle: audio.title,
+        contentSpeaker: audio.speaker
+      })
+    })
+  } catch (error) {
+    console.error('Failed to log activity:', error)
+  }
+}
+
+// When downloading
+const logDownloadActivity = async (audio: any) => {
+  try {
+    await fetch('/api/activities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'download',
+        category: audio.category,
+        contentId: audio.id,
+        contentTitle: audio.title,
+        contentSpeaker: audio.speaker
+      })
+    })
+  } catch (error) {
+    console.error('Failed to log activity:', error)
+  }
+}
+
 // Helper function to get full URL
 const getFullUrl = (url: string): string => {
   if (url.startsWith('http')) return url
-  
+
   const baseUrl = process.env.NEXT_PUBLIC_AUDIO_BASE_URL
   if (!baseUrl) {
     console.error('❌ NEXT_PUBLIC_AUDIO_BASE_URL haipo!')
     return url
   }
-  
+
   // Remove leading slash if present
   const cleanPath = url.startsWith('/') ? url.substring(1) : url
   const fullUrl = `${baseUrl}/${cleanPath}`
@@ -135,7 +173,7 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
       audioRef.current.muted = audioState.isMuted
       audioRef.current.playbackRate = audioState.playbackRate
     }
-    
+
     return () => {
       if (audioRef.current) {
         audioRef.current.pause()
@@ -182,13 +220,13 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
         const nextLecture = audioState.playQueue[0]
         const newQueue = audioState.playQueue.slice(1)
         setAudioState(prev => ({ ...prev, playQueue: newQueue }))
-        
+
         if (nextLecture) {
           const fullUrl = getFullUrl(nextLecture.url)
           audio.src = fullUrl
           audio.load()
           audio.play().catch(console.error)
-          
+
           setAudioState(prev => ({
             ...prev,
             currentLecture: nextLecture,
@@ -228,7 +266,7 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
           toast.error('Hitilafu ya kucheza audio')
         }
       }
-      
+
       setAudioState(prev => ({ ...prev, isLoading: false, isPlaying: false }))
     }
 
@@ -261,11 +299,11 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
         toast.error('Audio URL haijasanidiwa')
         return
       }
-      
+
       const audioUrl = `${baseUrl}/${reciter.folder}/${surah.number.toString().padStart(3, '0')}.mp3`
-      
+
       audioRef.current.src = audioUrl
-      
+
       setAudioState(prev => ({
         ...prev,
         currentSurah: surah,
@@ -310,12 +348,12 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
       }))
 
       const fullUrl = getFullUrl(lecture.url)
-      
+
       audioRef.current.src = fullUrl
       audioRef.current.load()
-      
+
       await audioRef.current.play()
-      
+
       setAudioState(prev => ({
         ...prev,
         currentLecture: lecture,
@@ -326,7 +364,7 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
         isPlaying: true,
         currentTime: 0
       }))
-      
+
       toast.success(`Inacheza: ${lecture.title}`)
     } catch (error) {
       console.error('Play error:', error)
@@ -384,13 +422,13 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
       const nextLecture = audioState.playQueue[0]
       const newQueue = audioState.playQueue.slice(1)
       setAudioState(prev => ({ ...prev, playQueue: newQueue }))
-      
+
       if (nextLecture && audioRef.current) {
         const fullUrl = getFullUrl(nextLecture.url)
         audioRef.current.src = fullUrl
         audioRef.current.load()
         audioRef.current.play().catch(console.error)
-        
+
         setAudioState(prev => ({
           ...prev,
           currentLecture: nextLecture,

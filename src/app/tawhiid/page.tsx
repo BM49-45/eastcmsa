@@ -102,6 +102,14 @@ export default function TawhiidPage() {
     })
   }
 
+  // Format filename kwa ajili ya kuonyesha
+  const formatFilename = (filename: string) => {
+    // Toa extension (.mp3, .m4a, .zip)
+    const name = filename.replace(/\.(mp3|m4a|zip)$/i, '')
+    // Badilisha underscores na dashes kuwa spaces
+    return name.replace(/[-_]/g, ' ')
+  }
+
   // Set playlist when metadata changes
   useEffect(() => {
     if (metadata?.files && metadata.files.length > 0 && !playlistSetRef.current) {
@@ -123,7 +131,7 @@ export default function TawhiidPage() {
         language: 'Arabic/Swahili',
         quality: '320kbps'
       }))
-      
+
       setPlaylist(playlist)
       playlistSetRef.current = true
     }
@@ -133,7 +141,7 @@ export default function TawhiidPage() {
     try {
       setLoading(true)
       setError(null)
-      
+
       const response = await fetch(
         `${AUDIO_BASE_URL}/tawhiid/metadata.json`,
         {
@@ -143,11 +151,11 @@ export default function TawhiidPage() {
           }
         }
       )
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
-      
+
       const data = await response.json()
       if (data && data.files && Array.isArray(data.files)) {
         setMetadata(data)
@@ -210,16 +218,17 @@ export default function TawhiidPage() {
   const filteredAudios = useMemo(() => {
     if (!metadata?.files) return []
     let filtered = [...metadata.files]
-    
+
     if (searchTerm) {
       filtered = filtered.filter(audio =>
         audio.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         audio.translation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         audio.speaker.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        audio.date.toLowerCase().includes(searchTerm.toLowerCase())
+        audio.date.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        audio.filename.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
-    
+
     filtered.sort((a, b) => {
       let comparison = 0
       switch (sortBy) {
@@ -235,7 +244,7 @@ export default function TawhiidPage() {
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-    
+
     return filtered
   }, [metadata, searchTerm, sortBy, sortOrder])
 
@@ -247,7 +256,7 @@ export default function TawhiidPage() {
 
   const handlePlayAudio = useCallback(async (audio: TawhiidAudio) => {
     const audioUrl = `${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`
-    
+
     const lectureAudio = {
       type: 'lecture' as const,
       id: audio.filename,
@@ -266,11 +275,10 @@ export default function TawhiidPage() {
       language: 'Arabic/Swahili',
       quality: '320kbps'
     }
-    
+
     try {
-      // Check if same audio is playing
       if (audioState.currentLecture?.filename === audio.filename && audioState.audioType === 'lecture') {
-        await togglePlay() // Toggle play/pause
+        await togglePlay()
       } else {
         await playLectureAudio(lectureAudio)
       }
@@ -281,7 +289,7 @@ export default function TawhiidPage() {
   }, [metadata, audioState.currentLecture, audioState.audioType, playLectureAudio, togglePlay])
 
   const handleDownload = useCallback((audio: TawhiidAudio) => {
-      const audioUrl = `${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`
+    const audioUrl = `${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`
     const link = document.createElement('a')
     link.href = audioUrl
     link.download = audio.filename
@@ -291,7 +299,7 @@ export default function TawhiidPage() {
   }, [])
 
   const handleShare = useCallback(async (audio: TawhiidAudio) => {
-    const shareText = `${audio.title}\n${audio.translation || ''}\nMwalimu: ${audio.speaker}\nTarehe: ${audio.date}\nMuda: ${audio.duration}`
+    const shareText = `${audio.title}\n${audio.translation || ''}\nMwalimu: ${audio.speaker}\nTarehe: ${audio.date}\nMuda: ${audio.duration}\nJina la faili: ${audio.filename}`
     const shareUrl = window.location.href
     if (navigator.share) {
       try {
@@ -398,7 +406,7 @@ export default function TawhiidPage() {
               </div>
               <div className="tawhiid-hero-stat-value">
                 {metadata.location ? metadata.location.split(',')[0] : 'Chang\'anyikeni'}
-                </div>
+              </div>
             </div>
             <div className="tawhiid-hero-stat">
               <div className="tawhiid-hero-stat-icon">
@@ -429,7 +437,7 @@ export default function TawhiidPage() {
             <Search size={20} className="tawhiid-search-icon" />
             <input
               type="text"
-              placeholder="Tafuta darsa, mwalimu, tarehe..."
+              placeholder="Tafuta darsa, mwalimu, tarehe, au jina la faili..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value)
@@ -601,6 +609,13 @@ export default function TawhiidPage() {
                         <span>{formatDuration(audio.duration)}</span>
                       </div>
                     </div>
+                    {/* FILENAME DISPLAY - HII NDIYO ILIYOONGEZWA */}
+                    <div className="tawhiid-card-filename">
+                      <FileAudio size={12} />
+                      <span className="tawhiid-card-filename-text" title={audio.filename}>
+                        {formatFilename(audio.filename)}
+                      </span>
+                    </div>
                     <div className="tawhiid-card-footer">
                       <div className="tawhiid-card-actions">
                         <button
@@ -622,7 +637,7 @@ export default function TawhiidPage() {
                           <Download size={16} />
                         </button>
                         <a
-                           href={`${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`}
+                          href={`${process.env.NEXT_PUBLIC_AUDIO_BASE_URL}/tawhiid/${audio.filename}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="tawhiid-card-action"
@@ -692,6 +707,13 @@ export default function TawhiidPage() {
                           <span className="tawhiid-list-meta-item">
                             <FileAudio size={14} />
                             {formatSize(audio.size)}
+                          </span>
+                        </div>
+                        {/* FILENAME DISPLAY - LIST VIEW */}
+                        <div className="tawhiid-list-filename">
+                          <FileAudio size={12} />
+                          <span className="tawhiid-list-filename-text" title={audio.filename}>
+                            {formatFilename(audio.filename)}
                           </span>
                         </div>
                       </div>
