@@ -298,6 +298,15 @@ const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
     content: "IPI NAFASI NA DHIMA YA KIJANA WA KIISLAM KATIKA MUJTAMA'A",
     type: 'success',
     createdAt: new Date(),
+    isActive: false,
+  },
+  {
+    id: '4',
+    title: '📖 AUDIOS MPYA - MUHADHARA SEHEMU YA MASWALI NA MAJIBU & DARSA YA TAWHIID',
+    content:
+      "MASWALI NA MAJIBU & WAJIBU WA KUTOSHEKA NA DA'3WA YA UISLAM NA KUJIEPUSHA NA DA'3WA ZILIZO KINYUME NA UISLAM.",
+    type: 'success',
+    createdAt: new Date(),
     isActive: true,
   },
 ]

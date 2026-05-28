@@ -29,7 +29,7 @@ export default function SharePrompt() {
     const pageVisits = parseInt(localStorage.getItem('page-visits') || '0')
     if (pageVisits >= 5) {
       const timer = setTimeout(() => {
-        setShowPrompt(true)
+        setShowPrompt(false)
       }, 5000)
       return () => clearTimeout(timer)
     }

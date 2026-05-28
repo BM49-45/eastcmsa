@@ -22,7 +22,7 @@ export default function SubscribePrompt() {
       }
 
       if (!session?.user) return
-      
+
       try {
         const res = await fetch('/api/user/subscription')
         const data = await res.json()
@@ -47,7 +47,7 @@ export default function SubscribePrompt() {
 
       // Show prompt after 10 seconds
       const timer = setTimeout(() => {
-        setShowPrompt(true)
+        setShowPrompt(false)
       }, 10000)
       return () => clearTimeout(timer)
     }
@@ -69,12 +69,12 @@ export default function SubscribePrompt() {
       })
 
       if (res.ok) {
-        setIsSubscribed(true)
+        setIsSubscribed(false)
         setShowPrompt(false)
         trackSubscribe()
         localStorage.setItem('user-subscribed', 'true')
         localStorage.setItem('subscribe-prompt-permanently-dismissed', 'true')
-        
+
         // Show success message
         const successMsg = document.createElement('div')
         successMsg.className = 'fixed bottom-20 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-in slide-in-from-bottom-5'
