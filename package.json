@@ -3,12 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "next lint",
-    
+    "lint": "next lint"
     "postinstall": "node scripts/init-uploads.js"
   },
   "dependencies": {
