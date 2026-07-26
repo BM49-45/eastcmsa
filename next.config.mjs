@@ -14,7 +14,7 @@ const nextConfig = {
   },
   output: 'standalone',
 
-  // Fix for Turbopack - add empty turbopack config
+  // Fix for Turbopack - Add empty config
   turbopack: {
     // Empty config to silence the warning
   },
@@ -24,11 +24,10 @@ const nextConfig = {
     optimizeCss: false,
   },
 
-  // Static generation timeout
   staticPageGenerationTimeout: 120,
 }
 
 // Only use PWA in production builds
 const isProduction = process.env.NODE_ENV === 'production'
 
-module.exports = isProduction ? withPWA(nextConfig) : nextConfig
+export default isProduction ? withPWA(nextConfig) : nextConfig
