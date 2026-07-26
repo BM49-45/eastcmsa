@@ -307,6 +307,14 @@ const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
       "MASWALI NA MAJIBU & WAJIBU WA KUTOSHEKA NA DA'3WA YA UISLAM NA KUJIEPUSHA NA DA'3WA ZILIZO KINYUME NA UISLAM.",
     type: 'success',
     createdAt: new Date(),
+    isActive: false,
+  },
+  {
+    id: '5',
+    title: '📖 AUDIOS MPYA - KITABU FADHILA ZA UISLAM.',
+    content: 'AUDIO ZOTE ZIMESHAWEKWA HADI KUFIKIA DARSA YA 25 JUNE',
+    type: 'success',
+    createdAt: new Date(),
     isActive: true,
   },
 ]
