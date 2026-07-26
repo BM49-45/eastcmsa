@@ -31,13 +31,13 @@ interface AudioFile {
 }
 
 interface Props {
-  params: {
+  params: Promise<{
     category: string
-  }
+  }>
 }
 
 export default async function CategoryPage({ params }: Props) {
-  const { category } = params
+  const { category } = await params
   
   // Validate category
   const categoryInfo = categories.find(c => c.id === category) as CategoryInfo | undefined
